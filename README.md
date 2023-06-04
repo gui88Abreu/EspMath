@@ -1,2 +1,2 @@
 # EspMath
-Library that implement tools to perform math operations optimized for ESP32 devices
+Library that implements tools to perform optimized math operations for ESP32 devices
