@@ -60,6 +60,8 @@ namespace espmath{
     static_assert(sizeof(T) <= 4, "Long types are not supported!");
   public:
 
+    typedef T* arrayPntr;
+
     /**
      * @brief Supported array types
      * 
@@ -77,7 +79,7 @@ namespace espmath{
      * @param someArray 
      * @return SupportedTypes 
      */
-    static SupportedTypes getType(const int8_t* someArray)
+    static const SupportedTypes getType(const int8_t* someArray)
     {
       return int8_type;
     }
@@ -88,7 +90,7 @@ namespace espmath{
      * @param someArray 
      * @return SupportedTypes 
      */
-    static SupportedTypes getType(const int16_t* someArray)
+    static const SupportedTypes getType(const int16_t* someArray)
     {
       return int16_type;
     }
@@ -99,7 +101,7 @@ namespace espmath{
      * @param someArray 
      * @return SupportedTypes 
      */
-    static SupportedTypes getType(const int32_t* someArray)
+    static const SupportedTypes getType(const int32_t* someArray)
     {
       return int32_type;
     }
@@ -110,7 +112,7 @@ namespace espmath{
      * @param someArray 
      * @return SupportedTypes 
      */
-    static SupportedTypes getType(const float* someArray)
+    static const SupportedTypes getType(const float* someArray)
     {
       return float_type;
     }
@@ -128,7 +130,7 @@ namespace espmath{
      * @brief Construct a new Array object
      * 
      * @param initialMem The initial size (amount of memory blocks) of the array.
-     * @param __persistent If true, the object won't be deleted after assign operation.
+     * @param __persistent If true, the object won't be deleted after the next array operation.
      */
     Array(const size_t initialMem = 0, bool __persistent = true)
     {
@@ -142,7 +144,7 @@ namespace espmath{
      * 
      * @param initialValues Initial values of the array.
      * @param initialMem The initial size (amount of memory blocks) of the array.
-     * @param __persistent If true, the object won't be deleted after assign operation.
+     * @param __persistent If true, the object won't be deleted after the next array operation.
      */
     Array(const T* initialValues,\
           const size_t initialMem = 0,\
@@ -156,6 +158,18 @@ namespace espmath{
         _array[_length] = initialValues[_length];
         _length++;
       }
+    }
+
+    /**
+     * @brief Construct a new Array object from another array
+     * 
+     * @param another 
+     * @param __persistent If true, the object won't be deleted after the next array operation.
+     */
+    Array(Array<T>& another, bool __persistent = true)
+    {
+      *this = another;
+      _persistent = __persistent;
     }
 
     /**
@@ -219,6 +233,10 @@ namespace espmath{
             return true;
         }
       }
+
+      if(!_persistent)
+        delete this;
+
       return false;
     }
 
@@ -573,9 +591,9 @@ namespace espmath{
     /**
      * @brief Implicit cast for array pointer
      * 
-     * @return T* 
+     * @return arrayPntr 
      */
-    operator T*(){return _array;}
+    operator arrayPntr() const {return _array;}
     
     /**
      * @brief Assign a value to an existent position of the _array
@@ -660,6 +678,9 @@ namespace espmath{
             return true;
         }
       }
+
+      if(!another.persistent())
+        delete another;
       return false;
     }
 
@@ -727,7 +748,7 @@ namespace espmath{
     /**
      * @brief Modify the persistent status
      * 
-     * @param __persistent If true, the object won't be deleted after assign operation.
+     * @param __persistent If true, the object won't be deleted after the next array operation.
      * @return true 
      * @return false
      */
@@ -738,7 +759,7 @@ namespace espmath{
     }
 
   protected:
-    bool _persistent = true; /*If true, the object won't be deleted after assign operation.*/
+    bool _persistent = true; /*If true, the object won't be deleted after the next array operation.*/
     size_t _size = 0; /*Total bytes allocated*/
     size_t _length = 0; /*Length of the _array*/
     T* _array = NULL; /*Array pointer*/
