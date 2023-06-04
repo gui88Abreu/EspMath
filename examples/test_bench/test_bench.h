@@ -29,12 +29,12 @@ void test_ari(bool _suspend = true)
   float floatOutput[_MAX_SIZE_];
   size_t max_random;
 
-  switch (getArrayType(output))
+  switch (Array<>::getType(output))
   {
-    case int8_type: max_random = (size_t)(10); break;
-    case int16_type: max_random = (size_t)(200); break;
-    case float_type: max_random = (size_t)(200); break;
-    default: case int32_type: max_random = (size_t)(1000); break;
+    case Array<>::int8_type: max_random = (size_t)(10); break;
+    case Array<>::int16_type: max_random = (size_t)(200); break;
+    case Array<>::float_type: max_random = (size_t)(200); break;
+    default: case Array<>::int32_type: max_random = (size_t)(1000); break;
   }
 
   const T randomConstant = nonZeroRandomNumber<T>(max_random);

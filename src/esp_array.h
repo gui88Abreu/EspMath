@@ -12,47 +12,30 @@
 namespace espmath{
   using namespace espmath;
 
-  enum ArrayType{
-    int8_type,
-    int16_type,
-    int32_type,
-    float_type
-  };
-
-  ArrayType getArrayType(const int8_t* someArray)
-  {
-    return int8_type;
-  }
-
-  ArrayType getArrayType(const int16_t* someArray)
-  {
-    return int16_type;
-  }
-
-  ArrayType getArrayType(const int32_t* someArray)
-  {
-    return int32_type;
-  }
-
-  ArrayType getArrayType(const float* someArray)
-  {
-    return float_type;
-  }
-
   /**
-   * @brief Compare floats with different precisions.
+   * @brief Compare floats with different tolerances.
    * 
-   * @param f1 
-   * @param f2 
+   * @param f1
+   * @param f2
    * @param EPSILON tolerance
-   * @return true 
-   * @return false 
+   * @return true floats are equal
+   * @return false floats aren't equal
    */
   bool eqFloats(const float f1, const float f2, const float EPSILON = 0.0001)
   {
-   return (fabs(f1 - f2) < EPSILON);
+   return (fabs(f1 - f2) <= EPSILON);
   }
 
+  /**
+   * @brief Copy array and multiply it by a constant
+   * 
+   * @tparam T1 Type of the source array.
+   * @tparam T2 Type of the destination array.
+   * @param src Source array.
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
   template<typename T1, typename T2>
   void cpyArray(T1* src, T2* dest, size_t len, const T2 cnst = 1)
   {
@@ -70,12 +53,67 @@ namespace espmath{
    * 
    * @tparam T Array type
    */
-  template <typename T> class Array
+  template <typename T = float> class Array
   {
     static_assert(std::is_arithmetic<T>::value, "Arrays must support arithmetic operations!");
     static_assert(std::is_signed<T>::value, "Arrays must be signed!");
     static_assert(sizeof(T) <= 4, "Long types are not supported!");
   public:
+
+    /**
+     * @brief Supported array types
+     * 
+     */
+    enum SupportedTypes{
+      int8_type,
+      int16_type,
+      int32_type,
+      float_type
+    };
+
+    /**
+     * @brief Get the Array Type object
+     * 
+     * @param someArray 
+     * @return SupportedTypes 
+     */
+    static SupportedTypes getType(const int8_t* someArray)
+    {
+      return int8_type;
+    }
+
+    /**
+     * @brief Get the Array Type object
+     * 
+     * @param someArray 
+     * @return SupportedTypes 
+     */
+    static SupportedTypes getType(const int16_t* someArray)
+    {
+      return int16_type;
+    }
+
+    /**
+     * @brief Get the Array Type object
+     * 
+     * @param someArray 
+     * @return SupportedTypes 
+     */
+    static SupportedTypes getType(const int32_t* someArray)
+    {
+      return int32_type;
+    }
+
+    /**
+     * @brief Get the Array Type object
+     * 
+     * @param someArray 
+     * @return SupportedTypes 
+     */
+    static SupportedTypes getType(const float* someArray)
+    {
+      return float_type;
+    }
 
     /**
      * @brief Destroy the Array object
@@ -165,7 +203,7 @@ namespace espmath{
     {
       size_t i = 0;
       
-      if (getArrayType(_array) == float_type)
+      if (getType(_array) == float_type)
       {
         while(i < _length)
         {
@@ -206,7 +244,7 @@ namespace espmath{
     bool operator==(const T* input)
     {
       size_t i = 0;
-      if (getArrayType(_array) == float_type)
+      if (getType(_array) == float_type)
       {
         while( i < _length)
         {
@@ -265,7 +303,7 @@ namespace espmath{
      */
     Array& operator+=(const T value)
     {
-      switch(getArrayType(_array))
+      switch(getType(_array))
       {
         case float_type:
         {
@@ -307,7 +345,7 @@ namespace espmath{
      */
     Array& operator*=(const T value)
     { 
-      switch(getArrayType(_array))
+      switch(getType(_array))
       {
         case float_type:
         {
@@ -350,7 +388,7 @@ namespace espmath{
      */
     Array& operator+=(Array& another)
     { 
-      switch(getArrayType(_array))
+      switch(getType(_array))
       {
         case int8_type:
         {
@@ -397,7 +435,7 @@ namespace espmath{
      */
     Array& operator-=(Array& another)
     {
-      switch(getArrayType(_array))
+      switch(getType(_array))
       {
         case int8_type:
         {
@@ -447,7 +485,7 @@ namespace espmath{
      */
     Array& operator*=(Array& another)
     {
-      switch(getArrayType(_array))
+      switch(getType(_array))
       {
         case int8_type:
         {
@@ -606,7 +644,7 @@ namespace espmath{
      */
     bool diff(Array& another, const float EPSILON = 0.0001)
     {
-      if (getArrayType(_array))
+      if (getType(_array))
       {
         for (size_t i = 0; i < _length; i++)
         {
@@ -663,6 +701,16 @@ namespace espmath{
     uint32_t memCaps() const
     {
       return (const uint32_t)(MALLOC_CAP_DEFAULT | MALLOC_CAP_8BIT);
+    }
+
+    /**
+     * @brief Retrieve the array type
+     * 
+     * @return SupportedTypes
+     */
+    SupportedTypes myType() const
+    {
+      return getType(_array);
     }
 
     /**
@@ -875,7 +923,7 @@ namespace espmath{
     Array<float>* newArray;
     float input[onearray.length()];
 
-    if (getArrayType(onearray.getArrayPntr()) == float_type)
+    if (onearray.myType() == Array<>::float_type)
     {
       newArray = new Array<float>((float*)onearray.getArrayPntr(), onearray.length());
     }
@@ -927,7 +975,7 @@ namespace espmath{
     Array<float>* newArray;
     float input[onearray.length()];
 
-    if (getArrayType(onearray.getArrayPntr()) == float_type)
+    if (onearray.myType() == Array<>::float_type)
     {
       newArray = new Array<float>((float*)onearray.getArrayPntr(), onearray.length());
     }
