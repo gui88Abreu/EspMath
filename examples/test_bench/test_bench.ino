@@ -1,5 +1,4 @@
 #include "test_bench.h"
-#include "hard_debug.h"
 
 void setup(){
   vTaskDelay(pdMS_TO_TICKS(5000));
