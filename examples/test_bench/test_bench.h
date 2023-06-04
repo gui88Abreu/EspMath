@@ -258,7 +258,7 @@ void test_ari(bool _suspend = true)
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print(floatResult.getArrayPntr(), _ARRAY_LENGTH_);
+    debug.print(floatResult, _ARRAY_LENGTH_);
     debug.print(floatOutput, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
