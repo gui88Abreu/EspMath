@@ -21,26 +21,134 @@ namespace espmath{
    * @return true floats are equal
    * @return false floats aren't equal
    */
-  bool eqFloats(const float f1, const float f2, const float EPSILON = 0.0001)
+  inline const bool eqFloats(const float f1, const float f2, const float EPSILON = 0.0001)
   {
    return (fabs(f1 - f2) <= EPSILON);
   }
 
   /**
-   * @brief Copy array and multiply it by a constant
+   * @brief dest[i] = src[i]*cnst;
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
-   * @param src Source array.
+   * @param src Source array. If src == NULL, then dest[i] = cnst;
    * @param dest Destination array.
    * @param len Quantity of elements to copy.
    * @param cnst Constant to multiply the output.
    */
   template<typename T1, typename T2>
-  void cpyArray(T1* src, T2* dest, size_t len, const T2 cnst = 1)
+  inline void cpyArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
   {
-    for(size_t i = 0; i < len; i++)
-      dest[i] = (T2)(src[i]*cnst);
+    if (src)
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] = (T2)(src[i]*cnst);
+    }
+    else
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] = (T2)(cnst);
+    }
+  }
+
+  /**
+   * @brief dest[i] += src[i]*cnst;
+   * 
+   * @tparam T1 Type of the source array.
+   * @tparam T2 Type of the destination array.
+   * @param src Source array. If src == NULL, then dest[i] += cnst;
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+  template<typename T1, typename T2>
+  inline void addArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  {
+    if (src)
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] += (T2)(src[i]*cnst);
+    }
+    else
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] += (T2)(cnst);
+    }
+  }
+
+  /**
+   * @brief dest[i] -= src[i]*cnst;
+   * 
+   * @tparam T1 Type of the source array.
+   * @tparam T2 Type of the destination array.
+   * @param src Source array. If src == NULL, then dest[i] -= cnst;
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+  template<typename T1, typename T2>
+  inline void subArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  {
+    if (src)
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] -= (T2)(src[i]*cnst);
+    }
+    else
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] -= (T2)(cnst);
+    }
+  }
+
+  /**
+   * @brief dest[i] *= src[i]*cnst;
+   * 
+   * @tparam T1 Type of the source array.
+   * @tparam T2 Type of the destination array.
+   * @param src Source array. If src == NULL, then dest[i] *= cnst;
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+  template<typename T1, typename T2>
+  inline void mulArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  {
+    if (src)
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] *= (T2)(src[i]*cnst);
+    }
+    else
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] *= (T2)(cnst);
+    }
+  }
+
+  /**
+   * @brief dest[i] /= src[i]*cnst;
+   * 
+   * @tparam T1 Type of the source array.
+   * @tparam T2 Type of the destination array.
+   * @param src Source array. If src == NULL, then dest[i] /= cnst;
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+  template<typename T1, typename T2>
+  inline void divArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  {
+    if (src)
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] /= (T2)(src[i]*cnst);
+    }
+    else
+    {
+      for(size_t i = 0; i < len; i++)
+        dest[i] /= (T2)(cnst);
+    }
   }
 
   /**
@@ -49,7 +157,7 @@ namespace espmath{
    * This implements an array suitable for ESP32 boards.
    * Using this class, you can create an array of any arithmetic type.
    * 
-   * @note Arithmetic operations make use of DSP instructions.
+   * @note Most of float and int16_t arithmetic operations make use of DSP instructions.
    * 
    * @tparam T Array type
    */
@@ -118,6 +226,16 @@ namespace espmath{
     }
 
     /**
+     * @brief Return the allocated memory capabilities.
+     * 
+     * @return uint32_t
+     */
+    static const uint32_t memCaps()
+    {
+      return (const uint32_t)(MALLOC_CAP_DEFAULT | MALLOC_CAP_8BIT);
+    }
+
+    /**
      * @brief Destroy the Array object
      * 
      */
@@ -148,12 +266,9 @@ namespace espmath{
     {
       if (!_array)
         return;
-        
-      while(_length < initialMem)
-      {
-        _array[_length] = initialValues[_length];
-        _length++;
-      }
+
+      _length = initialMem;
+      cpyArray(initialValues, _array, _length);
     }
 
     /**
@@ -292,7 +407,7 @@ namespace espmath{
      * @brief Add a constant
      * 
      * @param value 
-     * 
+     * @note Float arrays make use of DSP instructions.
      */
     void operator+=(const T value)
     {
@@ -308,10 +423,7 @@ namespace espmath{
         case int32_type:
         default:
         {
-          float _arrayCpy[_length];
-          cpyArray(_array, _arrayCpy, _length);
-          dsps_addc_f32(_arrayCpy, _arrayCpy,_length, value, 1, 1);
-          cpyArray(_arrayCpy, _array, _length);
+          addArray((T*)NULL, _array, _length, value);
           break;
         }
       }
@@ -321,7 +433,7 @@ namespace espmath{
      * @brief Subtract a constant
      * 
      * @param value 
-     * 
+     * @note Float arrays make use of DSP instructions.
      */
     void operator-=(const T value)
     {
@@ -332,7 +444,7 @@ namespace espmath{
      * @brief Multiply by a constant
      * 
      * @param value 
-     * 
+     * @note Float arrays make use of DSP instructions.
      */
     void operator*=(const T value)
     { 
@@ -348,10 +460,7 @@ namespace espmath{
         case int32_type:
         default:
         {
-          float _arrayCpy[_length];
-          cpyArray(_array, _arrayCpy, _length);
-          dsps_mulc_f32(_arrayCpy, _arrayCpy, _length, value, 1, 1);
-          cpyArray(_arrayCpy, _array, _length);
+          mulArray((T*)NULL, _array, _length, value);
           break;
         }
       }
@@ -361,7 +470,7 @@ namespace espmath{
      * @brief Divide by a constant
      * 
      * @param value 
-     * 
+     * @note Float arrays make use of DSP instructions.
      */
     void operator/=(const float value)
     {
@@ -371,23 +480,13 @@ namespace espmath{
     /**
      * @brief Add an array
      * 
-     * @param another 
-     * 
+     * @param another
+     * @note Float and int16_t arrays make use of DSP instructions.
      */
     void operator+=(const Array& another)
     { 
       switch(myType())
       {
-        case int8_type:
-        {
-          int16_t _arrayCpy[_length];
-          int16_t _anotherCpy[_length];
-          cpyArray(_array, _arrayCpy, _length);
-          cpyArray(another.getArrayPntr(), _anotherCpy, _length);
-          dsps_add_s16(_arrayCpy, _anotherCpy, _arrayCpy, _length, 1, 1, 1, 0);
-          cpyArray(_arrayCpy, _array, _length);
-          break;
-        }
         case int16_type:
         {
           dsps_add_s16((int16_t*)_array, (int16_t*)another.getArrayPntr(), (int16_t*)_array, _length, 1, 1, 1, 0);
@@ -398,14 +497,11 @@ namespace espmath{
           dsps_add_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length, 1, 1, 1);
           break;
         }
-        default: case int32_type:
+        case int8_type:
+        case int32_type:
+        default: 
         {
-          float _arrayCpy[_length];
-          float _anotherCpy[_length];
-          cpyArray(_array, _arrayCpy, _length);
-          cpyArray(another.getArrayPntr(), _anotherCpy, _length);
-          dsps_add_f32(_arrayCpy, _anotherCpy, _arrayCpy, _length, 1, 1, 1);
-          cpyArray(_arrayCpy, _array, _length);
+          addArray((T*)another, _array, _length);
           break;
         }
       }
@@ -419,42 +515,23 @@ namespace espmath{
      * @brief Subtract an array
      * 
      * @param another 
-     * 
+     * @note Float arrays make use of DSP instructions.
      */
     void operator-=(const Array& another)
     {
       switch(myType())
       {
-        case int8_type:
-        {
-          int16_t _arrayCpy[_length];
-          int16_t negativeAnother[_length];
-          cpyArray(_array, _arrayCpy, _length);
-          cpyArray(another.getArrayPntr(), negativeAnother, _length, (int16_t)-1);
-          dsps_add_s16(_arrayCpy, negativeAnother, _arrayCpy, _length, 1, 1, 1, 0);
-          cpyArray(_arrayCpy, _array, _length);
-          break;
-        }
-        case int16_type:
-        {
-          int16_t negativeAnother[_length];
-          cpyArray(another.getArrayPntr(), negativeAnother, _length, (int16_t)-1);
-          dsps_add_s16((int16_t*)_array, negativeAnother, (int16_t*)_array, _length, 1, 1, 1, 0);
-          break;
-        }
         case float_type:
         {
           dsps_sub_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length,1,1,1);
           break;
         }
-        default: case int32_type:
+        case int8_type:
+        case int16_type:
+        case int32_type:
+        default: 
         {
-          float _arrayCpy[_length];
-          float _anotherCpy[_length];
-          cpyArray(_array, _arrayCpy, _length);
-          cpyArray(another.getArrayPntr(), _anotherCpy, _length);
-          dsps_sub_f32(_arrayCpy, _anotherCpy, _arrayCpy, _length, 1, 1, 1);
-          cpyArray(_arrayCpy, _array, _length);
+          subArray((T*)another, _array, _length);
           break;
         }
       }
@@ -468,22 +545,12 @@ namespace espmath{
      * @brief Multiply by an array
      * 
      * @param another 
-     * 
+     * @note Float and int16_t arrays make use of DSP instructions.
      */
     void operator*=(const Array& another)
     {
       switch(myType())
       {
-        case int8_type:
-        {
-          int16_t _arrayCpy[_length];
-          int16_t _anotherCpy[_length];
-          cpyArray(_array, _arrayCpy, _length);
-          cpyArray(another.getArrayPntr(), _anotherCpy, _length);
-          dsps_mul_s16(_arrayCpy, _anotherCpy, _arrayCpy, _length, 1, 1, 1, 0);
-          cpyArray(_arrayCpy, _array, _length);
-          break;
-        }
         case int16_type:
         {
           dsps_mul_s16((int16_t*)_array, (int16_t*)another.getArrayPntr(), (int16_t*)_array, _length, 1, 1, 1, 0);
@@ -494,14 +561,11 @@ namespace espmath{
           dsps_mul_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length,1,1,1);
           break;
         }
-        default: case int32_type:
+        case int8_type:
+        case int32_type:
+        default:
         {
-          float _arrayCpy[_length];
-          float _anotherCpy[_length];
-          cpyArray(_array, _arrayCpy, _length);
-          cpyArray(another.getArrayPntr(), _anotherCpy, _length);
-          dsps_mul_f32(_arrayCpy, _anotherCpy, _arrayCpy, _length, 1, 1, 1);
-          cpyArray(_arrayCpy, _array, _length);
+          mulArray((T*)another, _array, _length);
           break;
         }
       }
@@ -591,15 +655,14 @@ namespace espmath{
 
       _size = _mem2alloc(_length+1);
       _array = _array 
-                ? (T*)heap_caps_realloc(_array, _size, this->memCaps())
-                : (T*)heap_caps_malloc(_size, this->memCaps());
+              ? (T*)heap_caps_realloc(_array, _size, this->memCaps())
+              : (T*)heap_caps_malloc(_size, this->memCaps());
 
       if (_array)
       {
         (*this)[_length++] = value;
         return true;
       }
-
       return false;
     }
 
@@ -620,7 +683,9 @@ namespace espmath{
      * @brief Get the convolution of the array by the given kernel
      * 
      * @param kernel 
-     * @return Array&& output array with convolution result length of (siglen + Kernel -1)
+     * @return Array output array with convolution result length of (siglen + Kernel -1)
+     * 
+     * @note Float arrays make use of DSP instructions.
      */
     const Array conv(const Array& kernel)
     {
@@ -674,7 +739,9 @@ namespace espmath{
      * @brief Get the correlation array with the given pattern
      * 
      * @param pattern 
-     * @return Array<float>&&
+     * @return Array<float>
+     * 
+     * @note Float arrays make use of DSP instructions.
      */
     const Array<float> correlation(const Array& pattern)
     {
@@ -763,16 +830,6 @@ namespace espmath{
     }
 
     /**
-     * @brief Return the allocated memory capabilities.
-     * 
-     * @return uint32_t 
-     */
-    static const uint32_t memCaps()
-    {
-      return (const uint32_t)(MALLOC_CAP_DEFAULT | MALLOC_CAP_8BIT);
-    }
-
-    /**
      * @brief Retrieve the array type
      * 
      * @return SupportedTypes
@@ -834,7 +891,7 @@ namespace espmath{
    * @brief Add an array to a constant
    * 
    * @param another 
-   * @return Array&&
+   * @return Array
    */
   template<typename T>
   inline const Array<T> operator+(const T value, const Array<T>& another)
@@ -878,7 +935,7 @@ namespace espmath{
    * @brief Subtract a constant from an array
    * 
    * @param another 
-   * @return Array&& 
+   * @return Array 
    */
   template<typename T>
   inline const Array<T> operator-(const T value, const Array<T>& onearray)
@@ -924,7 +981,7 @@ namespace espmath{
    * @brief Multiply a constant by an array
    * 
    * @param another 
-   * @return Array&& 
+   * @return Array 
    */
   template<typename T>
   inline const Array<T> operator*(const T value, const Array<T>& another)
@@ -966,7 +1023,7 @@ namespace espmath{
    * @brief Divide a constant by an array
    * 
    * @param another 
-   * @return Array&& 
+   * @return Array 
    */
   template<typename T>
   inline const Array<float> operator/(const float value, const Array<T>& another)
