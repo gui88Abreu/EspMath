@@ -2,7 +2,7 @@
 #define _ESP_ARRAY_TEST_BENCH_H_
 
 #include <Arduino.h>
-#include "esp_array.h"
+#include "esp_math.h"
 #include "hard_debug.h"
 
 using namespace espmath;
