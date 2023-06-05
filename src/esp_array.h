@@ -768,7 +768,7 @@ namespace espmath{
      * 
      * @return uint32_t 
      */
-    static uint32_t memCaps()
+    static const uint32_t memCaps()
     {
       return (const uint32_t)(MALLOC_CAP_DEFAULT | MALLOC_CAP_8BIT);
     }
