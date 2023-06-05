@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <type_traits>
 #include <esp_dsp.h>
+#include "hard_debug.h"
 
 /**
  * @brief Namespace for custom ESP32 MATH libraries
@@ -130,11 +131,9 @@ namespace espmath{
      * @brief Construct a new Array object
      * 
      * @param initialMem The initial size (amount of memory blocks) of the array.
-     * @param __persistent If true, the object won't be deleted after the next array operation.
      */
-    Array(const size_t initialMem = 0, bool __persistent = true)
+    Array(const size_t initialMem = 0)
     {
-      _persistent = __persistent;
        _size = _mem2alloc(initialMem);
       _array = _size > 0 ? (T*)heap_caps_malloc(_size, this->memCaps()) : NULL;
     }
@@ -144,11 +143,9 @@ namespace espmath{
      * 
      * @param initialValues Initial values of the array.
      * @param initialMem The initial size (amount of memory blocks) of the array.
-     * @param __persistent If true, the object won't be deleted after the next array operation.
      */
     Array(const T* initialValues,\
-          const size_t initialMem = 0,\
-          bool __persistent = true):Array(initialMem, __persistent)
+          const size_t initialMem = 0):Array(initialMem)
     {
       if (!_array)
         return;
@@ -161,16 +158,20 @@ namespace espmath{
     }
 
     /**
-     * @brief Construct a new Array object from another array
+     * @brief Constructer
      * 
      * @param another 
-     * @param __persistent If true, the object won't be deleted after the next array operation.
      */
-    Array(Array<T>& another, bool __persistent = true)
-    {
-      *this = another;
-      _persistent = __persistent;
-    }
+    Array(const Array<T>& another){copy(another);}
+    Array(const Array&& another):Array(another){}
+
+    /**
+     * @brief Assign operation
+     * 
+     * @param another 
+     */
+    void operator=(const Array& another){copy(another);}
+    void operator=(const Array&& another){copy(another);}
 
     /**
      * @brief Get array element
@@ -178,32 +179,9 @@ namespace espmath{
      * @param index 
      * @return T 
      */
-    T& operator[](const size_t index)
+    const T& operator[](const size_t index)
     {
       return (*((T*)_array + index));
-    }
-
-    /**
-     * @brief Assign another object to this object
-     * 
-     * @param another 
-     * @return Array& 
-     */
-    Array& operator=(Array& another)
-    {
-      if (_array)
-        heap_caps_free(_array);
-      _length = another.length();
-      _size = another.memSize();
-      _array = (T*)heap_caps_malloc(_size, this->memCaps());
-
-      for(size_t i = 0; i < _length; i++)
-        _array[i] = another[i];
-      
-      if (!another.persistent())
-        delete &another;
-
-      return *this;
     }
 
     /**
@@ -213,7 +191,7 @@ namespace espmath{
      * @return true There is at least 1 value in the _array.
      * @return false The value is no present in the _array.
      */
-    bool operator==(const T value)
+    const bool operator==(const T value)
     {
       size_t i = 0;
       
@@ -234,9 +212,6 @@ namespace espmath{
         }
       }
 
-      if(!_persistent)
-        delete this;
-
       return false;
     }
 
@@ -247,7 +222,7 @@ namespace espmath{
      * @return true The value is no present in the _array.
      * @return false There is at least 1 value in the _array.
      */
-    bool operator!=(const T value) const
+    const bool operator!=(const T value) const
     {
       return !(*this == value);
     }
@@ -259,7 +234,7 @@ namespace espmath{
      * @return true Every value of the _array is contained in input.
      * @return false Not all values of the _array are contained in input.
      */
-    bool operator==(const T* input)
+    const bool operator==(const T* input)
     {
       size_t i = 0;
       if (myType())
@@ -281,8 +256,6 @@ namespace espmath{
         }
       }
 
-      if(!_persistent)
-        delete this;
       return true;
     }
 
@@ -293,11 +266,14 @@ namespace espmath{
      * @return true Every value of the _array is contained in input.
      * @return false Not all values of the _array are contained in input.
      */
-    bool operator==(Array& another)
+    const bool operator==(Array& another)
     {
       bool result = *this == another.getArrayPntr();
-      if (!another.persistent())
-        delete &another;
+      return result;
+    }
+    const bool operator==(Array&& another)
+    {
+      bool result = *this == another.getArrayPntr();
       return result;
     }
 
@@ -308,7 +284,7 @@ namespace espmath{
      * @return true Not all values of the _array are contained in input.
      * @return false Every value of the _array is contained in input.
      */
-    bool operator!=(const T* input)
+    const bool operator!=(const T* input)
     {
       return !(*this == input);
     }
@@ -317,9 +293,9 @@ namespace espmath{
      * @brief Add a constant
      * 
      * @param value 
-     * @return Array& 
+     * 
      */
-    Array& operator+=(const T value)
+    void operator+=(const T value)
     {
       switch(myType())
       {
@@ -340,28 +316,26 @@ namespace espmath{
           break;
         }
       }
-      return *this;
     }
 
     /**
      * @brief Subtract a constant
      * 
      * @param value 
-     * @return Array& 
+     * 
      */
-    Array& operator-=(const T value)
+    void operator-=(const T value)
     {
       *this += value*(-1);
-      return *this;
     }
 
     /**
      * @brief Multiply by a constant
      * 
      * @param value 
-     * @return Array& 
+     * 
      */
-    Array& operator*=(const T value)
+    void operator*=(const T value)
     { 
       switch(myType())
       {
@@ -382,29 +356,26 @@ namespace espmath{
           break;
         }
       }
-      return *this;
     }
 
     /**
      * @brief Divide by a constant
      * 
      * @param value 
-     * @return Array& 
+     * 
      */
-    Array& operator/=(const float value)
+    void operator/=(const float value)
     {
       (*this) *= (1.0/value);
-
-      return *this;
     }
 
     /**
      * @brief Add an array
      * 
      * @param another 
-     * @return Array& 
+     * 
      */
-    Array& operator+=(Array& another)
+    void operator+=(const Array& another)
     { 
       switch(myType())
       {
@@ -439,19 +410,19 @@ namespace espmath{
           break;
         }
       }
-
-      if (!another.persistent())
-        delete &another;
-      return *this;
+    }
+    void operator+=(const Array&& another)
+    {
+      *this+=another;
     }
 
     /**
      * @brief Subtract an array
      * 
      * @param another 
-     * @return Array& 
+     * 
      */
-    Array& operator-=(Array& another)
+    void operator-=(const Array& another)
     {
       switch(myType())
       {
@@ -488,20 +459,19 @@ namespace espmath{
           break;
         }
       }
-
-      if (!another.persistent())
-        delete &another;
-
-      return *this;
+    }
+    void operator-=(const Array&& another)
+    {
+      *this-=another;
     }
 
     /**
      * @brief Multiply by an array
      * 
      * @param another 
-     * @return Array& 
+     * 
      */
-    Array& operator*=(Array& another)
+    void operator*=(const Array& another)
     {
       switch(myType())
       {
@@ -536,25 +506,26 @@ namespace espmath{
           break;
         }
       }
+    }
+    void operator*=(const Array&& another)
+    {
+      *this*=another;
       
-      if (!another.persistent())
-        delete &another;
-      
-      return *this;
     }
 
     /**
      * @brief Divide by an array
      * 
      * @param another 
-     * @return Array& 
+     * 
      */
-    Array& operator/=(Array& another)
+    void operator/=(const Array& another)
     {
       (*this) = (*this) / (another);
-      if (!another.persistent())
-        delete &another;
-      return *this;
+    }
+    void operator/=(const Array&& another)
+    {
+      *this/=another;
     }
 
     /**
@@ -563,7 +534,7 @@ namespace espmath{
      * @param value 
      * @return Array& 
      */
-    Array& operator<<(const T value)
+    const Array& operator<<(const T value)
     {
       this->append(value);
       return *this;
@@ -575,16 +546,12 @@ namespace espmath{
      * @param another 
      * @return Array& 
      */
-    Array& operator<<(Array& another)
+    const Array& operator<<(const Array& another)
     {
       for(size_t i = 0; i < another.length(); i++)
       {
         *this = *this << another[i];
       }
-
-      if (!another.persistent())
-        delete &another;
-
       return *this;
     }
 
@@ -601,7 +568,7 @@ namespace espmath{
      * @param value 
      * @param index 
      */
-    bool assign(const T value, const size_t index)
+    const bool assign(const T value, const size_t index)
     {
       if (index >= _length) return false;
       (*this)[index] = value;
@@ -615,7 +582,7 @@ namespace espmath{
      * @return true Successful appended
      * @return false Failed to append
      */
-    bool append(const T value)
+    const bool append(const T value)
     {
       if(_length < _size/sizeof(T))
       {
@@ -644,11 +611,9 @@ namespace espmath{
      * @return true Successful concatenation
      * @return false Failure during concatenation
      */
-    bool append(Array& another)
+    const bool append(Array& another)
     {
       *this << another;
-      if (!another.persistent())
-        delete &another;
       return _array == NULL ? false : true;
     }
 
@@ -656,12 +621,12 @@ namespace espmath{
      * @brief Get the convolution of the array by the given kernel
      * 
      * @param kernel 
-     * @return Array& output array with convolution result length of (siglen + Kernel -1)
+     * @return Array&& output array with convolution result length of (siglen + Kernel -1)
      */
-    Array& conv(Array& kernel)
+    const Array conv(const Array& kernel)
     {
       const size_t outputLength = _length + kernel.length() -1;
-      Array* convOutput = new Array<T>(outputLength, false);
+      Array convOutput = Array<T>(outputLength);
 
       switch(myType())
       {
@@ -685,22 +650,36 @@ namespace espmath{
           cpyArray(output, convOutput, outputLength);
         }
       }
+      return convOutput;
+    }
 
-      if (!kernel.persistent())
-        delete &kernel;
+    /**
+     * @brief Copy another array into this one
+     * 
+     * @param another 
+     */
+    void copy(const Array& another)
+    {
+      if (_array)
+        heap_caps_free(_array);
 
-      return *convOutput;
+      _length = another.length();
+      _size = another.memSize();
+      _array = (T*)heap_caps_malloc(_size, memCaps());
+      
+      for(size_t i = 0; i < _length; i++)
+        _array[i] = another[i];
     }
 
     /**
      * @brief Get the correlation array with the given pattern
      * 
      * @param pattern 
-     * @return Array<float>& 
+     * @return Array<float>&&
      */
-    Array<float>& correlation(Array& pattern)
+    const Array<float> correlation(const Array& pattern)
     {
-      Array<float>* corr = new Array<float>(_length, false);
+      Array<float> corr = Array<float>(_length);
 
       switch(myType())
       {
@@ -722,11 +701,7 @@ namespace espmath{
           dsps_corr_f32(itself, _length, _pattern, pattern.length(), corr);
         }
       }
-
-      if (!pattern.persistent())
-        delete &pattern;
-
-      return *corr;
+      return corr;
     }
 
     /**
@@ -737,7 +712,7 @@ namespace espmath{
      * @return true Two differents arrays
      * @return false Array are not different
      */
-    bool diff(Array& another, const float EPSILON = 0.0001)
+    const bool diff(const Array& another, const float EPSILON = 0.0001)
     {
       if (myType())
       {
@@ -755,9 +730,6 @@ namespace espmath{
             return true;
         }
       }
-
-      if(!another.persistent())
-        delete another;
       return false;
     }
 
@@ -796,7 +768,7 @@ namespace espmath{
      * 
      * @return uint32_t 
      */
-    uint32_t memCaps() const
+    static uint32_t memCaps()
     {
       return (const uint32_t)(MALLOC_CAP_DEFAULT | MALLOC_CAP_8BIT);
     }
@@ -811,32 +783,7 @@ namespace espmath{
       return getType(_array);
     }
 
-    /**
-     * @brief Get the persistent status
-     * 
-     * @return true The object won't be deleted after assign operation.
-     * @return false 
-     */
-    bool persistent() const
-    {
-      return _persistent;
-    }
-
-    /**
-     * @brief Modify the persistent status
-     * 
-     * @param __persistent If true, the object won't be deleted after the next array operation.
-     * @return true 
-     * @return false
-     */
-    bool persistent(bool __persistent)
-    {
-      _persistent = __persistent;
-      return _persistent;
-    }
-
   protected:
-    bool _persistent = true; /*If true, the object won't be deleted after the next array operation.*/
     size_t _size = 0; /*Total bytes allocated*/
     size_t _length = 0; /*Length of the _array*/
     T* _array = NULL; /*Array pointer*/
@@ -861,15 +808,11 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<T>& operator+(Array<T>& onearray, Array<T>& another)
+  inline const Array<T> operator+(const Array<T>& onearray, const Array<T>& another)
   {
-    Array<T>* newArray = new Array<T>(onearray.getArrayPntr(), onearray.length(), false);
-    *newArray += another;
-    if (!another.persistent())
-      delete &another;
-    if (!onearray.persistent())
-      delete &onearray;
-    return *newArray;
+    Array<T> newArray = Array<T>((T*)onearray, onearray.length());
+    newArray += another;
+    return newArray;
   }
 
   /**
@@ -881,23 +824,21 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<T>& operator+(Array<T>& onearray, const T value)
+  inline const Array<T> operator+(const Array<T>& onearray, const T value)
   {
-    Array<T>* newArray = new Array<T>(onearray.getArrayPntr(), onearray.length(), false);
-    *newArray += value;
-    if (!onearray.persistent())
-      delete &onearray;
-    return *newArray;
+    Array<T> newArray = Array<T>((T*)onearray, onearray.length());
+    newArray += value;
+    return newArray;
   }
 
   /**
    * @brief Add an array to a constant
    * 
    * @param another 
-   * @return Array& 
+   * @return Array&&
    */
   template<typename T>
-  inline Array<T>& operator+(const T value, Array<T>& another)
+  inline const Array<T> operator+(const T value, const Array<T>& another)
   {
     return another + value;
   }
@@ -911,15 +852,11 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<T>& operator-(Array<T>& onearray, Array<T>& another)
+  inline const Array<T> operator-(const Array<T>& onearray, const Array<T>& another)
   {
-    Array<T>* newArray = new Array<T>(onearray.getArrayPntr(), onearray.length(), false);
-    *newArray -= another;
-    if (!another.persistent())
-      delete &another;
-    if (!onearray.persistent())
-      delete &onearray;
-    return *newArray;
+    Array<T> newArray = Array<T>((T*)onearray, onearray.length());
+    newArray -= another;
+    return newArray;
   }
 
   /**
@@ -931,26 +868,25 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<T>& operator-(Array<T>& onearray, const T value)
+  inline const Array<T> operator-(const Array<T>& onearray, const T value)
   {
-    Array<T>* newArray = new Array<T>(onearray.getArrayPntr(), onearray.length(), false);
-    *newArray -= value;
-    if (!onearray.persistent())
-      delete &onearray;
-    return *newArray;
+    Array<T> newArray = Array<T>((T*)onearray, onearray.length());
+    newArray -= value;
+    return newArray;
   }
 
   /**
    * @brief Subtract a constant from an array
    * 
    * @param another 
-   * @return Array& 
+   * @return Array&& 
    */
   template<typename T>
-  inline Array<T>& operator-(const T value, Array<T>& onearray)
+  inline const Array<T> operator-(const T value, const Array<T>& onearray)
   {
     const T minus1 = -1;
-    return (onearray - value)*minus1;
+    Array<T> newArray = onearray - value;
+    return newArray*minus1;
   }
 
   /**
@@ -962,15 +898,11 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<T>& operator*(Array<T>& onearray, Array<T>& another)
+  inline const Array<T> operator*(const Array<T>& onearray, const Array<T>& another)
   {
-    Array<T>* newArray = new Array<T>(onearray.getArrayPntr(), onearray.length(), false);
-    *newArray *= another;
-    if (!another.persistent())
-      delete &another;
-    if (!onearray.persistent())
-      delete &onearray;
-    return *newArray;
+    Array<T> newArray = Array<T>((T*)onearray, onearray.length());
+    newArray *= another;
+    return newArray;
   }
 
   /**
@@ -982,29 +914,25 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<T>& operator*(Array<T>& onearray, const T value)
+  inline const Array<T> operator*(const Array<T>& onearray, const T value)
   {
-    Array<T>* newArray = new Array<T>(onearray.getArrayPntr(), onearray.length(), false);
-    *newArray *= value;
-    if (!onearray.persistent())
-      delete &onearray;
-    return *newArray;
+    Array<T> newArray = Array<T>((T*)onearray, onearray.length());
+    newArray *= value;
+    return newArray;
   }
 
   /**
    * @brief Multiply a constant by an array
    * 
    * @param another 
-   * @return Array& 
+   * @return Array&& 
    */
   template<typename T>
-  inline Array<T>& operator*(const T value, Array<T>& another)
+  inline const Array<T> operator*(const T value, const Array<T>& another)
   {
-    Array<T>* newArray = new Array<T>(another.getArrayPntr(), another.length(), false);
-    *newArray *= value;
-    if (!another.persistent())
-      delete &another;
-    return *newArray;
+    Array<T> newArray = Array<T>(another.getArrayPntr(), another.length());
+    newArray *= value;
+    return newArray;
   }
 
   /**
@@ -1016,36 +944,33 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<float>& operator/(Array<T>& onearray, const float value)
+  inline const Array<float> operator/(const Array<T>& onearray, const float value)
   {
-    Array<float>* newArray;
+    Array<float> newArray;
     float input[onearray.length()];
 
     if (onearray.myType() == Array<>::float_type)
     {
-      newArray = new Array<float>((float*)onearray.getArrayPntr(), onearray.length());
+      newArray = Array<float>((float*)onearray.getArrayPntr(), onearray.length());
     }
     else
     {
       cpyArray(onearray.getArrayPntr(), input, onearray.length());  
-      newArray = new Array<float>(input, onearray.length());
+      newArray = Array<float>(input, onearray.length());
     }
 
-    *newArray /= value;
-    
-    if (!onearray.persistent())
-      delete &onearray;
-    return *newArray;
+    newArray /= value;
+    return newArray;
   }
 
   /**
    * @brief Divide a constant by an array
    * 
    * @param another 
-   * @return Array& 
+   * @return Array&& 
    */
   template<typename T>
-  inline Array<float>& operator/(const float value, Array<T>& another)
+  inline const Array<float> operator/(const float value, const Array<T>& another)
   {
     float output[another.length()];
     for(size_t i = 0; i < another.length(); i++)
@@ -1053,10 +978,8 @@ namespace espmath{
       output[i] = (float)(value / (float)another[i]);
     }
 
-    Array<float>* newArray = new Array<float>(output, another.length(), false);
-    if (!another.persistent())
-      delete &another;
-    return *newArray;
+    Array<float> newArray = Array<float>(output, another.length());
+    return newArray;
   }
 
   /**
@@ -1068,33 +991,25 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<float>& operator/(Array<T>& onearray, Array<T>& another)
+  inline const Array<float> operator/(const Array<T>& onearray, const Array<T>& another)
   {
-    Array<float>* newArray;
+    Array<float> newArray;
     float input[onearray.length()];
 
     if (onearray.myType() == Array<>::float_type)
     {
-      newArray = new Array<float>((float*)onearray.getArrayPntr(), onearray.length());
+      newArray = Array<float>((float*)onearray.getArrayPntr(), onearray.length());
     }
     else
     {
       cpyArray(onearray.getArrayPntr(), input, onearray.length());  
-      newArray = new Array<float>(input, onearray.length());
+      newArray = Array<float>(input, onearray.length());
     }
 
-    *newArray *= (1.0 / another);
-    
-    if (!another.persistent())
-      delete &another;
-    if (!onearray.persistent())
-      delete &onearray;
-
-    newArray->persistent(false);
-    return *newArray;
+    newArray *= (1.0 / another);
+    return newArray;
   }
 
-  
   /**
    * @brief Dot product between 2 arrays
    * 
@@ -1104,7 +1019,7 @@ namespace espmath{
    * @return const T result
    */
   template<typename T>
-  inline const T operator^(Array<T>& onearray, Array<T>& another)
+  inline const T operator^(const Array<T>& onearray, const Array<T>& another)
   {
     T result;
     switch(Array<>::getType((T*)NULL))
@@ -1142,13 +1057,6 @@ namespace espmath{
         break;
       }
     }
-
-    if (!onearray.persistent())
-      delete &onearray;
-
-    if (!another.persistent())
-      delete &another;
-
     return result;
   }
 }
