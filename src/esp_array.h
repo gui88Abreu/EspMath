@@ -13,7 +13,7 @@ namespace espmath{
   using namespace espmath;
 
   /**
-   * @brief Compare floats with different tolerances.
+   * @brief Compare floats.
    * 
    * @param f1
    * @param f2
