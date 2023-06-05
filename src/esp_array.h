@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <type_traits>
 #include <esp_dsp.h>
-#include "hard_debug.h"
 
 /**
  * @brief Namespace for custom ESP32 MATH libraries
