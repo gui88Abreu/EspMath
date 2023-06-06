@@ -814,7 +814,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<T> operator+(const Array<T>& onearray, const Array<T>& another)
+  inline const Array<T> operator+(const Array<T>& onearray, const Array<T> another)
   {
     Array<T> newArray = Array<T>((T*)onearray, onearray.length());
     newArray += another;
@@ -844,7 +844,7 @@ namespace espmath{
    * @return Array
    */
   template<typename T>
-  inline const Array<T> operator+(const T value, const Array<T>& another)
+  inline const Array<T> operator+(const T value, const Array<T> another)
   {
     return another + value;
   }
@@ -858,7 +858,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<T> operator-(const Array<T>& onearray, const Array<T>& another)
+  inline const Array<T> operator-(const Array<T>& onearray, const Array<T> another)
   {
     Array<T> newArray = Array<T>((T*)onearray, onearray.length());
     newArray -= another;
@@ -888,7 +888,7 @@ namespace espmath{
    * @return Array 
    */
   template<typename T>
-  inline const Array<T> operator-(const T value, const Array<T>& onearray)
+  inline const Array<T> operator-(const T value, const Array<T> onearray)
   {
     const T minus1 = -1;
     Array<T> newArray = onearray - value;
@@ -904,7 +904,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<T> operator*(const Array<T>& onearray, const Array<T>& another)
+  inline const Array<T> operator*(const Array<T>& onearray, const Array<T> another)
   {
     Array<T> newArray = Array<T>((T*)onearray, onearray.length());
     newArray *= another;
@@ -934,7 +934,7 @@ namespace espmath{
    * @return Array 
    */
   template<typename T>
-  inline const Array<T> operator*(const T value, const Array<T>& another)
+  inline const Array<T> operator*(const T value, const Array<T> another)
   {
     Array<T> newArray = Array<T>(another.getArrayPntr(), another.length());
     newArray *= value;
@@ -977,7 +977,7 @@ namespace espmath{
    * @return Array 
    */
   template<typename T>
-  inline const Array<float> operator/(const float value, const Array<T>& another)
+  inline const Array<float> operator/(const float value, const Array<T> another)
   {
     float output[another.length()];
     for(size_t i = 0; i < another.length(); i++)
@@ -998,7 +998,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<float> operator/(const Array<T>& onearray, const Array<T>& another)
+  inline const Array<float> operator/(const Array<T>& onearray, const Array<T> another)
   {
     Array<float> newArray;
     float input[onearray.length()];
@@ -1011,7 +1011,7 @@ namespace espmath{
   }
 
   template<>
-  inline const Array<float> operator/(const Array<float>& onearray, const Array<float>& another)
+  inline const Array<float> operator/(const Array<float>& onearray, const Array<float> another)
   {
     Array<float> newArray = Array<float>((float*)onearray.getArrayPntr(), onearray.length());
     newArray *= (1.0 / another);
@@ -1027,13 +1027,13 @@ namespace espmath{
    * @return const T result
    */
   template<typename T>
-  inline const T operator^(const Array<T>& onearray, const Array<T>& another)
+  inline const T operator^(const Array<T>& onearray, const Array<T> another)
   {
     return -1;
   }
 
   template<>
-  inline const int32_t operator^(const Array<int32_t>& onearray, const Array<int32_t>& another)
+  inline const int32_t operator^(const Array<int32_t>& onearray, const Array<int32_t> another)
   {
     int32_t result;
     float input1[onearray.length()];
@@ -1047,7 +1047,7 @@ namespace espmath{
   }
 
   template<>
-  inline const int8_t operator^(const Array<int8_t>& onearray, const Array<int8_t>& another)
+  inline const int8_t operator^(const Array<int8_t>& onearray, const Array<int8_t> another)
   {
     int8_t result;
     int16_t input1[onearray.length()];
@@ -1061,7 +1061,7 @@ namespace espmath{
   }
 
   template<>
-  inline const float operator^(const Array<float>& onearray, const Array<float>& another)
+  inline const float operator^(const Array<float>& onearray, const Array<float> another)
   {
     float result;
     dsps_dotprod_f32((float*)onearray, (float*)another, (float*)&result, onearray.length());
@@ -1069,7 +1069,7 @@ namespace espmath{
   }
 
   template<>
-  inline const int16_t operator^(const Array<int16_t>& onearray, const Array<int16_t>& another)
+  inline const int16_t operator^(const Array<int16_t>& onearray, const Array<int16_t> another)
   {
     int16_t result;
     dsps_dotprod_s16((int16_t *)onearray, (int16_t*)another, (int16_t*)&result, onearray.length(), 0);
