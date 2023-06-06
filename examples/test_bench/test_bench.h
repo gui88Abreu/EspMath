@@ -15,7 +15,7 @@ using namespace espmath;
  * @return const T Result
  */
 template<typename T>
-const T nonZeroRandomNumber(size_t _MAX_NUM_)
+inline const T nonZeroRandomNumber(size_t _MAX_NUM_)
 {
   T rn;
   do
@@ -24,6 +24,36 @@ const T nonZeroRandomNumber(size_t _MAX_NUM_)
   }while(rn==0);
 
   return rn;
+}
+
+template<typename T>
+inline const size_t max_random()
+{
+  return (size_t)(100);
+}
+
+template<>
+inline const size_t max_random<float>()
+{
+  return (size_t)(100);
+}
+
+template<>
+inline const size_t max_random<int8_t>()
+{
+  return (size_t)(10);
+}
+
+template<>
+inline const size_t max_random<int16_t>()
+{
+  return (size_t)(100);
+}
+
+template<>
+inline const size_t max_random<int32_t>()
+{
+  return (size_t)(1000);
 }
 
 /**
@@ -39,23 +69,13 @@ void test_ari(bool _suspend = true)
   T data1[_ARRAY_LENGTH_];
   T data2[_ARRAY_LENGTH_];
   T output[_ARRAY_LENGTH_];
-  
   float floatOutput[_ARRAY_LENGTH_];
-  size_t max_random;
 
-  switch (Array<>::getType(output))
-  {
-    case Array<>::int8_type: max_random = (size_t)(10); break;
-    case Array<>::int16_type: max_random = (size_t)(200); break;
-    case Array<>::float_type: max_random = (size_t)(200); break;
-    default: case Array<>::int32_type: max_random = (size_t)(1000); break;
-  }
-
-  const T randomConstant = nonZeroRandomNumber<T>(max_random);
+  const T randomConstant = nonZeroRandomNumber<T>(max_random<T>());
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
   {
-    data1[i] = nonZeroRandomNumber<T>(max_random);
-    data2[i] = nonZeroRandomNumber<T>(max_random);
+    data1[i] = nonZeroRandomNumber<T>(max_random<T>());
+    data2[i] = nonZeroRandomNumber<T>(max_random<T>());
     output[i] = data1[i] + data2[i];
   }
 

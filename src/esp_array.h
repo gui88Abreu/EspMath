@@ -182,50 +182,6 @@ namespace espmath{
     };
 
     /**
-     * @brief Get the Array Type object
-     * 
-     * @param someArray 
-     * @return SupportedTypes 
-     */
-    static const SupportedTypes getType(const int8_t* someArray)
-    {
-      return int8_type;
-    }
-
-    /**
-     * @brief Get the Array Type object
-     * 
-     * @param someArray 
-     * @return SupportedTypes 
-     */
-    static const SupportedTypes getType(const int16_t* someArray)
-    {
-      return int16_type;
-    }
-
-    /**
-     * @brief Get the Array Type object
-     * 
-     * @param someArray 
-     * @return SupportedTypes 
-     */
-    static const SupportedTypes getType(const int32_t* someArray)
-    {
-      return int32_type;
-    }
-
-    /**
-     * @brief Get the Array Type object
-     * 
-     * @param someArray 
-     * @return SupportedTypes 
-     */
-    static const SupportedTypes getType(const float* someArray)
-    {
-      return float_type;
-    }
-
-    /**
      * @brief Return the allocated memory capabilities.
      * 
      * @return uint32_t
@@ -680,16 +636,6 @@ namespace espmath{
     size_t memSize() const
     {
       return _size;
-    }
-
-    /**
-     * @brief Retrieve the array type
-     * 
-     * @return SupportedTypes
-     */
-    SupportedTypes myType() const
-    {
-      return getType(_array);
     }
 
   protected:
