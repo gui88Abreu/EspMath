@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <esp_dsp.h>
 
+#include "dsps_mulc_s16.h"
+
 /**
  * @brief Namespace for custom ESP32 MATH libraries
  * 
@@ -693,6 +695,12 @@ namespace espmath{
   };
 
   template<>
+  inline const uint32_t Array<int32_t>::memCaps()
+  {
+    return (const uint32_t)(MALLOC_CAP_DEFAULT | MALLOC_CAP_32BIT);
+  }
+
+  template<>
   inline void Array<float>::operator+=(const float value)
   {
     dsps_addc_f32((float*)_array, (float*)_array, _length, value, 1, 1);
@@ -702,6 +710,12 @@ namespace espmath{
   inline void Array<float>::operator*=(const float value)
   { 
     dsps_mulc_f32((float*)_array, (float*)_array, _length, value, 1, 1);
+  }
+
+  template<>
+  inline void Array<int16_t>::operator*=(const int16_t value)
+  { 
+    dsps_mulc_s16_ae32_custom((int16_t*)_array, (int16_t*)_array, _length, value, 1, 1, 0);
   }
 
   template<>
