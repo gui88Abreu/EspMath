@@ -31,7 +31,7 @@ namespace espmath{
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
-   * @param src Source array. If src == NULL, then dest[i] = cnst;
+   * @param src Source array.
    * @param dest Destination array.
    * @param len Quantity of elements to copy.
    * @param cnst Constant to multiply the output.
@@ -39,16 +39,24 @@ namespace espmath{
   template<typename T1, typename T2>
   inline void cpyArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
   {
-    if (src)
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] = (T2)(src[i]*cnst);
-    }
-    else
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] = (T2)(cnst);
-    }
+    for(size_t i = 0; i < len; i++)
+      dest[i] = (T2)(src[i]*cnst);
+  }
+
+  /**
+   * @brief dest[i] = cnst;
+   * 
+   * @tparam T Type of the destination array.
+   * @param src Source array.
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+  template<typename T>
+  inline void cpyConst(T* dest, const size_t len, const T cnst = 1)
+  {
+    for(size_t i = 0; i < len; i++)
+      dest[i] = (T)(cnst);
   }
 
   /**
@@ -56,24 +64,33 @@ namespace espmath{
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
-   * @param src Source array. If src == NULL, then dest[i] += cnst;
+   * @param src Source array.
    * @param dest Destination array.
    * @param len Quantity of elements to copy.
    * @param cnst Constant to multiply the output.
    */
   template<typename T1, typename T2>
-  inline void addArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  inline void addArrayToArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
   {
-    if (src)
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] += (T2)(src[i]*cnst);
-    }
-    else
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] += (T2)(cnst);
-    }
+    for(size_t i = 0; i < len; i++)
+      dest[i] += (T2)(src[i]*cnst);
+  }
+
+  /**
+   * @brief dest[i] += cnst;
+   * 
+   * @tparam T Type of the destination array.
+   * @param src Source array.
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+
+  template<typename T>
+  inline void addConstToArray(T* dest, const size_t len, const T cnst = 1)
+  {
+    for(size_t i = 0; i < len; i++)
+      dest[i] += (T)(cnst);
   }
 
   /**
@@ -81,24 +98,32 @@ namespace espmath{
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
-   * @param src Source array. If src == NULL, then dest[i] -= cnst;
+   * @param src Source array.
    * @param dest Destination array.
    * @param len Quantity of elements to copy.
    * @param cnst Constant to multiply the output.
    */
   template<typename T1, typename T2>
-  inline void subArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  inline void subArrayFromArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
   {
-    if (src)
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] -= (T2)(src[i]*cnst);
-    }
-    else
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] -= (T2)(cnst);
-    }
+    for(size_t i = 0; i < len; i++)
+      dest[i] -= (T2)(src[i]*cnst);
+  }
+
+  /**
+   * @brief dest[i] -= cnst;
+   * 
+   * @tparam T Type of the destination array.
+   * @param src Source array.
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+  template<typename T>
+  inline void subConstFromArray(T* dest, const size_t len, const T cnst = 1)
+  {
+    for(size_t i = 0; i < len; i++)
+      dest[i] -= (T)(cnst);
   }
 
   /**
@@ -106,24 +131,32 @@ namespace espmath{
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
-   * @param src Source array. If src == NULL, then dest[i] *= cnst;
+   * @param src Source array.
    * @param dest Destination array.
    * @param len Quantity of elements to copy.
    * @param cnst Constant to multiply the output.
    */
   template<typename T1, typename T2>
-  inline void mulArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  inline void mulArrayByArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
   {
-    if (src)
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] *= (T2)(src[i]*cnst);
-    }
-    else
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] *= (T2)(cnst);
-    }
+    for(size_t i = 0; i < len; i++)
+      dest[i] *= (T2)(src[i]*cnst);
+  }
+
+  /**
+   * @brief dest[i] *= cnst;
+   * 
+   * @tparam T Type of the destination array.
+   * @param src Source array.
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+  template<typename T>
+  inline void mulConstByArray(T* dest, const size_t len, const T cnst = 1)
+  {
+    for(size_t i = 0; i < len; i++)
+      dest[i] *= (T)(cnst);
   }
 
   /**
@@ -131,24 +164,32 @@ namespace espmath{
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
-   * @param src Source array. If src == NULL, then dest[i] /= cnst;
+   * @param src Source array.
    * @param dest Destination array.
    * @param len Quantity of elements to copy.
    * @param cnst Constant to multiply the output.
    */
   template<typename T1, typename T2>
-  inline void divArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  inline void divArrayByArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
   {
-    if (src)
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] /= (T2)(src[i]*cnst);
-    }
-    else
-    {
-      for(size_t i = 0; i < len; i++)
-        dest[i] /= (T2)(cnst);
-    }
+    for(size_t i = 0; i < len; i++)
+      dest[i] /= (T2)(src[i]*cnst);
+  }
+
+  /**
+   * @brief dest[i] /= src[i]*cnst;
+   * 
+   * @tparam T Type of the destination array.
+   * @param src Source array.
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+  template<typename T>
+  inline void divArrayByConst(T* dest, const size_t len, const T cnst = 1)
+  {
+    for(size_t i = 0; i < len; i++)
+      dest[i] /= (T)(cnst);
   }
 
   /**
@@ -163,21 +204,18 @@ namespace espmath{
    */
   template <typename T = float> class Array
   {
-    static_assert(std::is_arithmetic<T>::value, "Arrays must support arithmetic operations!");
-    static_assert(std::is_signed<T>::value, "Arrays must be signed!");
+    static_assert(std::is_arithmetic<T>::value, "Array type must be arithmetic!");
     static_assert(sizeof(T) <= 4, "Long types are not supported!");
   public:
 
     typedef T* arrayPntr;
 
     /**
-     * @brief Supported array types
+     * @brief Supported array types for dsp instructions
      * 
      */
-    enum SupportedTypes{
-      int8_type,
+    enum DSPtypes{
       int16_type,
-      int32_type,
       float_type
     };
 
@@ -341,7 +379,7 @@ namespace espmath{
      */
     void operator+=(const T value)
     {
-      addArray((T*)NULL, _array, _length, value);
+      addConstToArray(_array, _length, value);
     }
 
     /**
@@ -363,7 +401,7 @@ namespace espmath{
      */
     void operator*=(const T value)
     { 
-      mulArray((T*)NULL, _array, _length, value);
+      mulConstByArray(_array, _length, value);
     }
 
     /**
@@ -385,7 +423,7 @@ namespace espmath{
      */
     void operator+=(const Array& another)
     { 
-      addArray((T*)another, _array, _length);
+      addArrayToArray((T*)another, _array, _length);
     }
     void operator+=(const Array&& another)
     {
@@ -400,7 +438,7 @@ namespace espmath{
      */
     void operator-=(const Array& another)
     {
-      subArray((T*)another, _array, _length);
+      subArrayFromArray((T*)another, _array, _length);
     }
     void operator-=(const Array&& another)
     {
@@ -415,7 +453,7 @@ namespace espmath{
      */
     void operator*=(const Array& another)
     {
-      mulArray((T*)another, _array, _length);
+      mulArrayByArray((T*)another, _array, _length);
     }
     void operator*=(const Array&& another)
     {
