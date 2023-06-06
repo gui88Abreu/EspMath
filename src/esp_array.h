@@ -308,24 +308,11 @@ namespace espmath{
     const bool operator==(const T value)
     {
       size_t i = 0;
-      
-      if (myType())
+      while(i < _length)
       {
-        while(i < _length)
-        {
-          if(eqFloats(_array[i++], value))
-            return true;
-        }
+        if(_array[i++] == value)
+          return true;
       }
-      else
-      {
-        while(i < _length)
-        {
-          if(_array[i++] == value)
-            return true;
-        }
-      }
-
       return false;
     }
 
@@ -351,25 +338,12 @@ namespace espmath{
     const bool operator==(const T* input)
     {
       size_t i = 0;
-      if (myType())
+      while( i < _length)
       {
-        while( i < _length)
-        {
-          if (!eqFloats(_array[i], input[i]))
-            return false;
-          i++;
-        }
+        if (_array[i] != input[i])
+          return false;
+        i++;
       }
-      else
-      {
-        while( i < _length)
-        {
-          if (_array[i] != input[i])
-            return false;
-          i++;
-        }
-      }
-
       return true;
     }
 
@@ -411,22 +385,7 @@ namespace espmath{
      */
     void operator+=(const T value)
     {
-      switch(myType())
-      {
-        case float_type:
-        {
-          dsps_addc_f32((float*)_array, (float*)_array, _length, value, 1, 1);
-          break;
-        }
-        case int8_type:
-        case int16_type:
-        case int32_type:
-        default:
-        {
-          addArray((T*)NULL, _array, _length, value);
-          break;
-        }
-      }
+      addArray((T*)NULL, _array, _length, value);
     }
 
     /**
@@ -448,22 +407,7 @@ namespace espmath{
      */
     void operator*=(const T value)
     { 
-      switch(myType())
-      {
-        case float_type:
-        {
-          dsps_mulc_f32((float*)_array, (float*)_array, _length, value, 1, 1);
-          break;
-        }
-        case int8_type:
-        case int16_type:
-        case int32_type:
-        default:
-        {
-          mulArray((T*)NULL, _array, _length, value);
-          break;
-        }
-      }
+      mulArray((T*)NULL, _array, _length, value);
     }
 
     /**
@@ -485,26 +429,7 @@ namespace espmath{
      */
     void operator+=(const Array& another)
     { 
-      switch(myType())
-      {
-        case int16_type:
-        {
-          dsps_add_s16((int16_t*)_array, (int16_t*)another.getArrayPntr(), (int16_t*)_array, _length, 1, 1, 1, 0);
-          break;
-        }
-        case float_type:
-        {
-          dsps_add_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length, 1, 1, 1);
-          break;
-        }
-        case int8_type:
-        case int32_type:
-        default: 
-        {
-          addArray((T*)another, _array, _length);
-          break;
-        }
-      }
+      addArray((T*)another, _array, _length);
     }
     void operator+=(const Array&& another)
     {
@@ -519,22 +444,7 @@ namespace espmath{
      */
     void operator-=(const Array& another)
     {
-      switch(myType())
-      {
-        case float_type:
-        {
-          dsps_sub_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length,1,1,1);
-          break;
-        }
-        case int8_type:
-        case int16_type:
-        case int32_type:
-        default: 
-        {
-          subArray((T*)another, _array, _length);
-          break;
-        }
-      }
+      subArray((T*)another, _array, _length);
     }
     void operator-=(const Array&& another)
     {
@@ -549,31 +459,11 @@ namespace espmath{
      */
     void operator*=(const Array& another)
     {
-      switch(myType())
-      {
-        case int16_type:
-        {
-          dsps_mul_s16((int16_t*)_array, (int16_t*)another.getArrayPntr(), (int16_t*)_array, _length, 1, 1, 1, 0);
-          break;
-        }
-        case float_type:
-        {
-          dsps_mul_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length,1,1,1);
-          break;
-        }
-        case int8_type:
-        case int32_type:
-        default:
-        {
-          mulArray((T*)another, _array, _length);
-          break;
-        }
-      }
+      mulArray((T*)another, _array, _length);
     }
     void operator*=(const Array&& another)
     {
       *this*=another;
-      
     }
 
     /**
@@ -692,28 +582,14 @@ namespace espmath{
       const size_t outputLength = _length + kernel.length() -1;
       Array convOutput = Array<T>(outputLength);
 
-      switch(myType())
-      {
-        case float_type:
-        {
-          dsps_conv_f32((float*)_array, _length, (float*)kernel, kernel.length(), (float*)convOutput);
-          break;
-        }
-        case int8_type:
-        case int16_type:
-        case int32_type:
-        default:
-        {
-          float output[outputLength];
-          float itself[_length];
-          float _kernel[kernel.length()];
+      float output[outputLength];
+      float itself[_length];
+      float _kernel[kernel.length()];
 
-          cpyArray(_array, itself, _length);
-          cpyArray(kernel, _kernel, kernel.length());
-          dsps_conv_f32(itself, _length, _kernel, kernel.length(), output);
-          cpyArray(output, convOutput, outputLength);
-        }
-      }
+      cpyArray(_array, itself, _length);
+      cpyArray(kernel, _kernel, kernel.length());
+      dsps_conv_f32(itself, _length, _kernel, kernel.length(), output);
+      cpyArray(output, convOutput, outputLength);
       return convOutput;
     }
 
@@ -747,26 +623,12 @@ namespace espmath{
     {
       Array<float> corr = Array<float>(_length);
 
-      switch(myType())
-      {
-        case float_type:
-        {
-          dsps_corr_f32((float*)_array, _length, (float*)pattern, pattern.length(), corr);
-          break;
-        }
-        case int8_type:
-        case int16_type:
-        case int32_type:
-        default:
-        {
-          float itself[_length];
-          float _pattern[pattern.length()];
+      float itself[_length];
+      float _pattern[pattern.length()];
 
-          cpyArray(_array, itself, _length);
-          cpyArray(pattern, _pattern, pattern.length());
-          dsps_corr_f32(itself, _length, _pattern, pattern.length(), corr);
-        }
-      }
+      cpyArray(_array, itself, _length);
+      cpyArray(pattern, _pattern, pattern.length());
+      dsps_corr_f32(itself, _length, _pattern, pattern.length(), corr);
       return corr;
     }
 
@@ -780,21 +642,12 @@ namespace espmath{
      */
     const bool diff(const Array& another, const float EPSILON = 0.0001)
     {
-      if (myType())
+      size_t i = 0;
+      while (i < _length)
       {
-        for (size_t i = 0; i < _length; i++)
-        {
-          if (!eqFloats(_array[i], another[i], EPSILON))
-            return true;
-        }
-      }
-      else
-      {
-        for (size_t i = 0; i < _length; i++)
-        {
-          if (_array[i]!=another[i])
-            return true;
-        }
+        if (_array[i]!=another[i])
+          return true;
+        i++;
       }
       return false;
     }
@@ -854,6 +707,103 @@ namespace espmath{
       return min*sizeof(T);
     }
   };
+
+  template<>
+  inline void Array<float>::operator+=(const float value)
+  {
+    dsps_addc_f32((float*)_array, (float*)_array, _length, value, 1, 1);
+  }
+
+  template<>
+  inline void Array<float>::operator*=(const float value)
+  { 
+    dsps_mulc_f32((float*)_array, (float*)_array, _length, value, 1, 1);
+  }
+
+  template<>
+  inline void Array<float>::operator+=(const Array<float>& another)
+  {
+    dsps_add_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length, 1, 1, 1);
+  }
+
+  template<>
+  inline void Array<int16_t>::operator+=(const Array<int16_t>& another)
+  {
+    dsps_add_s16((int16_t*)_array, (int16_t*)another.getArrayPntr(), (int16_t*)_array, _length, 1, 1, 1, 0);
+  }
+
+  template<>
+  inline void Array<float>::operator-=(const Array<float>& another)
+  {
+    dsps_sub_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length, 1, 1, 1);
+  }
+
+  template<>
+  inline void Array<float>::operator*=(const Array<float>& another)
+  {
+    dsps_mul_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length, 1, 1, 1);
+  }
+
+  template<>
+  inline void Array<int16_t>::operator*=(const Array<int16_t>& another)
+  {
+    dsps_mul_s16((int16_t*)_array, (int16_t*)another.getArrayPntr(), (int16_t*)_array, _length, 1, 1, 1, 0);
+  }
+
+  template<>
+  inline const bool Array<float>::operator==(const float value)
+  {
+    size_t i = 0;
+    while(i < _length)
+    {
+      if(eqFloats(_array[i++], value))
+        return true;
+    }
+    return false;
+  }
+
+  template <>
+  inline const bool Array<float>::operator==(const float* input)
+  {
+    size_t i = 0;
+    while( i < _length)
+    {
+      if (!eqFloats(_array[i], input[i]))
+        return false;
+      i++;
+    }
+    return true;
+  }
+
+  template<>
+  inline const Array<float> Array<float>::conv(const Array<float>& kernel)
+  {
+    const size_t outputLength = _length + kernel.length() -1;
+    Array<float> convOutput = Array<float>(outputLength);
+    dsps_conv_f32((float*)_array, _length, (float*)kernel, kernel.length(), (float*)convOutput);
+    return convOutput;
+  }
+
+  template<>
+  inline const Array<float> Array<float>::correlation(const Array<float>& pattern)
+  {
+    Array<float> corr = Array<float>(_length);
+    dsps_corr_f32((float*)_array, _length, (float*)pattern, pattern.length(), corr);
+    return corr;
+  }
+
+  template<>
+  inline const bool Array<float>::diff(const Array<float>& another, const float EPSILON)
+  {
+    size_t i = 0;
+    while(i < _length)
+    {
+      if (!eqFloats(_array[i], another[i], EPSILON))
+        return true;
+      i++;
+    }
+    return false;
+  }
 
   /**
    * @brief Add two arrays
@@ -1005,16 +955,17 @@ namespace espmath{
     Array<float> newArray;
     float input[onearray.length()];
 
-    if (onearray.myType() == Array<>::float_type)
-    {
-      newArray = Array<float>((float*)onearray.getArrayPntr(), onearray.length());
-    }
-    else
-    {
-      cpyArray(onearray.getArrayPntr(), input, onearray.length());  
-      newArray = Array<float>(input, onearray.length());
-    }
+    cpyArray(onearray.getArrayPntr(), input, onearray.length());  
+    newArray = Array<float>(input, onearray.length());
 
+    newArray /= value;
+    return newArray;
+  }
+
+  template<>
+  inline const Array<float> operator/(const Array<float>& onearray, const float value)
+  {
+    Array<float> newArray = Array<float>((float*)onearray.getArrayPntr(), onearray.length());
     newArray /= value;
     return newArray;
   }
@@ -1052,16 +1003,17 @@ namespace espmath{
     Array<float> newArray;
     float input[onearray.length()];
 
-    if (onearray.myType() == Array<>::float_type)
-    {
-      newArray = Array<float>((float*)onearray.getArrayPntr(), onearray.length());
-    }
-    else
-    {
-      cpyArray(onearray.getArrayPntr(), input, onearray.length());  
-      newArray = Array<float>(input, onearray.length());
-    }
+    cpyArray(onearray.getArrayPntr(), input, onearray.length());  
+    newArray = Array<float>(input, onearray.length());
 
+    newArray *= (1.0 / another);
+    return newArray;
+  }
+
+  template<>
+  inline const Array<float> operator/(const Array<float>& onearray, const Array<float>& another)
+  {
+    Array<float> newArray = Array<float>((float*)onearray.getArrayPntr(), onearray.length());
     newArray *= (1.0 / another);
     return newArray;
   }
@@ -1077,42 +1029,50 @@ namespace espmath{
   template<typename T>
   inline const T operator^(const Array<T>& onearray, const Array<T>& another)
   {
-    T result;
-    switch(Array<>::getType((T*)NULL))
-    {
-      case Array<>::int8_type:
-      {
-        int16_t input1[onearray.length()];
-        int16_t input2[onearray.length()];
-        int16_t r;
-        cpyArray(onearray,input1, onearray.length());
-        cpyArray(another,input2, onearray.length());
-        dsps_dotprod_s16(input1, input2, &r, onearray.length());
-        result = r;
-        break;
-      }
-      case Array<>::int16_type:
-      {
-        dsps_dotprod_s16((int16_t *)onearray, (float*)another, (float*)&result, onearray.length(), 0);
-        break;
-      }
-      case Array<>::float_type:
-      {
-        dsps_dotprod_f32((float*)onearray, (float*)another, (float*)&result, onearray.length());
-        break;
-      }
-      case Array<>::int32_type:
-      {
-        float input1[onearray.length()];
-        float input2[onearray.length()];
-        float r;
-        cpyArray(onearray,input1, onearray.length());
-        cpyArray(another,input2, onearray.length());
-        dsps_dotprod_f32(input1, input2, &r, onearray.length());
-        result = r;
-        break;
-      }
-    }
+    return -1;
+  }
+
+  template<>
+  inline const int32_t operator^(const Array<int32_t>& onearray, const Array<int32_t>& another)
+  {
+    int32_t result;
+    float input1[onearray.length()];
+    float input2[onearray.length()];
+    float r;
+    cpyArray((int32_t*)onearray, input1, onearray.length());
+    cpyArray((int32_t*)another, input2, onearray.length());
+    dsps_dotprod_f32(input1, input2, &r, onearray.length());
+    result = (int32_t)r;
+    return result;
+  }
+
+  template<>
+  inline const int8_t operator^(const Array<int8_t>& onearray, const Array<int8_t>& another)
+  {
+    int8_t result;
+    int16_t input1[onearray.length()];
+    int16_t input2[onearray.length()];
+    int16_t r;
+    cpyArray((int8_t*)onearray, input1, onearray.length());
+    cpyArray((int8_t*)another, input2, onearray.length());
+    dsps_dotprod_s16(input1, input2, &r, onearray.length(), 0);
+    result = (int8_t)r;
+    return result;
+  }
+
+  template<>
+  inline const float operator^(const Array<float>& onearray, const Array<float>& another)
+  {
+    float result;
+    dsps_dotprod_f32((float*)onearray, (float*)another, (float*)&result, onearray.length());
+    return result;
+  }
+
+  template<>
+  inline const int16_t operator^(const Array<int16_t>& onearray, const Array<int16_t>& another)
+  {
+    int16_t result;
+    dsps_dotprod_s16((int16_t *)onearray, (int16_t*)another, (int16_t*)&result, onearray.length(), 0);
     return result;
   }
 }
