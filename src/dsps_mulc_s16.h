@@ -42,8 +42,8 @@ extern "C"
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mulc_f32_ansi_custom(const float *input, float *output, int len, float C, int step_in, int step_out, const int shift);
-esp_err_t dsps_mulc_s16_ae32_custom(const int16_t *input, int16_t *output, int len, int16_t C, int step_in, int step_out, const int shift);
+esp_err_t dsps_mulc_s16_ansi_custom(const int16_t *input, int16_t *output, int len, int16_t C, int step_in, int step_out, int shift);
+esp_err_t dsps_mulc_s16_ae32_custom(const int16_t *input, int16_t *output, int len, int16_t C, int step_in, int step_out, int shift);
 
 /**@}*/
 

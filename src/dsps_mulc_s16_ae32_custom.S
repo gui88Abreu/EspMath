@@ -20,14 +20,17 @@
     .global dsps_mulc_s16_ae32_custom
     .type   dsps_mulc_s16_ae32_custom,@function
 // The function implements the following C code:
-// esp_err_t dsps_mulc_f32_ansi_custom(const float *input, float *output, int len, float C, int step_in, int step_out, const int shift)
-//{
-//  for (int i = 0 ; i < len ; i++) {
-//      int32_t acc = (int32_t)input[i * step_in] * (int32_t)C;
-//      output[i * step_out] = (int16_t)(acc>>shift);
-//  }
-//  return ESP_OK;
-//}
+// esp_err_t dsps_mulc_s16_ansi_custom(const int16_t *input, int16_t *output, int len, int16_t C, int step_in, int step_out, int shift)
+// {
+//   if (NULL == input) return ESP_ERR_DSP_PARAM_OUTOFRANGE;
+//   if (NULL == output) return ESP_ERR_DSP_PARAM_OUTOFRANGE;
+// 
+//   for (int i = 0 ; i < len ; i++) {
+//       int32_t acc = (int32_t)input[i * step_in] * (int32_t)C;
+//       output[i * step_out] = (int16_t)(acc>>shift);
+//   }
+//   return ESP_OK;
+// }
 dsps_mulc_s16_ae32_custom: 
 // input    - a2
 // output   - a3
