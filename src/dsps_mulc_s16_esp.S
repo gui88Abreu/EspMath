@@ -17,8 +17,8 @@
 
     .text
     .align  4
-    .global dsps_mulc_s16_ae32_custom
-    .type   dsps_mulc_s16_ae32_custom,@function
+    .global dsps_mulc_s16_esp
+    .type   dsps_mulc_s16_esp,@function
 // The function implements the following C code:
 // esp_err_t dsps_mulc_s16_ansi_custom(const int16_t *input, int16_t *output, int len, int16_t C, int step_in, int step_out, int shift)
 // {
@@ -31,7 +31,7 @@
 //   }
 //   return ESP_OK;
 // }
-dsps_mulc_s16_ae32_custom: 
+dsps_mulc_s16_esp: 
 // input    - a2
 // output   - a3
 // len      - a4
@@ -46,36 +46,31 @@ dsps_mulc_s16_ae32_custom:
     ssr     a8              // sar = a8
 
     srli    a4, a4, 1   // a4 = a4>>1
-    slli 	a6, a6, 2  	// a6 - step_in<<3, because we load two inputs per loop
-    slli 	a7, a7, 1  	// a7 - step_out<<2
+    slli 	a6, a6, 2  	// a6 - step_in<<2, because we load two inputs per loop
+    slli 	a7, a7, 1  	// a7 - step_out<<1
 
     addi    a6, a6, -4;
     addi    a2, a2, -4;
 
-	ldinc m0, a2
+    loopnez a4, loop_twice_mulc_s16
+        ldinc m0, a2       // load next data
+        mul.DA.LL m0, a5   // Store the multiplication at the acc
+        rsr a8, acchi      // Read the 8 high bits from the acc
+        rsr a9, acclo      // Read the 32 low bits from the acc
+        src a8, a8, a9     // Combine a8 and a9 and store in a8
+    	s16i a8, a3, 0     // Store result in the output memory
+        add.n a3, a3, a7   // output+=step_out;
 
-    loopnez a4, loop_end_mulc_f32_ae32
-        add.n       a2, a2, a6     // input+=step_input;
-        mul.DA.LL   m0, a5 
-        rsr a8, acchi
-        rsr a9, acclo
-        src a8, a8, a9  // Here result in a8
-    	s16i	a8, a3, 0   // store result to the putput        
-        // rsr a9, acclo
-    	// s16i	a9, a3, 0   // store result to the putput        
-        add.n   a3, a3, a7     // output+=step_out;
-        mul.DA.HL   m0, a5         
+        mul.DA.HL m0, a5   // Store the multiplication at the acc
+        rsr a8, acchi      // Read the 8 high bits from the acc
+        rsr a9, acclo      // Read the 32 low bits from the acc
+        src a10, a8, a9    // Combine a8 and a9 and store in a10
+    	s16i a10, a3, 0    // Store result in the output memory
+        add.n a3, a3, a7   // output+=step_out;
+        add.n a2, a2, a6   // input+=step_input;
 
-        rsr a8, acchi
-        rsr a9, acclo
-	    ldinc       m0,   a2               // load next data
-        src a10, a8, a9  // Here result in a8
-    	s16i	a10, a3, 0   // store result to the putput
-        // // rsr a9, acclo
-    	// // s16i	a9, a3, 0   // store result to the putput        
-        add.n   a3, a3, a7  // output+=step_out;
-loop_end_mulc_f32_ae32:
-    movi.n	a2, 0 // return status ESP_OK
-    retw.n
-    
+loop_twice_mulc_s16:
+    movi.n	a2, 0  //
+    retw.n         // return status ESP_OK
+
 #endif // dsps_mulc_s16_ae32_enabled

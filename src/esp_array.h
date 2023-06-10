@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <esp_dsp.h>
 
-#include "dsps_mulc_s16.h"
+#include "dsps_mulc.h"
 
 /**
  * @brief Namespace for custom ESP32 MATH libraries
@@ -715,7 +715,7 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator*=(const int16_t value)
   { 
-    dsps_mulc_s16_ae32_custom((int16_t*)_array, (int16_t*)_array, _length, value, 1, 1, 0);
+    dsps_mulc_s16_esp((int16_t*)_array, (int16_t*)_array, _length, value);
   }
 
   template<>

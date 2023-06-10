@@ -37,18 +37,21 @@ extern "C"
  * @param C: constant value
  * @param step_in: step over input array (by default should be 1)
  * @param step_out: step over output array (by default should be 1)
+ * @param shift: Fractional number
  *
  * @return
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mulc_s16_ansi_custom(const int16_t *input, int16_t *output, int len, int16_t C, int step_in, int step_out, int shift);
-esp_err_t dsps_mulc_s16_ae32_custom(const int16_t *input, int16_t *output, int len, int16_t C, int step_in, int step_out, int shift);
+
+esp_err_t dsps_mulc_s16_esp(const int16_t *input, int16_t *output, int len, int16_t C, int step_in = 1, int step_out = 1, int shift = 0);
 
 /**@}*/
 
 #ifdef __cplusplus
 }
 #endif
+
+#define dsps_mulc_s16 dsps_mulc_s16_esp
 
 #endif // _dsps_mulc_H_
