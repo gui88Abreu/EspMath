@@ -703,49 +703,49 @@ namespace espmath{
   template<>
   inline void Array<float>::operator+=(const float value)
   {
-    dsps_addc_f32((float*)_array, (float*)_array, _length, value, 1, 1);
+    dsps_addc_f32(_array, _array, _length, value, 1, 1);
   }
 
   template<>
   inline void Array<float>::operator*=(const float value)
   { 
-    dsps_mulc_f32((float*)_array, (float*)_array, _length, value, 1, 1);
+    dsps_mulc_f32(_array, _array, _length, value, 1, 1);
   }
 
   template<>
   inline void Array<int16_t>::operator*=(const int16_t value)
   { 
-    dsps_mulc_s16_esp((int16_t*)_array, (int16_t*)_array, _length, value);
+    dsps_mulc_s16_esp(_array, _array, _length, value);
   }
 
   template<>
   inline void Array<float>::operator+=(const Array<float>& another)
   {
-    dsps_add_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length, 1, 1, 1);
+    dsps_add_f32(_array, another, _array, _length, 1, 1, 1);
   }
 
   template<>
   inline void Array<int16_t>::operator+=(const Array<int16_t>& another)
   {
-    dsps_add_s16((int16_t*)_array, (int16_t*)another.getArrayPntr(), (int16_t*)_array, _length, 1, 1, 1, 0);
+    dsps_add_s16(_array, another, _array, _length, 1, 1, 1, 0);
   }
 
   template<>
   inline void Array<float>::operator-=(const Array<float>& another)
   {
-    dsps_sub_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length, 1, 1, 1);
+    dsps_sub_f32(_array, another, _array, _length, 1, 1, 1);
   }
 
   template<>
   inline void Array<float>::operator*=(const Array<float>& another)
   {
-    dsps_mul_f32((float*)_array, (float*)another.getArrayPntr(), (float*)_array, _length, 1, 1, 1);
+    dsps_mul_f32(_array, another, _array, _length, 1, 1, 1);
   }
 
   template<>
   inline void Array<int16_t>::operator*=(const Array<int16_t>& another)
   {
-    dsps_mul_s16((int16_t*)_array, (int16_t*)another.getArrayPntr(), (int16_t*)_array, _length, 1, 1, 1, 0);
+    dsps_mul_s16(_array, another, _array, _length, 1, 1, 1, 0);
   }
 
   template<>
