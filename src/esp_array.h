@@ -292,39 +292,51 @@ namespace espmath{
      * @param index 
      * @return T 
      */
-    const T& operator[](const size_t index)
+    T& operator[](const size_t index)
     {
       return (*((T*)_array + index));
+    }
+
+    /**
+     * @brief Filter array
+     * 
+     * @param filter
+     * @return Array 
+     */
+    const Array operator[](const Array filter)
+    {
+      Array<T> rt = Array<T>();
+      for (size_t i = 0; i < _length; i++)
+        if(filter[i]) rt << _array[i];
+      return rt;
     }
 
     /**
      * @brief Verify if a value belongs to the array.
      * 
      * @param value The value to be verified.
-     * @return true There is at least 1 value in the _array.
-     * @return false The value is no present in the _array.
+     * @return Array.
      */
-    const bool operator==(const T value)
+    const Array operator==(const T value)
     {
-      size_t i = 0;
-      while(i < _length)
-      {
-        if(_array[i++] == value)
-          return true;
-      }
-      return false;
+      Array<T> rt = Array<T>(_length);
+      for (size_t i = 0; i < _length; i++)
+        _array[i] == value ? rt[i] = 1 : 0;
+      return rt;
     }
 
     /**
      * @brief Verify if a value doesn't belong to the array.
      * 
      * @param value The value to be verified.
-     * @return true The value is no present in the _array.
-     * @return false There is at least 1 value in the _array.
+     * @return Array.
      */
-    const bool operator!=(const T value) const
+    const Array operator!=(const T value) const
     {
-      return !(*this == value);
+      Array<T> rt = Array<T>(_length);
+      for (size_t i = 0; i < _length; i++)
+        _array[i] != value ? rt[i] = 1 : 0;
+      return rt;
     }
 
     /**
@@ -757,18 +769,15 @@ namespace espmath{
   }
 
   template<>
-  inline const bool Array<float>::operator==(const float value)
+  inline const Array<float> Array<float>::operator==(const float value)
   {
-    size_t i = 0;
-    while(i < _length)
-    {
-      if(eqFloats(_array[i++], value))
-        return true;
-    }
-    return false;
+    Array<float> rt = Array<float>(_length);
+    for (size_t i = 0; i < _length; i++)
+      eqFloats(_array[i++], value) ? rt[i] = 1 : 0;
+    return rt;
   }
 
-  template <>
+  template<>
   inline const bool Array<float>::operator==(const float* input)
   {
     size_t i = 0;
