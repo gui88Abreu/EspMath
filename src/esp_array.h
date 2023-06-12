@@ -219,16 +219,7 @@ namespace espmath{
     static_assert(sizeof(T) <= 4, "Long types are not supported!");
   public:
 
-    typedef T* arrayPntr;
-
-    /**
-     * @brief Supported array types for dsp instructions
-     * 
-     */
-    enum DSPtypes{
-      int16_type,
-      float_type
-    };
+    typedef T* const arrayPntr;
 
     /**
      * @brief Return the allocated memory capabilities.
@@ -681,7 +672,7 @@ namespace espmath{
      * 
      * @return void* 
      */
-    T* getArrayPntr() const
+    const T* getArrayPntr() const
     {
       return _array;
     }
