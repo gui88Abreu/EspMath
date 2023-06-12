@@ -31,19 +31,16 @@ extern "C"
  * x[i*step_out] = y[i*step_in]*C; i=[0..len)
  * The implementation use ANSI C and could be compiled and run on any platform
  *
- * @param[in] input: input array
+ * @param input: input array
  * @param output: output array
  * @param len: amount of operations for arrays
  * @param C: constant value
- * @param step_in: step over input array (by default should be 1)
- * @param step_out: step over output array (by default should be 1)
- * @param frac: Fractional number (by default should be 0)
+ * @param frac: Fractional number (by default 0)
  *
  * @return
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-
 esp_err_t dsps_mulc_s16_esp(const int16_t *input, int16_t *output, int len, int16_t C, int frac = 0);
 /**@}*/
 

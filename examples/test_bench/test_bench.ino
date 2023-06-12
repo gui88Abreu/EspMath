@@ -1,7 +1,7 @@
 #include "test_bench.h"
 
 //constexpr size_t array_length = ((uint16_t)((__TIME__[7] + __TIME__[6]/10.0f)*10) % 50);
-constexpr size_t array_length = 53;
+constexpr size_t array_length = 256;
 void setup(){
   vTaskDelay(pdMS_TO_TICKS(5000));
   debug.print("Array Size: " + String(array_length));
