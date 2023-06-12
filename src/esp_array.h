@@ -3,10 +3,18 @@
 
 #include <Arduino.h>
 #include <type_traits>
-#include <esp_dsp.h>
-#include "hard_debug.h"
 
+#include "dsps_add.h"
+#include "dsps_sub.h"
+#include "dsps_mul.h"
+#include "dsps_addc.h"
 #include "dsps_mulc.h"
+#include "dsps_conv.h"
+#include "dsps_corr.h"
+#include "dsps_dotprod.h"
+
+#include "dsps_mulc_esp.h"
+#include "esp_opt.h"
 
 /**
  * @brief Namespace for custom ESP32 MATH libraries
@@ -14,8 +22,6 @@
  */
 namespace espmath{
   using namespace espmath;
-
-#define ALIGNMENT 16
 
   /**
    * @brief Compare floats.
@@ -240,7 +246,7 @@ namespace espmath{
      */
     ~Array()
     {
-      heap_caps_aligned_free(_array);
+      heap_caps_free(_array);
     }
 
     /**
@@ -251,7 +257,7 @@ namespace espmath{
     Array(const size_t initialMem = 0)
     {
        _size = _mem2alloc(initialMem);
-      _array = _size > 0 ? (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, this->memCaps()) : NULL;
+      _array = _size > 0 ? (T*)heap_caps_malloc(_size, this->memCaps()) : NULL;
     }
     
     /**
@@ -558,11 +564,13 @@ namespace espmath{
 
       if (_array)
       {
-        heap_caps_aligned_free(_array);
-        (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, this->memCaps());
+        heap_caps_free(_array);
+        _array = _size > 0 ? (T*)heap_caps_malloc(_size, this->memCaps()) : NULL;
       }
       else
-        (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, this->memCaps());
+      {
+        _array = _size > 0 ? (T*)heap_caps_malloc(_size, this->memCaps()) : NULL;
+      }
 
       if (_array)
       {
@@ -617,11 +625,11 @@ namespace espmath{
     void copy(const Array& another)
     {
       if (_array)
-        heap_caps_aligned_free(_array);
+        heap_caps_free(_array);
 
       _length = another.length();
       _size = another.memSize();
-      _array = (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, memCaps());
+      _array = _size > 0 ? (T*)heap_caps_malloc(_size, this->memCaps()) : NULL;
       
       for(size_t i = 0; i < _length; i++)
         _array[i] = another[i];
@@ -709,8 +717,26 @@ namespace espmath{
      * @param min The minimum quantity of memory blocks
      * @return size_t 
      */
-    virtual size_t _mem2alloc(const size_t min){
-      return min*sizeof(T);
+    size_t _mem2alloc(const size_t min)
+    {
+      size_t minBytes = min*sizeof(T);
+#if (FAST_MODE == 1)
+      size_t extraBytes = extraToAlign(minBytes);
+      return minBytes + extraBytes;
+#else
+      return minBytes;
+#endif
+    }
+
+    /**
+     * @brief Get the extra quantity bytes to be allocated and align array
+     * 
+     * @param min Minumum quantity of bytes
+     * @return size_t Result
+     */
+    size_t extraToAlign(const size_t min)
+    {
+      return (ALIGNMENT - min%ALIGNMENT)%ALIGNMENT;
     }
   };
 
@@ -734,7 +760,7 @@ namespace espmath{
 
   template<>
   inline void Array<int16_t>::operator*=(const int16_t value)
-  { 
+  {
     dsps_mulc_s16_esp(_array, _array, _length, value);
   }
 
