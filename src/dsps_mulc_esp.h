@@ -28,8 +28,11 @@ extern "C"
  * @brief   multiply constant
  *
  * The function multiplies input array to the constant value
- * x[i*step_out] = y[i*step_in]*C; i=[0..len)
- * The implementation use ANSI C and could be compiled and run on any platform
+ * x[i] = y[i]*C; i=[0..len)
+ * The implementation target ESP32 devices and it's optmized using DSP instructions.
+ * 
+ * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
  * @param output: output array
