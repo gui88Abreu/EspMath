@@ -17,6 +17,8 @@
 #include "esp_opt.h"
 #include "ansi.h"
 
+#include "hard_debug.h"
+
 /**
  * @brief Namespace for custom ESP32 MATH libraries
  * 
@@ -606,7 +608,7 @@ namespace espmath{
     size_t _mem2alloc(const size_t min)
     {
       size_t minBytes = min*sizeof(T);
-#if (FAST_MODE == 1)
+#if (FAST_MODE)
       size_t extraBytes = extraToAlign(minBytes);
       return minBytes + extraBytes;
 #else
@@ -642,6 +644,22 @@ namespace espmath{
   inline void Array<float>::operator*=(const float value)
   { 
     dsps_mulc_f32(_array, _array, _length, value, 1, 1);
+  }
+
+  template<>
+  inline void Array<int32_t>::operator*=(const int32_t value)
+  {
+    Array<int32_t> temp = Array<int32_t>(_length);
+    dsps_mulc_s32_esp(_array, temp, _length, value);
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_s32_esp(_array, _array, _length, value);
+    size_t x2 = xthal_get_ccount();
+    debug.print("Cycles opt: " + String(x2 - x1));
+    mulConstByArray(_array, (int32_t*)temp, _length, value);
+    x1 = xthal_get_ccount();
+    mulConstByArray(_array, (int32_t*)temp, _length, value);
+    x2 = xthal_get_ccount();
+    debug.print("Cycles default: " + String(x2 - x1));
   }
 
   template<>

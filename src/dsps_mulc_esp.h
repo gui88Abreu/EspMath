@@ -1,17 +1,3 @@
-// Copyright 2018-2019 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #ifndef _custom_dsps_mulc_H_
 #define _custom_dsps_mulc_H_
 #include "dsp_err.h"
@@ -30,6 +16,8 @@ extern "C"
  * The function multiplies input array to the constant value
  * x[i] = y[i]*C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
+ * Also, it uses fixed-point arithmetic. Use frac parameter to define the fractional 
+ * number of the input.
  * 
  * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
@@ -45,6 +33,28 @@ extern "C"
  *      - One of the error codes from DSP library
  */
 esp_err_t dsps_mulc_s16_esp(const int16_t *input, int16_t *output, int len, int16_t C, int frac = 0);
+
+/**
+ * @brief   multiply constant
+ *
+ * The function multiplies input array to the constant value
+ * x[i] = y[i]*C; i=[0..len)
+ * The implementation target ESP32 devices and it's optmized using DSP instructions.
+ * 
+ * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * If you are using espmath::Array, you don't have to worry about it.
+ *
+ * @param input: input array
+ * @param output: output array
+ * @param len: amount of operations for arrays
+ * @param C: constant value
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - One of the error codes from DSP library
+ */
+esp_err_t dsps_mulc_s32_esp(const int32_t *input, int32_t *output, int len, int32_t C);
+
 /**@}*/
 
 #ifdef __cplusplus
