@@ -268,7 +268,7 @@ namespace espmath{
     }
 
     /**
-     * @brief Constructer
+     * @brief Constructor
      * 
      * @param another 
      */
@@ -295,10 +295,16 @@ namespace espmath{
     }
 
     /**
-     * @brief Filter array
+     * @brief Filter the array removing the elements where filter is false.
      * 
-     * @param filter
-     * @return Array 
+     * Example:
+     * filter = {0, 1, 0, 1, 1};
+     * array  = {1, 2, 3, 4, 5};
+     * 
+     * array[filter] -> {2,4,5}.
+     * 
+     * @param filter The array filter
+     * @return Array
      */
     const Array operator[](const Array filter)
     {
@@ -309,7 +315,7 @@ namespace espmath{
     }
 
     /**
-     * @brief Verify if a value belongs to the array.
+     * @brief Get the boolean array indicating where the value is the same as the element.
      * 
      * @param value The value to be verified.
      * @return Array.
@@ -323,7 +329,7 @@ namespace espmath{
     }
 
     /**
-     * @brief Verify if a value doesn't belong to the array.
+     * @brief Get the boolean array indicating where the value is different than the element.
      * 
      * @param value The value to be verified.
      * @return Array.
@@ -337,7 +343,76 @@ namespace espmath{
     }
 
     /**
-     * @brief Verify if all two arrays are identical.
+     * @brief Get the boolean array indicating where the value is greater than the element.
+     * 
+     * @param value The value to be verified.
+     * @return Array.
+     */
+    const Array operator>(const T value) const
+    {
+      Array<T> rt = Array<T>(_length);
+      for (size_t i = 0; i < _length; i++)
+        _array[i] > value ? rt[i] = 1 : 0;
+      return rt;
+    }
+
+    /**
+     * @brief Get the boolean array indicating where the value is less than the element.
+     * 
+     * @param value The value to be verified.
+     * @return Array.
+     */
+    const Array operator<(const T value) const
+    {
+      Array<T> rt = Array<T>(_length);
+      for (size_t i = 0; i < _length; i++)
+        _array[i] < value ? rt[i] = 1 : 0;
+      return rt;
+    }
+
+    /**
+     * @brief Get the boolean array indicating where the value is greater or equal to the element.
+     * 
+     * @param value The value to be verified.
+     * @return Array.
+     */
+    const Array operator>=(const T value) const
+    {
+      Array<T> rt = Array<T>(_length);
+      for (size_t i = 0; i < _length; i++)
+        _array[i] >= value ? rt[i] = 1 : 0;
+      return rt;
+    }
+
+    /**
+     * @brief Get the boolean array indicating where the value is less or equal to the element.
+     * 
+     * @param value The value to be verified.
+     * @return Array.
+     */
+    const Array operator<=(const T value) const
+    {
+      Array<T> rt = Array<T>(_length);
+      for (size_t i = 0; i < _length; i++)
+        _array[i] <= value ? rt[i] = 1 : 0;
+      return rt;
+    }
+
+    /**
+     * @brief copy[i] = !array[i], i = 0,1,2,3...
+     * 
+     * @return const Array 
+     */
+    const Array operator!()
+    {
+      Array<T> rt = Array<T>(_length);
+      for (size_t i = 0; i < _length; i++)
+        rt[i] = !_array[i];
+      return rt;
+    }
+
+    /**
+     * @brief Verify if two arrays are identical.
      * 
      * @param input The input _array
      * @return true Every value of the _array is contained in input.
@@ -356,7 +431,7 @@ namespace espmath{
     }
 
     /**
-     * @brief Verify if all two arrays are identical.
+     * @brief Verify if two arrays are identical.
      * 
      * @param input The input array
      * @return true Every value of the _array is contained in input.
@@ -374,7 +449,7 @@ namespace espmath{
     }
 
     /**
-     * @brief Verify if all two arrays are not identical regardless the value order.
+     * @brief Verify if two arrays are not identical.
      * 
      * @param input The input _array
      * @return true Not all values of the _array are contained in input.
