@@ -26,6 +26,19 @@ inline const T nonZeroRandomNumber(size_t _MAX_NUM_)
   return rn;
 }
 
+template<>
+inline const float nonZeroRandomNumber(size_t _MAX_NUM_)
+{
+  float rn;
+  do
+  {
+    rn = (float)(esp_random() % _MAX_NUM_);
+    rn += (float)(1 / esp_random());
+  }while(rn==0);
+
+  return rn;
+}
+
 template<typename T>
 inline const size_t max_random()
 {
