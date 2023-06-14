@@ -54,7 +54,7 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] += (T2)(src[i]*cnst);
+   * @brief dest[i] = (T2)(src1[i] + src2)*cnst;
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
@@ -64,10 +64,10 @@ namespace espmath{
    * @param cnst Constant to multiply the output.
    */
   template<typename T1, typename T2>
-  inline void addArrayToArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  inline void addArrayToArray(const T1* src1, const T1* src2, T2* dest, const size_t len, const T2 cnst = 1)
   {
     for(size_t i = 0; i < len; i++)
-      dest[i] += (T2)(src[i]*cnst);
+      dest[i] = (T2)(src1[i] + src2[i])*cnst;
   }
 
   /**
@@ -88,7 +88,7 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] -= src[i]*cnst;
+   * @brief dest[i] = (T2)(src1[i] - src2[i])*cnst;
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
@@ -98,10 +98,10 @@ namespace espmath{
    * @param cnst Constant to multiply the output.
    */
   template<typename T1, typename T2>
-  inline void subArrayFromArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  inline void subArrayFromArray(const T1* src1, const T1* src2, T2* dest, const size_t len, const T2 cnst = 1)
   {
     for(size_t i = 0; i < len; i++)
-      dest[i] -= (T2)(src[i]*cnst);
+      dest[i] = (T2)(src1[i] - src2[i])*cnst;
   }
 
   /**
@@ -122,7 +122,7 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] *= src[i]*cnst;
+   * @brief dest[i] = (T2)(src1[i]*src2[i])*cnst;
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
@@ -132,14 +132,14 @@ namespace espmath{
    * @param cnst Constant to multiply the output.
    */
   template<typename T1, typename T2>
-  inline void mulArrayByArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  inline void mulArrayByArray(const T1* src1, const T1* src2, T2* dest, const size_t len, const T2 cnst = 1)
   {
     for(size_t i = 0; i < len; i++)
-      dest[i] *= (T2)(src[i]*cnst);
+      dest[i] = (T2)(src1[i]*src2[i])*cnst;
   }
 
   /**
-   * @brief dest[i] *= cnst;
+   * @brief dest[i] = src[i]*cnst;
    * 
    * @tparam T Type of the destination array.
    * @param src Source array.
@@ -155,7 +155,7 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] /= src[i]*cnst;
+   * @brief dest[i] = (float)((float)src1[i]/(float)src2[i])*cnst;
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
@@ -172,7 +172,7 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] /= src[i]*cnst;
+   * @brief dest[i] = src[i] / cnst;
    * 
    * @tparam T Type of the destination array.
    * @param src Source array.
@@ -185,6 +185,22 @@ namespace espmath{
   {
     for(size_t i = 0; i < len; i++)
       dest[i] = src[i] / cnst;
+  }
+
+  /**
+   * @brief dest[i] = cnst / (float)src[i];
+   * 
+   * @tparam T Type of the destination array.
+   * @param src Source array.
+   * @param dest Destination array.
+   * @param len Quantity of elements to copy.
+   * @param cnst Constant to multiply the output.
+   */
+  template<typename T>
+  inline void divConstByArray(T* src, float* dest, const size_t len, const float cnst = 1)
+  {
+    for(size_t i = 0; i < len; i++)
+      dest[i] = cnst / (float)src[i];
   }
 }
 
