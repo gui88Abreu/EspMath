@@ -641,7 +641,7 @@ namespace espmath{
   template<>
   inline void Array<float>::operator*=(const float value)
   { 
-    dsps_mulc_f32(_array, _array, _length, value, 1, 1);
+    dsps_mulc_f32_esp(_array, _array, _length, value);
   }
 
   template<>

@@ -36,8 +36,8 @@ dsps_mulc_s16_esp:
   ee.movi.32.q C_v, C, sel_p // C_v = C
 #if (!FAST_MODE)
   ssr     frac                 // sar = frac
-  movi.n  bit_msk, lsb16_msk
-  movi.n  addr_msk, lsb4_msk
+  movi  bit_msk, lsb16_msk
+  movi  addr_msk, lsb4_msk
 decider:
   blti len, 1, return_success
   and   a8, in_addr, addr_msk

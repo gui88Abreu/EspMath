@@ -1,5 +1,5 @@
 #ifndef _ESP_MATH_OPT_H_
-#define _ESP_MATH_OPT_H_
+#define _ESP_MATH_OPT_H_  
 
 /**
  * @brief Memory Alignment
@@ -18,8 +18,6 @@
  * 
  * @note define FAST_MODE as 0 to disable this and consume less memory.
  */
-#ifndef FAST_MODE
 #define FAST_MODE 1
-#endif
 
 #endif

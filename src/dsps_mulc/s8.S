@@ -33,13 +33,13 @@ dsps_mulc_u8_esp:
 
   entry	a1, 16
 
-  movi.n shift, 0
+  movi shift, 0
   ssr    shift               // sar = frac
   ee.vldbc.8 C_v, C         // C_v = C
 #if (!FAST_MODE)
   l32i cnst, C, 0             // Load const
-  movi.n  bit_msk, lsb8_msk
-  movi.n  addr_msk, lsb4_msk
+  movi  bit_msk, lsb8_msk
+  movi  addr_msk, lsb4_msk
 decider:
   blti len, 1, return_success
   and   a8, in_addr, addr_msk
