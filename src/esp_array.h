@@ -57,7 +57,8 @@ namespace espmath{
      */
     ~Array()
     {
-      heap_caps_free(_array);
+      if (canBeDestroyed)
+        heap_caps_free(_array);
     }
 
     /**
@@ -92,16 +93,16 @@ namespace espmath{
      * 
      * @param another 
      */
-    Array(const Array<T>& another){copy(another);}
-    Array(const Array&& another):Array(another){}
+    Array(Array& another){copy(another);}
+    Array(Array&& another){copyRef(another);}
 
     /**
      * @brief Assign operation
      * 
      * @param another 
      */
-    void operator=(const Array& another){copy(another);}
-    void operator=(const Array&& another){copy(another);}
+    void operator=(Array& another){copy(another);}
+    void operator=(Array&& another){copyRef(another);}
 
     /**
      * @brief Get array element
@@ -126,12 +127,13 @@ namespace espmath{
      * @param filter The array filter
      * @return Array
      */
-    const Array operator[](const Array filter)
+    Array operator[](Array filter)
     {
-      Array<T> rt = Array<T>();
+      Array<T> newArray = Array<T>();
       for (size_t i = 0; i < _length; i++)
-        if(filter[i]) rt << _array[i];
-      return rt;
+        if(filter[i]) newArray << _array[i];
+      
+      return newArray;
     }
 
     /**
@@ -140,12 +142,13 @@ namespace espmath{
      * @param value The value to be verified.
      * @return Array.
      */
-    const Array operator==(const T value)
+    Array operator==(const T value)
     {
-      Array<T> rt = Array<T>(_length);
+      Array<T> newArray = Array<T>(_length);
       for (size_t i = 0; i < _length; i++)
-        _array[i] == value ? rt[i] = 1 : 0;
-      return rt;
+        _array[i] == value ? newArray[i] = 1 : 0;
+      
+      return newArray;
     }
 
     /**
@@ -154,12 +157,13 @@ namespace espmath{
      * @param value The value to be verified.
      * @return Array.
      */
-    const Array operator!=(const T value) const
+    Array operator!=(const T value) const
     {
-      Array<T> rt = Array<T>(_length);
+      Array<T> newArray = Array<T>(_length);
       for (size_t i = 0; i < _length; i++)
-        _array[i] != value ? rt[i] = 1 : 0;
-      return rt;
+        _array[i] != value ? newArray[i] = 1 : 0;
+      
+      return newArray;
     }
 
     /**
@@ -168,12 +172,13 @@ namespace espmath{
      * @param value The value to be verified.
      * @return Array.
      */
-    const Array operator>(const T value) const
+    Array operator>(const T value) const
     {
-      Array<T> rt = Array<T>(_length);
+      Array<T> newArray = Array<T>(_length);
       for (size_t i = 0; i < _length; i++)
-        _array[i] > value ? rt[i] = 1 : 0;
-      return rt;
+        _array[i] > value ? newArray[i] = 1 : 0;
+      
+      return newArray;
     }
 
     /**
@@ -182,12 +187,13 @@ namespace espmath{
      * @param value The value to be verified.
      * @return Array.
      */
-    const Array operator<(const T value) const
+    Array operator<(const T value) const
     {
-      Array<T> rt = Array<T>(_length);
+      Array<T> newArray = Array<T>(_length);
       for (size_t i = 0; i < _length; i++)
-        _array[i] < value ? rt[i] = 1 : 0;
-      return rt;
+        _array[i] < value ? newArray[i] = 1 : 0;
+      
+      return newArray;
     }
 
     /**
@@ -196,12 +202,13 @@ namespace espmath{
      * @param value The value to be verified.
      * @return Array.
      */
-    const Array operator>=(const T value) const
+    Array operator>=(const T value) const
     {
-      Array<T> rt = Array<T>(_length);
+      Array<T> newArray = Array<T>(_length);
       for (size_t i = 0; i < _length; i++)
-        _array[i] >= value ? rt[i] = 1 : 0;
-      return rt;
+        _array[i] >= value ? newArray[i] = 1 : 0;
+      
+      return newArray;
     }
 
     /**
@@ -210,25 +217,27 @@ namespace espmath{
      * @param value The value to be verified.
      * @return Array.
      */
-    const Array operator<=(const T value) const
+    Array operator<=(const T value) const
     {
-      Array<T> rt = Array<T>(_length);
+      Array<T> newArray = Array<T>(_length);
       for (size_t i = 0; i < _length; i++)
-        _array[i] <= value ? rt[i] = 1 : 0;
-      return rt;
+        _array[i] <= value ? newArray[i] = 1 : 0;
+      
+      return newArray;
     }
 
     /**
      * @brief copy[i] = !array[i], i = 0,1,2,3...
      * 
-     * @return const Array 
+     * @return Array 
      */
-    const Array operator!()
+    Array operator!()
     {
-      Array<T> rt = Array<T>(_length);
+      Array<T> newArray = Array<T>(_length);
       for (size_t i = 0; i < _length; i++)
-        rt[i] = !_array[i];
-      return rt;
+        newArray[i] = !_array[i];
+      
+      return newArray;
     }
 
     /**
@@ -259,12 +268,12 @@ namespace espmath{
      */
     const bool operator==(Array& another)
     {
-      bool result = *this == another.getArrayPntr();
+      bool result = *this == (T*)another;
       return result;
     }
     const bool operator==(Array&& another)
     {
-      bool result = *this == another.getArrayPntr();
+      bool result = *this == (T*)another;
       return result;
     }
 
@@ -330,11 +339,11 @@ namespace espmath{
      * @param another
      * @note Float and int16_t arrays make use of DSP instructions.
      */
-    void operator+=(const Array& another)
+    void operator+=(Array& another)
     { 
       addArrayToArray((T*)another, _array, _length);
     }
-    void operator+=(const Array&& another)
+    void operator+=(Array&& another)
     {
       *this+=another;
     }
@@ -345,11 +354,11 @@ namespace espmath{
      * @param another 
      * @note Float arrays make use of DSP instructions.
      */
-    void operator-=(const Array& another)
+    void operator-=(Array& another)
     {
       subArrayFromArray((T*)another, _array, _length);
     }
-    void operator-=(const Array&& another)
+    void operator-=(Array&& another)
     {
       *this-=another;
     }
@@ -360,11 +369,11 @@ namespace espmath{
      * @param another 
      * @note Float and int16_t arrays make use of DSP instructions.
      */
-    void operator*=(const Array& another)
+    void operator*=(Array& another)
     {
       mulArrayByArray((T*)another, _array, _length);
     }
-    void operator*=(const Array&& another)
+    void operator*=(Array&& another)
     {
       *this*=another;
     }
@@ -375,11 +384,11 @@ namespace espmath{
      * @param another 
      * 
      */
-    void operator/=(const Array& another)
+    void operator/=(Array& another)
     {
       (*this) = (*this) / (another);
     }
-    void operator/=(const Array&& another)
+    void operator/=(Array&& another)
     {
       *this/=another;
     }
@@ -390,7 +399,7 @@ namespace espmath{
      * @param value 
      * @return Array& 
      */
-    const Array& operator<<(const T value)
+    Array& operator<<(const T value)
     {
       this->append(value);
       return *this;
@@ -402,7 +411,7 @@ namespace espmath{
      * @param another 
      * @return Array& 
      */
-    const Array& operator<<(const Array& another)
+    Array& operator<<(Array& another)
     {
       for(size_t i = 0; i < another.length(); i++)
       {
@@ -487,7 +496,7 @@ namespace espmath{
      * 
      * @note Float arrays make use of DSP instructions.
      */
-    const Array conv(const Array& kernel)
+    Array conv(Array& kernel)
     {
       const size_t outputLength = _length + kernel.length() -1;
       Array convOutput = Array<T>(outputLength);
@@ -500,6 +509,8 @@ namespace espmath{
       cpyArray(kernel, _kernel, kernel.length());
       dsps_conv_f32(itself, _length, _kernel, kernel.length(), output);
       cpyArray(output, convOutput, outputLength);
+
+      
       return convOutput;
     }
 
@@ -508,7 +519,7 @@ namespace espmath{
      * 
      * @param another 
      */
-    void copy(const Array& another)
+    void copy(Array& another)
     {
       if (_array)
         heap_caps_free(_array);
@@ -522,6 +533,21 @@ namespace espmath{
     }
 
     /**
+     * @brief Copy array reference and prevents array from being freed by the destructor
+     * 
+     * @param another 
+     */
+    void copyRef(Array& another)
+    {
+      if (_array)
+        heap_caps_free(_array);
+
+      _length = another.length();
+      _size = another.memSize();
+      _array = another.forbidDestroy();
+    }
+
+    /**
      * @brief Get the correlation array with the given pattern
      * 
      * @param pattern 
@@ -529,7 +555,7 @@ namespace espmath{
      * 
      * @note Float arrays make use of DSP instructions.
      */
-    const Array<float> correlation(const Array& pattern)
+    Array<float> correlation(Array& pattern)
     {
       Array<float> corr = Array<float>(_length);
 
@@ -539,6 +565,8 @@ namespace espmath{
       cpyArray(_array, itself, _length);
       cpyArray(pattern, _pattern, pattern.length());
       dsps_corr_f32(itself, _length, _pattern, pattern.length(), corr);
+
+      
       return corr;
     }
 
@@ -550,7 +578,7 @@ namespace espmath{
      * @return true Two differents arrays
      * @return false Array are not different
      */
-    const bool diff(const Array& another, const float EPSILON = 0.0001)
+    const bool diff(Array& another, const float EPSILON = 0.0001)
     {
       size_t i = 0;
       while (i < _length)
@@ -565,10 +593,21 @@ namespace espmath{
     /**
      * @brief Get the Array Pointer
      * 
-     * @return void* 
+     * @return void*
      */
     const T* getArrayPntr() const
     {
+      return _array;
+    }
+
+    /**
+     * @brief Prevents array from being freed by the destructor
+     * 
+     * @return const T* 
+     */
+    T* forbidDestroy()
+    {
+      canBeDestroyed = false;
       return _array;
     }
 
@@ -596,6 +635,7 @@ namespace espmath{
     size_t _size = 0; /*Total bytes allocated*/
     size_t _length = 0; /*Length of the _array*/
     T* _array = NULL; /*Array pointer*/
+    bool canBeDestroyed = true;
 
     /**
      * @brief Get the total bytes to be allocated
@@ -620,7 +660,7 @@ namespace espmath{
      * @param min Minumum quantity of bytes
      * @return size_t Result
      */
-    size_t extraToAlign(const size_t min)
+    static size_t extraToAlign(const size_t min)
     {
       return (ALIGNMENT - min%ALIGNMENT)%ALIGNMENT;
     }
@@ -669,42 +709,42 @@ namespace espmath{
   }
 
   template<>
-  inline void Array<float>::operator+=(const Array<float>& another)
+  inline void Array<float>::operator+=(Array<float>& another)
   {
     dsps_add_f32(_array, another, _array, _length, 1, 1, 1);
   }
 
   template<>
-  inline void Array<int16_t>::operator+=(const Array<int16_t>& another)
+  inline void Array<int16_t>::operator+=(Array<int16_t>& another)
   {
     dsps_add_s16(_array, another, _array, _length, 1, 1, 1, 0);
   }
 
   template<>
-  inline void Array<float>::operator-=(const Array<float>& another)
+  inline void Array<float>::operator-=(Array<float>& another)
   {
     dsps_sub_f32(_array, another, _array, _length, 1, 1, 1);
   }
 
   template<>
-  inline void Array<float>::operator*=(const Array<float>& another)
+  inline void Array<float>::operator*=(Array<float>& another)
   {
     dsps_mul_f32(_array, another, _array, _length, 1, 1, 1);
   }
 
   template<>
-  inline void Array<int16_t>::operator*=(const Array<int16_t>& another)
+  inline void Array<int16_t>::operator*=(Array<int16_t>& another)
   {
     dsps_mul_s16(_array, another, _array, _length, 1, 1, 1, 0);
   }
 
   template<>
-  inline const Array<float> Array<float>::operator==(const float value)
+  inline Array<float> Array<float>::operator==(const float value)
   {
-    Array<float> rt = Array<float>(_length);
+    Array<float> newArray = Array<float>(_length);
     for (size_t i = 0; i < _length; i++)
-      eqFloats(_array[i++], value) ? rt[i] = 1 : 0;
-    return rt;
+      eqFloats(_array[i++], value) ? newArray[i] = 1 : 0;
+    return newArray;
   }
 
   template<>
@@ -721,7 +761,7 @@ namespace espmath{
   }
 
   template<>
-  inline const Array<float> Array<float>::conv(const Array<float>& kernel)
+  inline Array<float> Array<float>::conv(Array<float>& kernel)
   {
     const size_t outputLength = _length + kernel.length() -1;
     Array<float> convOutput = Array<float>(outputLength);
@@ -730,7 +770,7 @@ namespace espmath{
   }
 
   template<>
-  inline const Array<float> Array<float>::correlation(const Array<float>& pattern)
+  inline Array<float> Array<float>::correlation(Array<float>& pattern)
   {
     Array<float> corr = Array<float>(_length);
     dsps_corr_f32(_array, _length, pattern, pattern.length(), corr);
@@ -738,7 +778,7 @@ namespace espmath{
   }
 
   template<>
-  inline const bool Array<float>::diff(const Array<float>& another, const float EPSILON)
+  inline const bool Array<float>::diff(Array<float>& another, const float EPSILON)
   {
     size_t i = 0;
     while(i < _length)
@@ -759,7 +799,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<T> operator+(const Array<T>& onearray, const Array<T> another)
+  inline Array<T> operator+(Array<T>& onearray, Array<T> another)
   {
     Array<T> newArray = Array<T>((T*)onearray, onearray.length());
     newArray += another;
@@ -775,7 +815,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<T> operator+(const Array<T>& onearray, const T value)
+  inline Array<T> operator+(Array<T>& onearray, const T value)
   {
     Array<T> newArray = Array<T>((T*)onearray, onearray.length());
     newArray += value;
@@ -789,7 +829,7 @@ namespace espmath{
    * @return Array
    */
   template<typename T>
-  inline const Array<T> operator+(const T value, const Array<T> another)
+  inline Array<T> operator+(const T value, Array<T> another)
   {
     return another + value;
   }
@@ -803,7 +843,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<T> operator-(const Array<T>& onearray, const Array<T> another)
+  inline Array<T> operator-(Array<T>& onearray, Array<T> another)
   {
     Array<T> newArray = Array<T>((T*)onearray, onearray.length());
     newArray -= another;
@@ -819,7 +859,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<T> operator-(const Array<T>& onearray, const T value)
+  inline Array<T> operator-(Array<T>& onearray, const T value)
   {
     Array<T> newArray = Array<T>((T*)onearray, onearray.length());
     newArray -= value;
@@ -833,7 +873,7 @@ namespace espmath{
    * @return Array 
    */
   template<typename T>
-  inline const Array<T> operator-(const T value, const Array<T> onearray)
+  inline Array<T> operator-(const T value, Array<T> onearray)
   {
     const T minus1 = -1;
     Array<T> newArray = onearray - value;
@@ -849,7 +889,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<T> operator*(const Array<T>& onearray, const Array<T> another)
+  inline Array<T> operator*(Array<T>& onearray, Array<T> another)
   {
     Array<T> newArray = Array<T>((T*)onearray, onearray.length());
     newArray *= another;
@@ -865,7 +905,7 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<T> operator*(const Array<T>& onearray, const T value)
+  inline Array<T> operator*(Array<T>& onearray, const T value)
   {
     Array<T> newArray = Array<T>((T*)onearray, onearray.length());
     newArray *= value;
@@ -879,7 +919,7 @@ namespace espmath{
    * @return Array 
    */
   template<typename T>
-  inline const Array<T> operator*(const T value, const Array<T> another)
+  inline Array<T> operator*(const T value, Array<T> another)
   {
     Array<T> newArray = Array<T>(another, another.length());
     newArray *= value;
@@ -895,23 +935,22 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<float> operator/(const Array<T>& onearray, const float value)
+  inline Array<float> operator/(Array<T>& onearray, const float value)
   {
-    Array<float> newArray;
     float input[onearray.length()];
+    divArrayByConst((T*)onearray, input, onearray.length(), value);
 
-    cpyArray((T*)onearray, input, onearray.length());  
-    newArray = Array<float>(input, onearray.length());
-
-    newArray /= value;
+    Array<float> newArray = Array<float>(input, onearray.length());
+    
     return newArray;
   }
 
   template<>
-  inline const Array<float> operator/(const Array<float>& onearray, const float value)
+  inline Array<float> operator/(Array<float>& onearray, const float value)
   {
     Array<float> newArray = Array<float>(onearray, onearray.length());
     newArray /= value;
+    
     return newArray;
   }
 
@@ -922,16 +961,16 @@ namespace espmath{
    * @return Array 
    */
   template<typename T>
-  inline const Array<float> operator/(const float value, const Array<T> another)
+  inline Array<float> operator/(const float value, Array<T> another)
   {
-    float output[another.length()];
+    Array<float> output = Array<float>(another.length());
     for(size_t i = 0; i < another.length(); i++)
     {
-      output[i] = (float)(value / (float)another[i]);
+      output << (float)(value / (float)another[i]);
     }
-
-    Array<float> newArray = Array<float>(output, another.length());
-    return newArray;
+    
+    
+    return output;
   }
 
   /**
@@ -943,23 +982,12 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline const Array<float> operator/(const Array<T>& onearray, const Array<T> another)
+  inline Array<float> operator/(Array<T>& onearray, Array<T> another)
   {
-    Array<float> newArray;
-    float input[onearray.length()];
-
-    cpyArray((T*)onearray, input, onearray.length());  
-    newArray = Array<float>(input, onearray.length());
-
-    newArray *= (1.0 / another);
-    return newArray;
-  }
-
-  template<>
-  inline const Array<float> operator/(const Array<float>& onearray, const Array<float> another)
-  {
-    Array<float> newArray = Array<float>(onearray, onearray.length());
-    newArray *= (1.0 / another);
+    float output[onearray.length()];
+    divArrayByArray((T*)onearray, (T*)another, output, onearray.length());
+    Array<float> newArray = Array<float>(output, onearray.length());
+    
     return newArray;
   }
 
@@ -972,13 +1000,13 @@ namespace espmath{
    * @return const T result
    */
   template<typename T>
-  inline const T operator^(const Array<T>& onearray, const Array<T> another)
+  inline const T operator^(Array<T>& onearray, Array<T> another)
   {
     return -1;
   }
 
   template<>
-  inline const int32_t operator^(const Array<int32_t>& onearray, const Array<int32_t> another)
+  inline const int32_t operator^(Array<int32_t>& onearray, Array<int32_t> another)
   {
     int32_t result;
     float input1[onearray.length()];
@@ -992,7 +1020,7 @@ namespace espmath{
   }
 
   template<>
-  inline const uint8_t operator^(const Array<uint8_t>& onearray, const Array<uint8_t> another)
+  inline const uint8_t operator^(Array<uint8_t>& onearray, Array<uint8_t> another)
   {
     uint8_t result;
     int16_t input1[onearray.length()];
@@ -1006,7 +1034,7 @@ namespace espmath{
   }
 
   template<>
-  inline const float operator^(const Array<float>& onearray, const Array<float> another)
+  inline const float operator^(Array<float>& onearray, Array<float> another)
   {
     float result;
     dsps_dotprod_f32(onearray, another, &result, onearray.length());
@@ -1014,7 +1042,7 @@ namespace espmath{
   }
 
   template<>
-  inline const int16_t operator^(const Array<int16_t>& onearray, const Array<int16_t> another)
+  inline const int16_t operator^(Array<int16_t>& onearray, Array<int16_t> another)
   {
     int16_t result;
     dsps_dotprod_s16((int16_t *)onearray, another, &result, onearray.length(), 0);

@@ -9,6 +9,7 @@
 #define bit_msk   a7
 
 #define sel_8     0b1000
+#define lsb2_msk  0b0011
 #define lsb4_msk  0x000F
 #define lsb8_msk  0x00FF
 
@@ -70,7 +71,7 @@ mulc_128_bits:
   j decider
 
 #else
-  movi.n bit_msk, lsb4_msk
+  movi.n bit_msk, lsb2_msk
   and    bit_msk, bit_msk, len
   srli   len, len, 2
   beqz   bit_msk, loop_begin

@@ -301,7 +301,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   
   debug.print("Testing array / constant...");
   x1 = xthal_get_ccount();
-  floatResult = (array1 / randomConstant);
+  floatResult = array1 / randomConstant;
   x2 = xthal_get_ccount();
   debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(floatResult == floatOutput))
@@ -322,7 +322,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
 
   debug.print("Testing constant / array...");
   x1 = xthal_get_ccount();
-  floatResult = (randomConstant / array1);
+  floatResult = randomConstant / array1;
   x2 = xthal_get_ccount();
   debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(floatResult == floatOutput))

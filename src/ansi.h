@@ -164,10 +164,10 @@ namespace espmath{
    * @param cnst Constant to multiply the output.
    */
   template<typename T1, typename T2>
-  inline void divArrayByArray(const T1* src, T2* dest, const size_t len, const T2 cnst = 1)
+  inline void divArrayByArray(const T1* src1, const T2* src2, float* const dest, const size_t len, float cnst = 1)
   {
     for(size_t i = 0; i < len; i++)
-      dest[i] /= (T2)(src[i]*cnst);
+      dest[i] = (float)((float)src1[i]/(float)src2[i])*cnst;
   }
 
   /**
@@ -180,7 +180,7 @@ namespace espmath{
    * @param cnst Constant to multiply the output.
    */
   template<typename T>
-  inline void divArrayByConst(T* src, T* dest, const size_t len, const T cnst = 1)
+  inline void divArrayByConst(T* src, float* dest, const size_t len, const float cnst = 1)
   {
     for(size_t i = 0; i < len; i++)
       dest[i] = src[i] / cnst;
