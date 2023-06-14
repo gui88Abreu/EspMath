@@ -94,8 +94,8 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
     output[i] = data1[i] + data2[i];
   }
 
-  Array<T> array1 = Array<T>(data1, _ARRAY_LENGTH_);
-  Array<T> array2 = Array<T>(data2, _ARRAY_LENGTH_);
+  Array<T> array1(data1, _ARRAY_LENGTH_);
+  Array<T> array2(data2, _ARRAY_LENGTH_);
   Array<T> result;
   Array<float> floatResult;
   
