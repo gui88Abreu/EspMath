@@ -17,8 +17,6 @@
 #include "esp_opt.h"
 #include "ansi.h"
 
-#include "hard_debug.h"
-
 /**
  * @brief Namespace for custom ESP32 MATH libraries
  * 
