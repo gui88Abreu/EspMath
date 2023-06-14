@@ -31,7 +31,7 @@ dsps_mulc_s16_esp:
 // C        - a5
 // frac     - a6
 
-  entry	a1, 0
+  entry	a1, 16
 
   ee.movi.32.q C_v, C, sel_p // C_v = C
 #if (!FAST_MODE)
@@ -106,16 +106,16 @@ mulc_128_bits:
   ee.zero.qacc                         // clear accumulator
   ee.vld.128.ip in_v, in_addr, 16      // load input
   ee.vsmulas.s16.qacc in_v, C_v, sel_p // multiply the input by C
-  ee.srcmb.s16.qacc out_v, frac, 0       // store results in the output register
+  ee.srcmb.s16.qacc out_v, frac, 0     // store results in the output register
   ee.vst.128.ip out_v, out_addr, 16    // store results
 loop_begin:
   loopgtz len, return_success
     ee.zero.qacc                         // clear accumulator
     ee.vld.128.ip in_v, in_addr, 16      // load input
     ee.vsmulas.s16.qacc in_v, C_v, sel_p // multiply the input by C
-    ee.srcmb.s16.qacc out_v, frac, 0       // store results in the output register
+    ee.srcmb.s16.qacc out_v, frac, 0     // store results in the output register
     ee.vst.128.ip out_v, out_addr, 16    // store results
 #endif
 return_success:
-    movi.n	in_addr, 0  //
-    retw.n              // return status ESP_OK
+  movi.n	in_addr, 0  //
+  retw.n              // return status ESP_OK

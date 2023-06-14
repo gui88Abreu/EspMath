@@ -1,6 +1,12 @@
 #ifndef _ESP_MATH_OPT_H_
 #define _ESP_MATH_OPT_H_
 
+/**
+ * @brief Memory Alignment
+ * 
+ * Memory Alignment is more useful when FAST_MODE is enabled as well.
+ * 
+ */
 #define ALIGNMENT 16
 
 /**

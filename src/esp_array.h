@@ -653,6 +653,18 @@ namespace espmath{
   }
 
   template<>
+  inline void Array<uint32_t>::operator*=(const uint32_t value)
+  {
+    dsps_mulc_s32_esp((int32_t*)_array, (int32_t*)_array, _length, (int32_t)value);
+  }
+
+  template<>
+  inline void Array<uint8_t>::operator*=(const uint8_t value)
+  {
+    dsps_mulc_u8_esp(_array, _array, _length, &value);
+  }
+
+  template<>
   inline void Array<int16_t>::operator*=(const int16_t value)
   {
     dsps_mulc_s16_esp(_array, _array, _length, value);
@@ -982,16 +994,16 @@ namespace espmath{
   }
 
   template<>
-  inline const int8_t operator^(const Array<int8_t>& onearray, const Array<int8_t> another)
+  inline const uint8_t operator^(const Array<uint8_t>& onearray, const Array<uint8_t> another)
   {
-    int8_t result;
+    uint8_t result;
     int16_t input1[onearray.length()];
     int16_t input2[onearray.length()];
     int16_t r;
-    cpyArray((int8_t*)onearray, input1, onearray.length());
-    cpyArray((int8_t*)another, input2, onearray.length());
+    cpyArray((uint8_t*)onearray, input1, onearray.length());
+    cpyArray((uint8_t*)another, input2, onearray.length());
     dsps_dotprod_s16(input1, input2, &r, onearray.length(), 0);
-    result = (int8_t)r;
+    result = (uint8_t)r;
     return result;
   }
 
