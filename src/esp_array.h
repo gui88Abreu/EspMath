@@ -13,7 +13,7 @@
 #include "dsps_corr.h"
 #include "dsps_dotprod.h"
 
-#include "dsps_mulc_esp.h"
+#include "dsps_mulc/dsps_mulc_esp.h"
 #include "esp_opt.h"
 #include "ansi.h"
 
