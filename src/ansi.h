@@ -21,7 +21,7 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] = src[i]*cnst;
+   * @brief dest[i] = (T2)(src[i]*cnst);
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
@@ -38,7 +38,7 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] = cnst;
+   * @brief dest[i] = (T)(cnst);
    * 
    * @tparam T Type of the destination array.
    * @param src Source array.
@@ -54,7 +54,7 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] += src[i]*cnst;
+   * @brief dest[i] += (T2)(src[i]*cnst);
    * 
    * @tparam T1 Type of the source array.
    * @tparam T2 Type of the destination array.
@@ -71,7 +71,7 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] += cnst;
+   * @brief dest[i] = src[i] + cnst
    * 
    * @tparam T Type of the destination array.
    * @param src Source array.
@@ -105,19 +105,20 @@ namespace espmath{
   }
 
   /**
-   * @brief dest[i] -= cnst;
+   * @brief dest[i] = (src[i] - cnst1)*cnst2;
    * 
    * @tparam T Type of the destination array.
    * @param src Source array.
    * @param dest Destination array.
    * @param len Quantity of elements to copy.
-   * @param cnst Constant to multiply the output.
+   * @param cnst1 Constant to be subtracted.
+   * @param cnst1 Constant to multiply the output.
    */
   template<typename T>
-  inline void subConstFromArray(T* src, T* dest, const size_t len, const T cnst = 1)
+  inline void subConstFromArray(T* src, T* dest, const size_t len, const T cnst1 = 1, const T cnst2 = 1)
   {
     for(size_t i = 0; i < len; i++)
-      dest[i] = src[i] - cnst;
+      dest[i] = (src[i] - cnst1)*cnst2;
   }
 
   /**
