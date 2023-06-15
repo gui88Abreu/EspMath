@@ -18,7 +18,7 @@
 #include "ansi.h"
 
 #if BENCHMARK_TEST
-#include "hard_debug.h"
+#include "hard_debug.h" // https://github.com/guilhAbreu/EspDebug
 #endif
 
 /**
@@ -46,16 +46,6 @@ namespace espmath{
     typedef T* const arrayPntr;
 
     /**
-     * @brief Return the allocated memory capabilities.
-     * 
-     * @return uint32_t
-     */
-    static const uint32_t memCaps()
-    {
-      return (const uint32_t)(MALLOC_CAP_DEFAULT | MALLOC_CAP_8BIT);
-    }
-
-    /**
      * @brief Destroy the Array object
      * 
      */
@@ -69,12 +59,17 @@ namespace espmath{
      * @brief Construct a new Array object
      * 
      * @param initialMem The initial size of the array.
+     * @param capabilities Memory capabilities.
      */
-    Array(const size_t initialMem = 0)
+    Array(const size_t initialMem = 0, uint32_t capabilities = UINT32_MAX)
     {
+      if (capabilities != UINT32_MAX)
+        _caps = capabilities;
       _length = initialMem;
        _size = _mem2alloc(initialMem);
-      _array = _size > 0 ? (T*)heap_caps_malloc(_size, this->memCaps()) : NULL;
+      _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
+      if(!_array)
+        _size = 0;
     }
     
     /**
@@ -84,11 +79,11 @@ namespace espmath{
      * @param initialMem The initial size of the array.
      */
     Array(const T* initialValues,\
-          const size_t initialMem = 0):Array(initialMem)
+          const size_t initialMem = 0,\
+          uint32_t capabilities = UINT32_MAX):Array(initialMem, capabilities)
     {
-      if (!_array)
-        return;
-      cpyArray(initialValues, _array, _length);
+      if (_array)
+        cpyArray(initialValues, _array, _length);
     }
 
     /**
@@ -463,11 +458,11 @@ namespace espmath{
       if (_array)
       {
         heap_caps_free(_array);
-        _array = _size > 0 ? (T*)heap_caps_malloc(_size, this->memCaps()) : NULL;
+        _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
       }
       else
       {
-        _array = _size > 0 ? (T*)heap_caps_malloc(_size, this->memCaps()) : NULL;
+        _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
       }
 
       if (_array)
@@ -492,6 +487,13 @@ namespace espmath{
     }
 
     /**
+     * @brief Get the memory capabilities
+     * 
+     * @return const uint32_t 
+     */
+    const uint32_t capabilities(){return _caps;}
+
+    /**
      * @brief Get the convolution of the array by the given kernel
      * 
      * @param kernel 
@@ -510,9 +512,10 @@ namespace espmath{
 
       cpyArray(_array, itself, _length);
       cpyArray(kernel, _kernel, kernel.length());
+      unsigned intlevel = dsp_ENTER_CRITICAL();
       dsps_conv_f32_ae32(itself, _length, _kernel, kernel.length(), output);
+      dsp_EXIT_CRITICAL(intlevel);
       cpyArray(output, convOutput, outputLength);
-
       
       return convOutput;
     }
@@ -529,7 +532,7 @@ namespace espmath{
 
       _length = another.length();
       _size = another.memSize();
-      _array = _size > 0 ? (T*)heap_caps_malloc(_size, this->memCaps()) : NULL;
+      _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
       
       for(size_t i = 0; i < _length; i++)
         _array[i] = another[i];
@@ -567,7 +570,10 @@ namespace espmath{
 
       cpyArray(_array, itself, _length);
       cpyArray(pattern, _pattern, pattern.length());
+      
+      unsigned intlevel = dsp_ENTER_CRITICAL();
       dsps_corr_f32_ae32(itself, _length, _pattern, pattern.length(), corr);
+      dsp_EXIT_CRITICAL(intlevel);
 
       return corr;
     }
@@ -626,6 +632,7 @@ namespace espmath{
     size_t _size = 0; /*Total bytes allocated*/
     size_t _length = 0; /*Length of the _array*/
     T* _array = NULL; /*Array pointer*/
+    uint32_t _caps = this->memCaps();
 
   private:
     bool canBeDestroyed = true;
@@ -659,6 +666,16 @@ namespace espmath{
     }
 
     /**
+     * @brief Return the allocated memory capabilities.
+     * 
+     * @return uint32_t
+     */
+    static const uint32_t memCaps()
+    {
+      return MALLOC_CAP_8BIT;
+    }
+
+    /**
      * @brief Prevents array from being freed by the destructor
      * 
      * @return T* 
@@ -671,75 +688,103 @@ namespace espmath{
   };
 
   template<>
-  inline const uint32_t Array<int32_t>::memCaps()
+  const uint32_t Array<int32_t>::memCaps()
   {
-    return (const uint32_t)(MALLOC_CAP_DEFAULT | MALLOC_CAP_32BIT);
+    return MALLOC_CAP_32BIT;
+  }
+
+  template<>
+  const uint32_t Array<uint32_t>::memCaps()
+  {
+    return MALLOC_CAP_32BIT;
   }
 
   template<>
   inline void Array<float>::operator+=(const float value)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_addc_f32_ae32(_array, _array, _length, value, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<float>::operator*=(const float value)
-  { 
+  {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_f32_esp(_array, _array, _length, value);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<int32_t>::operator*=(const int32_t value)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_s32_esp(_array, _array, _length, value);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<uint32_t>::operator*=(const uint32_t value)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_s32_esp((int32_t*)_array, (int32_t*)_array, _length, (int32_t)value);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<uint8_t>::operator*=(const uint8_t value)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_u8_esp(_array, _array, _length, &value);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<int16_t>::operator*=(const int16_t value)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_s16_esp(_array, _array, _length, value);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<float>::operator+=(Array<float>& another)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_add_f32_ae32(_array, another, _array, _length, 1, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<int16_t>::operator+=(Array<int16_t>& another)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_add_s16_ae32(_array, another, _array, _length, 1, 1, 1, 0);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<float>::operator-=(Array<float>& another)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_sub_f32_ae32(_array, another, _array, _length, 1, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<float>::operator*=(Array<float>& another)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mul_f32_ae32(_array, another, _array, _length, 1, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
   inline void Array<int16_t>::operator*=(Array<int16_t>& another)
   {
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mul_s16_ansi(_array, another, _array, _length, 1, 1, 1, 0);
+    dsp_EXIT_CRITICAL(intlevel);
   }
 
   template<>
@@ -769,7 +814,9 @@ namespace espmath{
   {
     const size_t outputLength = _length + kernel.length() -1;
     Array<float> convOutput(outputLength);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_conv_f32_ae32(_array, _length, kernel, kernel.length(), convOutput);
+    dsp_EXIT_CRITICAL(intlevel);
     return convOutput;
   }
 
@@ -777,7 +824,9 @@ namespace espmath{
   inline Array<float> Array<float>::correlation(Array<float>& pattern)
   {
     Array<float> corr(_length);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_corr_f32_ae32(_array, _length, pattern, pattern.length(), corr);
+    dsp_EXIT_CRITICAL(intlevel);
     return corr;
   }
 
@@ -814,7 +863,9 @@ namespace espmath{
   inline Array<float> operator+(Array<float>& onearray, Array<float> another)
   {
     Array<float> newArray(onearray.length());
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_add_f32_ae32(onearray, another, newArray, onearray.length(), 1, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
     return newArray;
   }
 
@@ -822,7 +873,9 @@ namespace espmath{
   inline Array<int16_t> operator+(Array<int16_t>& onearray, Array<int16_t> another)
   {
     Array<int16_t> newArray(onearray.length());
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_add_s16_ae32(onearray, another, newArray, onearray.length(), 1, 1, 1, 0);
+    dsp_EXIT_CRITICAL(intlevel);
     return newArray;
   }
 
@@ -846,7 +899,9 @@ namespace espmath{
   inline Array<float> operator+(Array<float>& onearray, const float value)
   {
     Array<float> newArray(onearray.length());
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_addc_f32_ae32(onearray, newArray, newArray.length(), value, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
     return newArray;
   }
 
@@ -868,7 +923,9 @@ namespace espmath{
   inline Array<float> operator+(const float value, Array<float> another)
   {
     Array<float> newArray(another.length());
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_addc_f32_ae32(another, newArray, newArray.length(), value, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
     return newArray;
   }
 
@@ -892,7 +949,9 @@ namespace espmath{
   inline Array<float> operator-(Array<float>& onearray, Array<float> another)
   {
     Array<float> newArray(onearray.length());
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_sub_f32_ae32(onearray, another, newArray, onearray.length(), 1, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
     return newArray;
   }
 
@@ -916,7 +975,9 @@ namespace espmath{
   inline Array<float> operator-(Array<float>& onearray, const float value)
   {
     Array<float> newArray(onearray.length());
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_addc_f32_ae32(onearray, newArray, newArray.length(), -1*value, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
     return newArray;
   }
 
@@ -939,8 +1000,10 @@ namespace espmath{
   {
     Array<float> newArray(onearray.length());
     float constant = -1*value;
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_addc_f32_ae32(onearray, newArray, newArray.length(), constant, 1, 1);
     dsps_mulc_f32_esp(newArray, newArray, newArray.length(), -1);
+    dsp_EXIT_CRITICAL(intlevel);
     return newArray;
   }
   
@@ -964,7 +1027,9 @@ namespace espmath{
   inline Array<float> operator*(Array<float>& onearray, Array<float> another)
   {
     Array<float> newArray(onearray.length());
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mul_f32_ae32(onearray, another, newArray, onearray.length(), 1, 1, 1);
+    dsp_EXIT_CRITICAL(intlevel);
     return newArray;
   }
 
@@ -997,8 +1062,8 @@ namespace espmath{
   {
     Array<float> newArray(onearray.length());
 #if BENCHMARK_TEST
-    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_f32_esp(onearray, newArray, newArray.length(), value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     size_t x1 = xthal_get_ccount();
     dsps_mulc_f32_esp(onearray, newArray, newArray.length(), value);
     size_t x2 = xthal_get_ccount();
@@ -1017,8 +1082,8 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.length());
 #if BENCHMARK_TEST
-    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_s32_esp(onearray, newArray, newArray.length(), value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     size_t x1 = xthal_get_ccount();
     dsps_mulc_s32_esp(onearray, newArray, newArray.length(), value);
     size_t x2 = xthal_get_ccount();
@@ -1037,8 +1102,8 @@ namespace espmath{
   {
     Array<uint32_t> newArray(onearray.length());
 #if BENCHMARK_TEST
-    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_s32_esp((int32_t*)onearray.getArrayPntr(), (int32_t*)newArray.getArrayPntr(), newArray.length(), value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     size_t x1 = xthal_get_ccount();
     dsps_mulc_s32_esp((int32_t*)onearray.getArrayPntr(), (int32_t*)newArray.getArrayPntr(), newArray.length(), value);
     size_t x2 = xthal_get_ccount();
@@ -1057,8 +1122,8 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.length());
 #if BENCHMARK_TEST
-    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_s16_esp(onearray, newArray, newArray.length(), value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     size_t x1 = xthal_get_ccount();
     dsps_mulc_s16_esp(onearray, newArray, newArray.length(), value);
     size_t x2 = xthal_get_ccount();
@@ -1077,8 +1142,8 @@ namespace espmath{
   {
     Array<uint8_t> newArray(onearray.length());
 #if BENCHMARK_TEST
-    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_u8_esp(onearray, newArray, newArray.length(), &value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     size_t x1 = xthal_get_ccount();
     dsps_mulc_u8_esp(onearray, newArray, newArray.length(), &value);
     size_t x2 = xthal_get_ccount();
@@ -1110,7 +1175,19 @@ namespace espmath{
   inline Array<float> operator*(const float value, Array<float> onearray)
   {
     Array<float> newArray(onearray.length());
+#if BENCHMARK_TEST
     dsps_mulc_f32_esp(onearray, newArray, newArray.length(), value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_f32_esp(onearray, newArray, newArray.length(), value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_f32_esp(onearray, newArray, newArray.length(), value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 
@@ -1118,7 +1195,19 @@ namespace espmath{
   inline Array<int32_t> operator*(const int32_t value, Array<int32_t> onearray)
   {
     Array<int32_t> newArray(onearray.length());
+#if BENCHMARK_TEST
     dsps_mulc_s32_esp(onearray, newArray, newArray.length(), value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_s32_esp(onearray, newArray, newArray.length(), value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_s32_esp(onearray, newArray, newArray.length(), value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 
@@ -1126,7 +1215,19 @@ namespace espmath{
   inline Array<uint32_t> operator*(const uint32_t value, Array<uint32_t> onearray)
   {
     Array<uint32_t> newArray(onearray.length());
+#if BENCHMARK_TEST
     dsps_mulc_s32_esp((int32_t*)onearray.getArrayPntr(), (int32_t*)newArray.getArrayPntr(), newArray.length(), value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_s32_esp((int32_t*)onearray.getArrayPntr(), (int32_t*)newArray.getArrayPntr(), newArray.length(), value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_s32_esp((int32_t*)onearray.getArrayPntr(), (int32_t*)newArray.getArrayPntr(), newArray.length(), value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 
@@ -1134,7 +1235,19 @@ namespace espmath{
   inline Array<int16_t> operator*(const int16_t value, Array<int16_t> onearray)
   {
     Array<int16_t> newArray(onearray.length());
+#if BENCHMARK_TEST
     dsps_mulc_s16_esp(onearray, newArray, newArray.length(), value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_s16_esp(onearray, newArray, newArray.length(), value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_s16_esp(onearray, newArray, newArray.length(), value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 
@@ -1142,7 +1255,19 @@ namespace espmath{
   inline Array<uint8_t> operator*(const uint8_t value, Array<uint8_t> onearray)
   {
     Array<uint8_t> newArray(onearray.length());
+#if BENCHMARK_TEST
     dsps_mulc_u8_esp(onearray, newArray, newArray.length(), &value);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_u8_esp(onearray, newArray, newArray.length(), &value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_u8_esp(onearray, newArray, newArray.length(), &value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 
@@ -1223,7 +1348,19 @@ namespace espmath{
     float r;
     cpyArray((int32_t*)onearray, input1, onearray.length());
     cpyArray((int32_t*)another, input2, onearray.length());
+#if BENCHMARK_TEST
     dsps_dotprod_f32_ae32(input1, input2, &r, onearray.length());
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    size_t x1 = xthal_get_ccount();
+    dsps_dotprod_f32_ae32(input1, input2, &r, onearray.length());
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_dotprod_f32_ae32(input1, input2, &r, onearray.length());
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     result = (int32_t)r;
     return result;
   }
@@ -1237,7 +1374,19 @@ namespace espmath{
     int16_t r;
     cpyArray((uint8_t*)onearray, input1, onearray.length());
     cpyArray((uint8_t*)another, input2, onearray.length());
+#if BENCHMARK_TEST
     dsps_dotprod_s16_ae32(input1, input2, &r, onearray.length(), 0);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    size_t x1 = xthal_get_ccount();
+    dsps_dotprod_s16_ae32(input1, input2, &r, onearray.length(), 0);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_dotprod_s16_ae32(input1, input2, &r, onearray.length(), 0);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     result = (uint8_t)r;
     return result;
   }
@@ -1246,7 +1395,19 @@ namespace espmath{
   inline const float operator^(Array<float>& onearray, Array<float> another)
   {
     float result;
+#if BENCHMARK_TEST
     dsps_dotprod_f32_ae32(onearray, another, &result, onearray.length());
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    size_t x1 = xthal_get_ccount();
+    dsps_dotprod_f32_ae32(onearray, another, &result, onearray.length());
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_dotprod_f32_ae32(onearray, another, &result, onearray.length());
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return result;
   }
 
@@ -1254,7 +1415,19 @@ namespace espmath{
   inline const int16_t operator^(Array<int16_t>& onearray, Array<int16_t> another)
   {
     int16_t result;
-    dsps_dotprod_s16_ae32((int16_t *)onearray, another, &result, onearray.length(), 0);
+#if BENCHMARK_TEST
+    dsps_dotprod_s16_ae32(onearray, another, &result, onearray.length(), 0);
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    size_t x1 = xthal_get_ccount();
+    dsps_dotprod_s16_ae32(onearray, another, &result, onearray.length(), 0);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_dotprod_s16_ae32(onearray, another, &result, onearray.length(), 0);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return result;
   }
 }
