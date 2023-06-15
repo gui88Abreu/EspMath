@@ -1,6 +1,8 @@
 #ifndef _ESP_MATH_OPT_H_
 #define _ESP_MATH_OPT_H_  
 
+#include "esp_idf_version.h"
+
 /**
  * @brief Memory Alignment
  * 
@@ -19,5 +21,19 @@
  * @note define FAST_MODE as 0 to disable this and consume less memory.
  */
 #define FAST_MODE 1
+
+/**
+ * @brief If enabled, benchmark test willbe done and result will be printed via serial port
+ * 
+ */
+#define BENCHMARK_TEST 1
+
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+#define dsp_ENTER_CRITICAL      portSET_INTERRUPT_MASK_FROM_ISR
+#define dsp_EXIT_CRITICAL       portCLEAR_INTERRUPT_MASK_FROM_ISR
+#else
+#define dsp_ENTER_CRITICAL      portENTER_CRITICAL_NESTED
+#define dsp_EXIT_CRITICAL       portEXIT_CRITICAL_NESTED
+#endif
 
 #endif

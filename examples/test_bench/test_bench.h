@@ -84,8 +84,6 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   T output[_ARRAY_LENGTH_];
   float floatOutput[_ARRAY_LENGTH_];
 
-  size_t x1, x2;
-
   const T randomConstant = nonZeroRandomNumber<T>(max_random<T>());
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
   {
@@ -100,10 +98,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   Array<float> floatResult;
   
   debug.print("Testing arrays addition...");
-  x1 = xthal_get_ccount();
   result = array1 + array2;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -121,10 +116,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   }
 
   debug.print("Testing arrays subtration...");
-  x1 = xthal_get_ccount();
   result = array1 - array2;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -142,10 +134,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   }
 
   debug.print("Testing arrays multiplication...");
-  x1 = xthal_get_ccount();
   result = array1 * array2;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -163,10 +152,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   }
 
   debug.print("Testing arrays division...");
-  x1 = xthal_get_ccount();
-  floatResult = (array1 / array2);
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
+  floatResult = array1 / array2;
   if(!(floatResult == floatOutput))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -184,10 +170,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   }
 
   debug.print("Testing array + constant...");
-  x1 = xthal_get_ccount();
   result = array1 + randomConstant;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -200,10 +183,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
     debug.print("Succeeded!");
 
   debug.print("Testing constant + array...");
-  x1 = xthal_get_ccount();
   result = randomConstant + array1;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -221,10 +201,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   }
 
   debug.print("Testing array - constant...");
-  x1 = xthal_get_ccount();
   result = array1 - randomConstant;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -242,10 +219,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   }
 
   debug.print("Testing constant - array...");
-  x1 = xthal_get_ccount();
   result = randomConstant - array1;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -263,10 +237,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   }
 
   debug.print("Testing array * constant...");
-  x1 = xthal_get_ccount();
   result = array1 * randomConstant;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -279,10 +250,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
     debug.print("Succeeded!");
 
   debug.print("Testing constant * array...");
-  x1 = xthal_get_ccount();
   result = randomConstant * array1;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -300,10 +268,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   }
   
   debug.print("Testing array / constant...");
-  x1 = xthal_get_ccount();
   floatResult = array1 / randomConstant;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(floatResult == floatOutput))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
@@ -321,10 +286,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   }
 
   debug.print("Testing constant / array...");
-  x1 = xthal_get_ccount();
   floatResult = randomConstant / array1;
-  x2 = xthal_get_ccount();
-  debug.print("It took " + String(x2-x1) + " cycles!");
   if(!(floatResult == floatOutput))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);

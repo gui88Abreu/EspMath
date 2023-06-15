@@ -14,10 +14,6 @@
 #define out_v     q2
 
 #define sel_p     0
-#define sel_8     0b1000
-#define lsb3_msk  0b0111
-#define lsb4_msk  0b1111
-#define lsb16_msk 0xFFFF
 
   .text
   .align  ALIGNMENT
@@ -36,13 +32,13 @@ dsps_mulc_s16_esp:
   ee.movi.32.q C_v, C, sel_p // C_v = C
 #if (!FAST_MODE)
   ssr     frac                 // sar = frac
-  movi  bit_msk, lsb16_msk
-  movi  addr_msk, lsb4_msk
+  movi  bit_msk,  0xFFFF
+  movi  addr_msk, 0b1111
 decider:
   blti len, 1, return_success
   and   a8, in_addr, addr_msk
   beqz  a8, mulc_128_bits
-  beqi  a8, sel_8, mulc_64_bits
+  beqi  a8, 0b1000, mulc_64_bits
   j mulc_32_bits
 
 mulc_16_bits:
@@ -99,7 +95,7 @@ mulc_128_bits:
   addi.n len, len, -8                  // decrement length
   j decider
 #else
-  movi.n bit_msk, lsb3_msk
+  movi.n bit_msk, 0b111
   and    bit_msk, bit_msk, len
   srli   len, len, 3
   beqz   bit_msk, loop_begin

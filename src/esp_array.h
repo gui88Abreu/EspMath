@@ -17,6 +17,10 @@
 #include "esp_opt.h"
 #include "ansi.h"
 
+#if BENCHMARK_TEST
+#include "hard_debug.h"
+#endif
+
 /**
  * @brief Namespace for custom ESP32 MATH libraries
  * 
@@ -992,7 +996,19 @@ namespace espmath{
   inline Array<float> operator*(Array<float>& onearray, const float value)
   {
     Array<float> newArray(onearray.length());
+#if BENCHMARK_TEST
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_f32_esp(onearray, newArray, newArray.length(), value);
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_f32_esp(onearray, newArray, newArray.length(), value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_f32_esp(onearray, newArray, newArray.length(), value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 
@@ -1000,7 +1016,19 @@ namespace espmath{
   inline Array<int32_t> operator*(Array<int32_t>& onearray, const int32_t value)
   {
     Array<int32_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_s32_esp(onearray, newArray, newArray.length(), value);
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_s32_esp(onearray, newArray, newArray.length(), value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_s32_esp(onearray, newArray, newArray.length(), value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 
@@ -1008,7 +1036,19 @@ namespace espmath{
   inline Array<uint32_t> operator*(Array<uint32_t>& onearray, const uint32_t value)
   {
     Array<uint32_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_s32_esp((int32_t*)onearray.getArrayPntr(), (int32_t*)newArray.getArrayPntr(), newArray.length(), value);
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_s32_esp((int32_t*)onearray.getArrayPntr(), (int32_t*)newArray.getArrayPntr(), newArray.length(), value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_s32_esp((int32_t*)onearray.getArrayPntr(), (int32_t*)newArray.getArrayPntr(), newArray.length(), value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 
@@ -1016,7 +1056,19 @@ namespace espmath{
   inline Array<int16_t> operator*(Array<int16_t>& onearray, const int16_t value)
   {
     Array<int16_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_s16_esp(onearray, newArray, newArray.length(), value);
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_s16_esp(onearray, newArray, newArray.length(), value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_s16_esp(onearray, newArray, newArray.length(), value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 
@@ -1024,7 +1076,19 @@ namespace espmath{
   inline Array<uint8_t> operator*(Array<uint8_t>& onearray, const uint8_t value)
   {
     Array<uint8_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    unsigned intlevel = dsp_ENTER_CRITICAL();
     dsps_mulc_u8_esp(onearray, newArray, newArray.length(), &value);
+    size_t x1 = xthal_get_ccount();
+    dsps_mulc_u8_esp(onearray, newArray, newArray.length(), &value);
+    size_t x2 = xthal_get_ccount();
+    dsp_EXIT_CRITICAL(intlevel);
+    debug.print("It took " + String(x2-x1) + " cycles!");
+#else
+    unsigned intlevel = dsp_ENTER_CRITICAL();
+    dsps_mulc_u8_esp(onearray, newArray, newArray.length(), &value);
+    dsp_EXIT_CRITICAL(intlevel);
+#endif
     return newArray;
   }
 

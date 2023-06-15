@@ -8,14 +8,8 @@
 #define addr_msk  a7
 #define bit_msk   a11
 
-#define in_v      q0
-#define out_v     q1
-
-#define sel_p     0
-#define sel_8     0b1000
-#define lsb2_msk  0b0011
-#define lsb4_msk  0b1111
-#define lsb16_msk 0xFFFF
+#define in_v      q1
+#define out_v     q2
 
     .text
     .align  ALIGNMENT
@@ -31,12 +25,12 @@ dsps_mulc_s32_esp:
   entry	a1, 16
 
 #if (!FAST_MODE)
-  movi  addr_msk, lsb4_msk
+  movi  addr_msk, 0b1111
 decider:
   blti len, 1, return_success
   and   a6, in_addr, addr_msk
   beqz  a6, mulc_128_bits
-  beqi  a6, sel_8, mulc_64_bits
+  beqi  a6, 0b1000, mulc_64_bits
   j mulc_32_bits
 
 mulc_32_bits:
@@ -81,7 +75,7 @@ mulc_128_bits:
   addi len, len, -4                    // decrement length
   j decider
 #else
-  movi.n bit_msk, lsb2_msk
+  movi.n bit_msk, 0b11
   and    bit_msk, bit_msk, len
   srli   len, len, 2
   beqz   bit_msk, loop_begin
