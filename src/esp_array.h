@@ -77,6 +77,7 @@ namespace espmath{
      * 
      * @param initialValues Initial values of the array.
      * @param initialMem The initial size of the array.
+     * @param capabilities Memory capabilities
      */
     Array(const T* initialValues,\
           const size_t initialMem = 0,\
