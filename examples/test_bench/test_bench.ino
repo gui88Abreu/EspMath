@@ -9,13 +9,13 @@ void setup(){
   debug.print("Free size[bytes]: " + String(xPortGetFreeHeapSize()));
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");
-  debug.print("Testing integer 32 bits arrays arithmetic...");
-  test_ari<int32_t>(array_length);
+  debug.print("Testing floating-point arrays arithmetic...");
+  test_ari<float>(array_length);
   debug.print("Succeeded!");
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");
-  debug.print("Testing floating-point arrays arithmetic...");
-  test_ari<float>(array_length);
+  debug.print("Testing integer 32 bits arrays arithmetic...");
+  test_ari<int32_t>(array_length);
   debug.print("Succeeded!");
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");
