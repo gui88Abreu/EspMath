@@ -1,3 +1,5 @@
+#define FAST_MODE 1
+#include "esp_opt.h"
 #include "test_bench.h"
 
 void setup(){

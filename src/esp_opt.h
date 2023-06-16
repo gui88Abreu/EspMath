@@ -20,13 +20,17 @@
  * 
  * @note define FAST_MODE as 0 to disable this and consume less memory.
  */
+#ifndef FAST_MODE
 #define FAST_MODE 1
+#endif
 
 /**
  * @brief If enabled, benchmark test willbe done and result will be printed via serial port
  * 
  */
+#ifndef BENCHMARK_TEST
 #define BENCHMARK_TEST 1
+#endif
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 #define dsp_ENTER_CRITICAL      portSET_INTERRUPT_MASK_FROM_ISR
