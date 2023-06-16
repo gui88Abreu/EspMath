@@ -93,14 +93,14 @@ namespace espmath{
      * @param another 
      */
     Array(Array& another){copy(another);}
-    Array(Array&& another){copyRef(another);}
+    Array(Array&& another):Array(another){}
 
     /**
      * @brief Assign operation
      * 
      * @param another 
      */
-    void operator=(Array& another){copyRef(another);}
+    void operator=(Array& another){copy(another);}
     void operator=(Array&& another){copyRef(another);}
 
     /**
@@ -131,7 +131,6 @@ namespace espmath{
       Array<T> newArray();
       for (size_t i = 0; i < _length; i++)
         if(filter[i]) newArray << _array[i];
-      
       return newArray;
     }
 
@@ -235,6 +234,20 @@ namespace espmath{
       Array<T> newArray(_length);
       for (size_t i = 0; i < _length; i++)
         newArray[i] = !_array[i];
+      
+      return newArray;
+    }
+
+    /**
+     * @brief Perform a binary not on every element and return the result
+     * 
+     * @return Array 
+     */
+    Array operator~()
+    {
+      Array<T> newArray(_length);
+      for (size_t i = 0; i < _length; i++)
+        newArray[i] = ~_array[i];
       
       return newArray;
     }
