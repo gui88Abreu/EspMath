@@ -10,11 +10,9 @@
 #define bit_msk   a11
 #define cnst     a12
 
-#define C_v       q0
-#define in_v      q1
+#define in_v      q0
+#define C_v       q1
 #define out_v     q2
-
-#define sel_p     0
 
   .text
   .align  ALIGNMENT
@@ -28,101 +26,20 @@ dsps_mulc_u8_esp:
 // C        - a5
 
   entry	a1, 16
-
-  movi shift, 0
-  ssr    shift               // sar = frac
-  ee.vldbc.8 C_v, C         // C_v = C
+  ee.vldbc.8 C_v, C          // C_v = C
 #if (!FAST_MODE)
   l32i cnst, C, 0             // Load const
-  movi  bit_msk, 0xFF
-  movi  addr_msk, 0b1111
-decider:
-  blti len, 1, return_success
-  and   a8, in_addr, addr_msk
-  beqz  a8, mulc_128_bits
-  beqi  a8, 0b1000, mulc_64_bits
-  j mulc_32_bits
+  loopgtz len, return_success
+    l8ui a8, in_addr, 0          // Load next data
+    mul.aa.ll a8, cnst           // Store the multiplication in the acc
+    rsr a9, acclo                // Read the 32 low bits from the acc
+    s8i a9, out_addr, 0          // Store result
 
-mulc_8_bits:
-  l8ui a8, in_addr, 0          // Load next data
-  mul.aa.ll a8, cnst           // Store the multiplication in the acc
-  rsr a9, acclo                // Read the 32 low bits from the acc
-  s8i a9, out_addr, 0          // Store result
-
-  addi out_addr, out_addr, 1 // next output;
-  addi in_addr, in_addr, 1   // next input;
-  addi len, len, -1          // decrement length;
-
-  j decider
-
-mulc_16_bits:
-  blti len, 2, mulc_8_bits
-  l16ui a8, in_addr, 0         // Load next data
-  mul.aa.ll a8, cnst           // Store the multiplication in the acc
-  rsr a9, acclo                // Read the 32 low bits from the acc
-  
-  slli a8, a8, 8
-  mul.aa.hl a8, cnst           // Store the multiplication in the acc
-  rsr a8, acclo                // Read the 32 low bits from the acc
-  slli a8, a8, 8
-  or a9, a8, a9                // Combine results in the same register
-
-  s16i a9, out_addr, 0         // Store result
-  addi out_addr, out_addr, 2   // next output;
-  addi in_addr, in_addr, 2     // next input;
-  addi len, len, -2            // decrement length;
-
-  j decider
-mulc_32_bits:
-  blti len, 4, mulc_16_bits
-
-  l32i a8, in_addr, 0          // Load next data
-
-  mul.aa.ll a8, cnst           // Store the multiplication in the acc
-  rsr a9, acclo                // Read the 32 low bits from the acc
-  and a10, a9, bit_msk         // Select the least significant 8 bits
-
-  mul.aa.hl a8, cnst           // Store the multiplication in the acc
-  rsr a9, acclo                // Read the 32 low bits from the acc
-  and a9, a9, bit_msk          // Select the least significant 8 bits
-  slli a9, a9, 16              // Shift left to give space to the 1st mulc
-  or a10, a10, a9              // Combine results in the same register
-
-  srli a8, a8, 8
-  mul.aa.hl a8, cnst           // Store the multiplication in the acc
-  rsr a9, acclo                // Read the 32 low bits from the acc
-  and a9, a9, bit_msk          // Select the least significant 8 bits
-  slli a9, a9, 24              // Shift left to give space to the 1st mulc
-  or a10, a10, a9              // Combine results in the same register
-
-  mul.aa.ll a8, cnst           // Store the multiplication in the acc
-  rsr a9, acclo                // Read the 32 low bits from the acc
-  and a9, a9, bit_msk          // Select the least significant 8 bits
-  slli a9, a9, 8               // Shift left to give space to the 1st mulc
-  or a10, a10, a9              // Combine results in the same register
-
-  s32i a10, out_addr, 0        // Store result in the output memory
-  addi out_addr, out_addr, 4   // next output;
-  addi in_addr, in_addr, 4     // next input;
-  addi len, len, -4            // decrement length;
-  j decider
-
-mulc_64_bits:
-  blti len, 8, mulc_32_bits
-  ee.vld.h.64.ip in_v, in_addr, 8      // load input
-  ee.vmul.u8 out_v, in_v, C_v          // multiply, shift (sar), and store result
-  ee.vst.h.64.ip out_v, out_addr, 8    // store results
-  addi len, len, -8                  // decrement length
-  j decider
-
-mulc_128_bits:
-  blti len, 16, mulc_64_bits
-  ee.vld.128.ip in_v, in_addr, 16          // load input
-  ee.vmul.u8 out_v, in_v, C_v              // multiply, shift (sar), and store result
-  ee.vst.128.ip out_v, out_addr, 16
-  addi len, len, -16                                   // len-=16
-  j decider
+    addi out_addr, out_addr, 1 // next output;
+    addi in_addr, in_addr, 1   // next input;
 #else
+  movi shift, 0
+  ssr    shift               // sar = frac
   movi   bit_msk, 0b1111
   and    bit_msk, bit_msk, len
   srli   len, len, 4

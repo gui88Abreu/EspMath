@@ -9,7 +9,9 @@
  * Memory Alignment is more useful when FAST_MODE is enabled as well.
  * 
  */
+#ifndef ALIGNMENT
 #define ALIGNMENT 16
+#endif
 
 /**
  * @brief Fast mode consumes more RAM memory, but speed up operations

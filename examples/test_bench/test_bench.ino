@@ -1,8 +1,7 @@
-#define FAST_MODE 1
 #include "test_bench.h"
 
 void setup(){
-  size_t array_length = nonZeroRandomNumber<size_t>(256);
+  size_t array_length = 134;//nonZeroRandomNumber<size_t>(256);
   vTaskDelay(pdMS_TO_TICKS(5000));
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");

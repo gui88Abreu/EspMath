@@ -14,6 +14,7 @@
 #include "dsps_dotprod.h"
 
 #include "dsps_mulc/dsps_mulc_esp.h"
+#include "dsps_mul/dsps_mul_esp.h"
 #include "esp_opt.h"
 #include "ansi.h"
 
@@ -729,89 +730,85 @@ namespace espmath{
   template<>
   inline void Array<float>::operator+=(const float value)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_addc_f32_ae32(_array, _array, _length, value, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_addc_f32_ae32, _array, _array, _length, value, 1, 1);
   }
 
   template<>
   inline void Array<float>::operator*=(const float value)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_mulc_f32_esp(_array, _array, _length, value);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_mulc_f32_esp, _array, _array, _length, value);
   }
 
   template<>
   inline void Array<int32_t>::operator*=(const int32_t value)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_mulc_s32_esp(_array, _array, _length, value);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_mulc_s32_esp, _array, _array, _length, value);
   }
 
   template<>
   inline void Array<uint32_t>::operator*=(const uint32_t value)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_mulc_s32_esp((int32_t*)_array, (int32_t*)_array, _length, (int32_t)value);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_mulc_s32_esp, (int32_t*)_array, (int32_t*)_array, _length, (int32_t)value);
   }
 
   template<>
   inline void Array<uint8_t>::operator*=(const uint8_t value)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_mulc_u8_esp(_array, _array, _length, &value);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_mulc_u8_esp, _array, _array, _length, &value);
   }
 
   template<>
   inline void Array<int16_t>::operator*=(const int16_t value)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_mulc_s16_esp(_array, _array, _length, value);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_mulc_s16_esp,_array, _array, _length, value);
   }
 
   template<>
   inline void Array<float>::operator+=(Array<float>& another)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_add_f32_ae32(_array, another, _array, _length, 1, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_add_f32_ae32, _array, another, _array, _length, 1, 1, 1);
   }
 
   template<>
   inline void Array<int16_t>::operator+=(Array<int16_t>& another)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_add_s16_ae32(_array, another, _array, _length, 1, 1, 1, 0);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_add_s16_ae32, _array, another, _array, _length, 1, 1, 1, 0);
   }
 
   template<>
   inline void Array<float>::operator-=(Array<float>& another)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_sub_f32_ae32(_array, another, _array, _length, 1, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_sub_f32_ae32, _array, another, _array, _length, 1, 1, 1);
   }
 
   template<>
   inline void Array<float>::operator*=(Array<float>& another)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_mul_f32_ae32(_array, another, _array, _length, 1, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_mul_f32_esp, _array, another, _array, _length);
+  }
+
+  template<>
+  inline void Array<int32_t>::operator*=(Array<int32_t>& another)
+  {
+    exec_dsp(dsps_mul_s32_esp, _array, another, _array, _length);
+  }
+
+  template<>
+  inline void Array<uint32_t>::operator*=(Array<uint32_t>& another)
+  {
+    exec_dsp(dsps_mul_s32_esp, (int32_t*)_array, (int32_t*)another.getArrayPntr(), (int32_t*)_array, _length);
   }
 
   template<>
   inline void Array<int16_t>::operator*=(Array<int16_t>& another)
   {
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_mul_s16_ansi(_array, another, _array, _length, 1, 1, 1, 0);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_mul_s16_esp,_array, another, _array, _length);
+  }
+
+  template<>
+  inline void Array<uint8_t>::operator*=(Array<uint8_t>& another)
+  {
+    exec_dsp(dsps_mul_u8_esp,_array, another, _array, _length);
   }
 
   template<>
@@ -841,9 +838,7 @@ namespace espmath{
   {
     const size_t outputLength = _length + kernel.length() -1;
     Array<float> convOutput(outputLength);
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_conv_f32_ae32(_array, _length, kernel, kernel.length(), convOutput);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_conv_f32_ae32, _array, _length, kernel, kernel.length(), convOutput);
     return convOutput;
   }
 
@@ -851,9 +846,7 @@ namespace espmath{
   inline Array<float> Array<float>::correlation(Array<float>& pattern)
   {
     Array<float> corr(_length);
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_corr_f32_ae32(_array, _length, pattern, pattern.length(), corr);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_corr_f32_ae32, _array, _length, pattern, pattern.length(), corr);
     return corr;
   }
 
@@ -890,9 +883,7 @@ namespace espmath{
   inline Array<float> operator+(Array<float>& onearray, Array<float> another)
   {
     Array<float> newArray(onearray.length());
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_add_f32_ae32(onearray, another, newArray, onearray.length(), 1, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_add_f32_ae32, onearray, another, newArray, onearray.length(), 1, 1, 1);
     return newArray;
   }
 
@@ -900,9 +891,7 @@ namespace espmath{
   inline Array<int16_t> operator+(Array<int16_t>& onearray, Array<int16_t> another)
   {
     Array<int16_t> newArray(onearray.length());
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_add_s16_ae32(onearray, another, newArray, onearray.length(), 1, 1, 1, 0);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_add_s16_ae32, onearray, another, newArray, onearray.length(), 1, 1, 1, 0);
     return newArray;
   }
 
@@ -926,9 +915,7 @@ namespace espmath{
   inline Array<float> operator+(Array<float>& onearray, const float value)
   {
     Array<float> newArray(onearray.length());
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_addc_f32_ae32(onearray, newArray, newArray.length(), value, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_addc_f32_ae32, onearray, newArray, newArray.length(), value, 1, 1);
     return newArray;
   }
 
@@ -950,9 +937,7 @@ namespace espmath{
   inline Array<float> operator+(const float value, Array<float> another)
   {
     Array<float> newArray(another.length());
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_addc_f32_ae32(another, newArray, newArray.length(), value, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_addc_f32_ae32, another, newArray, newArray.length(), value, 1, 1);
     return newArray;
   }
 
@@ -976,9 +961,7 @@ namespace espmath{
   inline Array<float> operator-(Array<float>& onearray, Array<float> another)
   {
     Array<float> newArray(onearray.length());
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_sub_f32_ae32(onearray, another, newArray, onearray.length(), 1, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_sub_f32_ae32, onearray, another, newArray, onearray.length(), 1, 1, 1);
     return newArray;
   }
 
@@ -1002,9 +985,7 @@ namespace espmath{
   inline Array<float> operator-(Array<float>& onearray, const float value)
   {
     Array<float> newArray(onearray.length());
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_addc_f32_ae32(onearray, newArray, newArray.length(), -1*value, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_addc_f32_ae32, onearray, newArray, newArray.length(), -1*value, 1, 1);
     return newArray;
   }
 
@@ -1026,11 +1007,8 @@ namespace espmath{
   inline Array<float> operator-(const float value, Array<float> onearray)
   {
     Array<float> newArray(onearray.length());
-    float constant = -1*value;
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_addc_f32_ae32(onearray, newArray, newArray.length(), constant, 1, 1);
-    dsps_mulc_f32_esp(newArray, newArray, newArray.length(), -1);
-    dsp_EXIT_CRITICAL(intlevel);
+    exec_dsp(dsps_addc_f32_ae32, onearray, newArray, newArray.length(), -1*value, 1, 1);
+    exec_dsp(dsps_mulc_f32_esp, newArray, newArray, newArray.length(), -1);
     return newArray;
   }
   
@@ -1054,9 +1032,44 @@ namespace espmath{
   inline Array<float> operator*(Array<float>& onearray, Array<float> another)
   {
     Array<float> newArray(onearray.length());
-    unsigned intlevel = dsp_ENTER_CRITICAL();
-    dsps_mul_f32_ae32(onearray, another, newArray, onearray.length(), 1, 1, 1);
-    dsp_EXIT_CRITICAL(intlevel);
+ #if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_f32_esp, onearray, another, newArray, onearray.length());
+#else
+    exec_dsp(dsps_mul_f32_esp, onearray, another, newArray, onearray.length());
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int32_t> operator*(Array<int32_t>& onearray, Array<int32_t> another)
+  {
+    Array<int32_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s32_esp, onearray, another, newArray, onearray.length());
+#else
+    exec_dsp(dsps_mul_s32_esp, onearray, another, newArray, onearray.length());
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<uint32_t> operator*(Array<uint32_t>& onearray, Array<uint32_t> another)
+  {
+    Array<uint32_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ",\
+                      dsps_mul_s32_esp,\
+                      (int32_t*)onearray.getArrayPntr(),\
+                      (int32_t*)another.getArrayPntr(),\
+                      (int32_t*)newArray.getArrayPntr(),\
+                      onearray.length());
+#else
+    exec_dsp(dsps_mul_s32_esp,\
+            (int32_t*)onearray.getArrayPntr(),\
+            (int32_t*)another.getArrayPntr(),\
+            (int32_t*)newArray.getArrayPntr(),\
+            onearray.length());
+#endif
     return newArray;
   }
 
@@ -1064,7 +1077,23 @@ namespace espmath{
   inline Array<int16_t> operator*(Array<int16_t>& onearray, Array<int16_t> another)
   {
     Array<int16_t> newArray(onearray.length());
-    dsps_mul_s16_ansi(onearray, another, newArray, onearray.length(), 1, 1, 1, 0);
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s16_esp, onearray, another, newArray, onearray.length());
+#else
+    exec_dsp(dsps_mul_s16_esp, onearray, another, newArray, onearray.length());
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<uint8_t> operator*(Array<uint8_t>& onearray, Array<uint8_t> another)
+  {
+    Array<uint8_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_u8_esp, onearray, another, newArray, onearray.length());
+#else
+    exec_dsp(dsps_mul_u8_esp, onearray, another, newArray, onearray.length());
+#endif
     return newArray;
   }
 
