@@ -21,23 +21,24 @@
 #include "hard_debug.h" // https://github.com/guilhAbreu/EspDebug
 
 #define REPORT_BENCHMARK(title, func1, ...)\
-  {\
-    func1(__VA_ARGS__); /* warm up the cache */ \
-    unsigned intlevel = dsp_ENTER_CRITICAL(); \
-    uint32_t func1_start = xthal_get_ccount(); \
-    func1(__VA_ARGS__); \
-    uint32_t func1_end = xthal_get_ccount(); \
-    dsp_EXIT_CRITICAL(intlevel); \
-    debug.print(title + String(func1_end - func1_start)); \
-  }
+{\
+  func1(__VA_ARGS__); /* warm up the cache */ \
+  unsigned intlevel = dsp_ENTER_CRITICAL(); \
+  uint32_t func1_start = xthal_get_ccount(); \
+  func1(__VA_ARGS__); \
+  uint32_t func1_end = xthal_get_ccount(); \
+  dsp_EXIT_CRITICAL(intlevel); \
+  debug.print(title + String(func1_end - func1_start)); \
+}
+
 #endif
 
 #define exec_dsp(dsp_func, ...)\
-  {\
-    unsigned intlevel = dsp_ENTER_CRITICAL();\
-    dsp_func(__VA_ARGS__);\
-    dsp_EXIT_CRITICAL(intlevel);\
-  }
+{\
+  unsigned intlevel = dsp_ENTER_CRITICAL();\
+  dsp_func(__VA_ARGS__);\
+  dsp_EXIT_CRITICAL(intlevel);\
+}
 
 /**
  * @brief Namespace for custom ESP32 MATH libraries
