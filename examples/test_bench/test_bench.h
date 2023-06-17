@@ -2,42 +2,11 @@
 #define _ESP_ARRAY_TEST_BENCH_H_
 
 #include <Arduino.h>
+
 #include "esp_math.h"
 #include "hard_debug.h"
 
 using namespace espmath;
-
-/**
- * @brief Generate a non-zero random number
- * 
- * @tparam T Output type
- * @param _MAX_NUM_ Maximum random number
- * @return const T Result
- */
-template<typename T>
-inline const T nonZeroRandomNumber(size_t _MAX_NUM_)
-{
-  T rn;
-  do
-  {
-    rn = (T)(esp_random() % _MAX_NUM_);
-  }while(rn==0);
-
-  return rn;
-}
-
-template<>
-inline const float nonZeroRandomNumber(size_t _MAX_NUM_)
-{
-  float rn;
-  do
-  {
-    rn = (float)(esp_random() % _MAX_NUM_);
-    rn += (float)(1 / esp_random());
-  }while(rn==0);
-
-  return rn;
-}
 
 template<typename T>
 inline const size_t max_random()
