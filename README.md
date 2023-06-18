@@ -6,7 +6,7 @@ Take a look at [Examples](examples/test_bench/) to learn how to use it.
 
 ## DSP acceleration
 
-At [DSP](src/dsp/), you can find all the dsp accelerated operations. All implementations provide two versions of the them. The first one implements a soft acceleration that can work with all contiguous array memory. The second one is a faster implementation that makes use of the Processor Instruction Extensions (PIE) to accelerate operations. The second implementation is enabled by default and can be disabled using the macro FAST_MODE at [configuration](src/esp_opt.h).
+At [DSP](src/dsp/), you can find all the dsp accelerated operations. All implementations provide two versions of them. The first one implements a soft acceleration that can work with all contiguous array memory. The second one is a faster implementation that makes use of the Processor Instruction Extensions (PIE) to accelerate operations and work with only 16 bytes aligned memory. The second implementation is enabled by default and can be disabled using the macro FAST_MODE at [configuration](src/esp_opt.h).
 
 Until now, these libraries are guaranteed to work with only ESP32-S3 devices. To use them, just include [esp_dsp](src/esp_dsp.h).
 
