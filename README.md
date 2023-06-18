@@ -10,13 +10,13 @@ At [DSP](src/dsp/), you can find all the dsp accelerated operations. All impleme
 
 Until now, these libraries are guaranteed to work with only ESP32-S3 devices. To use them, just include [esp_dsp](src/esp_dsp.h).
 
-## Array
+## Array Class
 
 The array class allows us to provide multiple features to perform the essential operations for an array type. Please read its documentation alongside the code at [Array](src/esp_array.h) for more information.
 
-## ANSI version
+## ANSI C version
 
-An ANSI version of some operations is also provided, so you can compare their performances. It can be compiled on any machine and it doesn't use any acceleration method or tool. They can be found at [ANSI](src/ansi.h).
+An ANSI C version of some operations is also provided, so you can compare their performances. It can be compiled on any machine and it doesn't use any acceleration method or tool. They can be found at [ANSI](src/ansi.h).
 
 ## Random Number Generation
 
