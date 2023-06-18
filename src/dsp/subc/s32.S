@@ -13,10 +13,10 @@
 
     .text
     .align  ALIGNMENT
-    .global dsps_addc_s32_esp
-    .type   dsps_addc_s32_esp,@function
+    .global dsps_csub_s32_esp
+    .type   dsps_csub_s32_esp,@function
 
-dsps_addc_s32_esp: 
+dsps_csub_s32_esp: 
 // input    - a2
 // output   - a3
 // len      - a4
@@ -27,7 +27,7 @@ dsps_addc_s32_esp:
 #if (!FAST_MODE)
   loopgtz len, return_success
     l32i a8, in_addr, 0          // Load next data
-    add a9, a8, C               // Store the multiplication in the a9
+    sub a9, C, a8              // Store the multiplication in the a9
     s32i a9, out_addr, 0         // Store result in the output memory
 
     addi out_addr, out_addr, 4   // next output;
@@ -43,10 +43,10 @@ dsps_addc_s32_esp:
   ee.movi.32.a in_v, a9, 1             // Move second operand
   ee.movi.32.a in_v, a10, 2            // Move third operand
   ee.movi.32.a in_v, a11, 3            // Move fourth operand
-  add a8, a8, C                       // Store the multiplication in the a8
-  add a9, a9, C                       // Store the multiplication in the a9
-  add a10, a10, C                     // Store the multiplication in the a10
-  add a11, a11, C                     // Store the multiplication in the a11
+  sub a8, C, a8                       // Store the multiplication in the a8
+  sub a9, C, a9                       // Store the multiplication in the a9
+  sub a10, C, a10                     // Store the multiplication in the a10
+  sub a11, C, a11                     // Store the multiplication in the a11
   ee.movi.32.q out_v, a8, 0            // Move result of the first multiplication
   ee.movi.32.q out_v, a9, 1            // Move result of the second multiplication
   ee.movi.32.q out_v, a10, 2           // Move result of the third multiplication
@@ -59,10 +59,10 @@ loop_begin:
     ee.movi.32.a in_v, a9, 1             // Move second operand
     ee.movi.32.a in_v, a10, 2            // Move third operand
     ee.movi.32.a in_v, a11, 3            // Move fourth operand
-    add a8, a8, C                       // Store the multiplication in the a8
-    add a9, a9, C                       // Store the multiplication in the a9
-    add a10, a10, C                     // Store the multiplication in the a10
-    add a11, a11, C                     // Store the multiplication in the a11
+    sub a8, C, a8                       // Store the multiplication in the a8
+    sub a9, C, a9                       // Store the multiplication in the a9
+    sub a10, C, a10                     // Store the multiplication in the a10
+    sub a11, C, a11                     // Store the multiplication in the a11
     ee.movi.32.q out_v, a8, 0            // Move result of the first multiplication
     ee.movi.32.q out_v, a9, 1            // Move result of the second multiplication
     ee.movi.32.q out_v, a10, 2           // Move result of the third multiplication

@@ -10,10 +10,10 @@
 
   .text
   .align  ALIGNMENT
-  .global dsps_addc_f32_esp
-  .type   dsps_addc_f32_esp,@function
+  .global dsps_csub_f32_esp
+  .type   dsps_csub_f32_esp,@function
 
-dsps_addc_f32_esp:
+dsps_csub_f32_esp:
 // input    - a2
 // output   - a3
 // len      - a4
@@ -25,7 +25,7 @@ dsps_addc_f32_esp:
 #if (!FAST_MODE)
   loopgtz len, return_success
     lsi f1, in_addr, 0
-    add.s f1, f1, C
+    sub.s f1, C, f1
     ssi f1, out_addr, 0
 
     addi in_addr, in_addr, 4
@@ -37,18 +37,18 @@ dsps_addc_f32_esp:
   srli   len, len, 2
   beqz   bit_msk, loop_begin
   ee.ldf.128.ip f3, f2, f1, f0, in_addr, 16          // load input
-  add.s f3, f3, C
-  add.s f2, f2, C
-  add.s f1, f1, C
-  add.s f0, f0, C
+  sub.s f3, C, f3
+  sub.s f2, C, f2
+  sub.s f1, C, f1
+  sub.s f0, C, f0
   ee.stf.128.ip f3, f2, f1, f0, out_addr, 16         // store result
 loop_begin:
   loopgtz len, return_success
     ee.ldf.128.ip f3, f2, f1, f0, in_addr, 16          // load input
-    add.s f3, f3, C
-    add.s f2, f2, C
-    add.s f1, f1, C
-    add.s f0, f0, C
+    sub.s f3, C, f3
+    sub.s f2, C, f2
+    sub.s f1, C, f1
+    sub.s f0, C, f0
     ee.stf.128.ip f3, f2, f1, f0, out_addr, 16         // store result
 #endif
 return_success:

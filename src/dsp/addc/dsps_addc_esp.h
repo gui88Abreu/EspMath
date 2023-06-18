@@ -11,10 +11,10 @@ extern "C"
 
 /**@{*/
 /**
- * @brief   multiply constant
+ * @brief add constant
  *
  * The function multiplies input array to the constant value
- * x[i] = y[i]*C; i=[0..len)
+ * x[i] = y[i] + C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
  * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
@@ -32,10 +32,10 @@ extern "C"
 esp_err_t dsps_addc_s32_esp(const int32_t *input, int32_t *output, int len, int32_t C);
 
 /**
- * @brief   multiply constant
+ * @brief add constant
  *
  * The function multiplies input array to the constant value
- * x[i] = y[i]*C; i=[0..len)
+ * x[i] = y[i] + C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * Also, it uses fixed-point arithmetic. Use frac parameter to define the fractional 
  * number of the input.
@@ -56,10 +56,10 @@ esp_err_t dsps_addc_s32_esp(const int32_t *input, int32_t *output, int len, int3
 esp_err_t dsps_addc_s16_esp(const int16_t *input, int16_t *output, int len, const int16_t* C, int frac = 0);
 
 /**
- * @brief   multiply constant
+ * @brief add constant
  *
  * The function multiplies input array to the constant value
- * x[i] = y[i]*C; i=[0..len)
+ * x[i] = y[i] + C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
  * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
@@ -77,10 +77,10 @@ esp_err_t dsps_addc_s16_esp(const int16_t *input, int16_t *output, int len, cons
 esp_err_t dsps_addc_s8_esp(const int8_t *input, int8_t *output, int len, const int8_t* C);
 
 /**
- * @brief   multiply constant
+ * @brief add constant
  *
  * The function multiplies input array to the constant value
- * x[i] = y[i]*C; i=[0..len)
+ * x[i] = y[i] + C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
  * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.

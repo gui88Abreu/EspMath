@@ -17,10 +17,10 @@
 
   .text
   .align  ALIGNMENT
-  .global dsps_addc_s16_esp
-  .type   dsps_addc_s16_esp,@function
+  .global dsps_csub_s16_esp
+  .type   dsps_csub_s16_esp,@function
 
-dsps_addc_s16_esp: 
+dsps_csub_s16_esp: 
 // input    - a2
 // output   - a3
 // len      - a4
@@ -35,7 +35,7 @@ dsps_addc_s16_esp:
   ssr     frac                 // sar = frac
   loopgtz len, return_success
     l16si a8, in_addr, 0         // load next data
-    add.n a8, a8, C              // Store the multiplication at a8
+    sub a8, C, a8                // Store the multiplication at a8
     srl a8, a8                   // Shift right (sar), and store in a8
     s16i a8, out_addr, 0         // Store result in the output memory
     addi.n out_addr, out_addr, 2 // next output;
@@ -48,13 +48,13 @@ dsps_addc_s16_esp:
   beqz   bit_msk, loop_begin
   ee.zero.qacc                         // clear accumulator
   ee.vld.128.ip in_v, in_addr, 16      // load input
-  ee.vadds.s16 out_v, in_v, C_v        // Add constant
+  ee.vsubs.s16 out_v, C_v, in_v        // sub
   ee.vst.128.ip out_v, out_addr, 16    // store results
 loop_begin:
   loopgtz len, return_success
     ee.zero.qacc                         // clear accumulator
     ee.vld.128.ip in_v, in_addr, 16      // load input
-    ee.vadds.s16 out_v, in_v, C_v        // Add constant
+    ee.vsubs.s16 out_v, C_v, in_v        // sub
     ee.vst.128.ip out_v, out_addr, 16    // store results
 #endif
 return_success:

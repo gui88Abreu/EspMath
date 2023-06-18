@@ -16,10 +16,10 @@
 
   .text
   .align  ALIGNMENT
-  .global dsps_addc_s8_esp
-  .type   dsps_addc_s8_esp,@function
+  .global dsps_csub_s8_esp
+  .type   dsps_csub_s8_esp,@function
 
-dsps_addc_s8_esp: 
+dsps_csub_s8_esp: 
 // input    - a2
 // output   - a3
 // len      - a4
@@ -31,7 +31,7 @@ dsps_addc_s8_esp:
   l32i cnst, C, 0                // Load const
   loopgtz len, return_success
     l8ui a8, in_addr, 0          // Load next data
-    add.n a9, a8, cnst           // Store the multiplication
+    sub a9, cnst, a8             // Store the multiplication
     s8i a9, out_addr, 0          // Store result
 
     addi out_addr, out_addr, 1 // next output;
@@ -44,12 +44,12 @@ dsps_addc_s8_esp:
   srli   len, len, 4
   beqz   bit_msk, loop_begin
   ee.vld.128.ip in_v, in_addr, 16           // load input
-  ee.vadds.s8 out_v, in_v, C_v              // multiply, shift (sar), and store result
+  ee.vsubs.s8 out_v, C_v, in_v              // sub
   ee.vst.128.ip out_v, out_addr, 16
 loop_begin:
   loopgtz len, return_success
     ee.vld.128.ip in_v, in_addr, 16         // load input
-    ee.vadds.s8 out_v, in_v, C_v            // multiply, shift (sar), and store result
+    ee.vsubs.s8 out_v, C_v, in_v            // sub
     ee.vst.128.ip out_v, out_addr, 16
 #endif
 return_success:
