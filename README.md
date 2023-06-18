@@ -9,3 +9,7 @@ The array class allows us to provide multiple features to perform the essential 
 ## ANSI version
 
 An ANSI version of some operations is also provided, so you can compare their performances. It can be compiled on any machine and it doesn't use any acceleration method or tool.
+
+## Random Number Generation
+
+At [EspRand](src/esp_rand.h), you can find a simple implementation to ease the generation of random numbers on esp32 devices. The implementation makes use of the random number generator implemented by Espressif, which uses the RF module to generate true random numbers.
