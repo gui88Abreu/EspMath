@@ -4,19 +4,12 @@
 #include <Arduino.h>
 #include <type_traits>
 
-#include "dsps_addc.h"
 #include "dsps_conv.h"
 #include "dsps_corr.h"
 #include "dsps_dotprod.h"
 
-#include "dsp/add/dsps_add_esp.h"
-#include "dsp/sub/dsps_sub_esp.h"
-#include "dsp/mul/dsps_mul_esp.h"
-#include "dsp/addc/dsps_addc_esp.h"
-#include "dsp/subc/dsps_subc_esp.h"
-#include "dsp/mulc/dsps_mulc_esp.h"
-
 #include "esp_opt.h"
+#include "esp_dsp.h"
 #include "ansi.h"
 
 #if BENCHMARK_TEST
@@ -840,7 +833,7 @@ namespace espmath{
   template<>
   inline void Array<uint32_t>::operator+=(Array<uint32_t>& another)
   {
-    exec_dsp(dsps_add_s32_esp, (int32_t*)_array, (int32_t*)another.getArrayPntr(), (int32_t*)_array, _length);
+    exec_dsp(dsps_add_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _length);
   }
 
   template<>
@@ -870,7 +863,7 @@ namespace espmath{
   template<>
   inline void Array<uint32_t>::operator-=(Array<uint32_t>& another)
   {
-    exec_dsp(dsps_sub_s32_esp, (int32_t*)_array, (int32_t*)another.getArrayPntr(), (int32_t*)_array, _length);
+    exec_dsp(dsps_sub_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _length);
   }
 
   template<>
@@ -900,7 +893,7 @@ namespace espmath{
   template<>
   inline void Array<uint32_t>::operator*=(Array<uint32_t>& another)
   {
-    exec_dsp(dsps_mul_s32_esp, (int32_t*)_array, (int32_t*)another.getArrayPntr(), (int32_t*)_array, _length);
+    exec_dsp(dsps_mul_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _length);
   }
 
   template<>
@@ -1014,15 +1007,15 @@ namespace espmath{
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
                     dsps_add_s32_esp,\
-                    (int32_t*)onearray.getArrayPntr(),\
-                    (int32_t*)another.getArrayPntr(),\
-                    (int32_t*)newArray.getArrayPntr(),\
+                    (int32_t*)onearray,\
+                    (int32_t*)another,\
+                    (int32_t*)newArray,\
                     onearray.length());
 #else
     exec_dsp(dsps_add_s32_esp,\
-            (int32_t*)onearray.getArrayPntr(),\
-            (int32_t*)another.getArrayPntr(),\
-            (int32_t*)newArray.getArrayPntr(),\
+            (int32_t*)onearray,\
+            (int32_t*)another,\
+            (int32_t*)newArray,\
             onearray.length());
 #endif
     return newArray;
@@ -1249,15 +1242,15 @@ namespace espmath{
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
                     dsps_sub_s32_esp,\
-                    (int32_t*)onearray.getArrayPntr(),\
-                    (int32_t*)another.getArrayPntr(),\
-                    (int32_t*)newArray.getArrayPntr(),\
+                    (int32_t*)onearray,\
+                    (int32_t*)another,\
+                    (int32_t*)newArray,\
                     onearray.length());
 #else
     exec_dsp(dsps_sub_s32_esp,\
-            (int32_t*)onearray.getArrayPntr(),\
-            (int32_t*)another.getArrayPntr(),\
-            (int32_t*)newArray.getArrayPntr(),\
+            (int32_t*)onearray,\
+            (int32_t*)another,\
+            (int32_t*)newArray,\
             onearray.length());
 #endif
     return newArray;
@@ -1484,15 +1477,15 @@ namespace espmath{
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
                       dsps_mul_s32_esp,\
-                      (int32_t*)onearray.getArrayPntr(),\
-                      (int32_t*)another.getArrayPntr(),\
-                      (int32_t*)newArray.getArrayPntr(),\
+                      (int32_t*)onearray,\
+                      (int32_t*)another,\
+                      (int32_t*)newArray,\
                       onearray.length());
 #else
     exec_dsp(dsps_mul_s32_esp,\
-            (int32_t*)onearray.getArrayPntr(),\
-            (int32_t*)another.getArrayPntr(),\
-            (int32_t*)newArray.getArrayPntr(),\
+            (int32_t*)onearray,\
+            (int32_t*)another,\
+            (int32_t*)newArray,\
             onearray.length());
 #endif
     return newArray;
@@ -1568,13 +1561,13 @@ namespace espmath{
     Array<uint32_t> newArray(onearray.length());
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
-                    dsps_mulc_s32_esp,(int32_t*)onearray.getArrayPntr(),\
-                    (int32_t*)newArray.getArrayPntr(),\
+                    dsps_mulc_s32_esp,(int32_t*)onearray,\
+                    (int32_t*)newArray,\
                     newArray.length(),\
                     value);
 #else
-    exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray.getArrayPntr(),\
-                (int32_t*)newArray.getArrayPntr(),\
+    exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray,\
+                (int32_t*)newArray,\
                 newArray.length(),\
                 value);
 #endif
@@ -1649,13 +1642,13 @@ namespace espmath{
     Array<uint32_t> newArray(onearray.length());
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
-                    dsps_mulc_s32_esp,(int32_t*)onearray.getArrayPntr(),\
-                    (int32_t*)newArray.getArrayPntr(),\
+                    dsps_mulc_s32_esp,(int32_t*)onearray,\
+                    (int32_t*)newArray,\
                     newArray.length(),\
                     value);
 #else
-    exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray.getArrayPntr(),\
-                (int32_t*)newArray.getArrayPntr(),\
+    exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray,\
+                (int32_t*)newArray,\
                 newArray.length(),\
                 value);
 #endif
