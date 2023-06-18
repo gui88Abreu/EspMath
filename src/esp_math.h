@@ -4,9 +4,9 @@
 #include "esp_array.h"
 #include "esp_rand.h"
 #include "esp_opt.h"
-#include "dsps_mul/dsps_mul_esp.h"
-#include "dsps_mulc/dsps_mulc_esp.h"
-#include "dsps_add/dsps_add_esp.h"
-#include "dsps_sub/dsps_sub_esp.h"
+#include "dsp/mul/dsps_mul_esp.h"
+#include "dsp/mulc/dsps_mulc_esp.h"
+#include "dsp/add/dsps_add_esp.h"
+#include "dsp/sub/dsps_sub_esp.h"
 
 #endif
