@@ -32,8 +32,8 @@ dsps_mul_s8_esp:
 
 #if (!FAST_MODE)
   loopgtz len, return_success
-    l8si x1_r, x1_addr, 0          // Load next data
-    l8si x2_r, x2_addr, 0          // Load next data
+    l8ui x1_r, x1_addr, 0          // Load next data
+    l8ui x2_r, x2_addr, 0          // Load next data
     mul.aa.ll x1_r, x2_r           // Store the multiplication in the acc
     rsr a9, acclo                  // Read the 32 low bits from the acc
     s8i a9, y_addr, 0              // Store result
