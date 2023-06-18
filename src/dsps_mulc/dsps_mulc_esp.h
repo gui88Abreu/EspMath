@@ -74,7 +74,7 @@ esp_err_t dsps_mulc_s32_esp(const int32_t *input, int32_t *output, int len, int3
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mulc_u8_esp(const uint8_t *input, uint8_t *output, int len, const uint8_t* C);
+esp_err_t dsps_mulc_s8_esp(const int8_t *input, int8_t *output, int len, const int8_t* C);
 
 /**
  * @brief   multiply constant

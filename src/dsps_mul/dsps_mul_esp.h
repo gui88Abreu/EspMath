@@ -28,7 +28,7 @@ extern "C"
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mul_u8_esp(const uint8_t *x1, const uint8_t *x2, uint8_t *y, int len);
+esp_err_t dsps_mul_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len);
 
 /**
  * @brief   multiply arrays

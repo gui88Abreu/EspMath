@@ -4,11 +4,7 @@
 #include <Arduino.h>
 #include <type_traits>
 
-#include "dsps_add.h"
-#include "dsps_sub.h"
-#include "dsps_mul.h"
 #include "dsps_addc.h"
-#include "dsps_mulc.h"
 #include "dsps_conv.h"
 #include "dsps_corr.h"
 #include "dsps_dotprod.h"
@@ -16,6 +12,7 @@
 #include "dsps_mulc/dsps_mulc_esp.h"
 #include "dsps_mul/dsps_mul_esp.h"
 #include "dsps_add/dsps_add_esp.h"
+#include "dsps_sub/dsps_sub_esp.h"
 
 #include "esp_opt.h"
 #include "ansi.h"
@@ -66,6 +63,8 @@ namespace espmath{
   public:
 
     typedef T* const arrayPntr;
+
+    static const bool isDSPSupported(){return false;}
 
     /**
      * @brief Destroy the Array object
@@ -454,12 +453,15 @@ namespace espmath{
       return *this;
     }
 
-    /**
-     * @brief Implicit cast for array pointer
-     * 
-     * @return arrayPntr 
-     */
-    operator arrayPntr() const {return _array;}
+    // /**
+    //  * @brief Implicit cast for array pointer
+    //  * 
+    //  * @return arrayPntr 
+    //  */
+    // operator arrayPntr() const {return _array;}
+
+    template<typename _type>
+    operator _type*() const {return (_type*)_array;}
     
     /**
      * @brief Assign a value to an existent position of the _array
@@ -718,16 +720,18 @@ namespace espmath{
   };
 
   template<>
-  const uint32_t Array<int32_t>::memCaps()
-  {
-    return MALLOC_CAP_32BIT;
-  }
+  const uint32_t Array<int32_t>::memCaps(){return MALLOC_CAP_32BIT;}
+  template<>
+  const uint32_t Array<uint32_t>::memCaps(){return MALLOC_CAP_32BIT;}
 
   template<>
-  const uint32_t Array<uint32_t>::memCaps()
-  {
-    return MALLOC_CAP_32BIT;
-  }
+  const bool Array<int32_t>::isDSPSupported(){return true;}
+  template<>
+  const bool Array<int16_t>::isDSPSupported(){return true;}
+  template<>
+  const bool Array<int8_t>::isDSPSupported(){return true;}
+  template<>
+  const bool Array<float>::isDSPSupported(){return true;}
 
   template<>
   inline void Array<float>::operator+=(const float value)
@@ -754,9 +758,9 @@ namespace espmath{
   }
 
   template<>
-  inline void Array<uint8_t>::operator*=(const uint8_t value)
+  inline void Array<int8_t>::operator*=(const int8_t value)
   {
-    exec_dsp(dsps_mulc_u8_esp, _array, _array, _length, &value);
+    exec_dsp(dsps_mulc_s8_esp, _array, _array, _length, &value);
   }
 
   template<>
@@ -790,15 +794,39 @@ namespace espmath{
   }
 
   template<>
-  inline void Array<uint8_t>::operator+=(Array<uint8_t>& another)
+  inline void Array<int8_t>::operator+=(Array<int8_t>& another)
   {
-    exec_dsp(dsps_add_u8_esp, _array, another, _array, _length);
+    exec_dsp(dsps_add_s8_esp, _array, another, _array, _length);
   }
 
   template<>
   inline void Array<float>::operator-=(Array<float>& another)
   {
-    exec_dsp(dsps_sub_f32_ae32, _array, another, _array, _length, 1, 1, 1);
+    exec_dsp(dsps_sub_f32_esp, _array, another, _array, _length);
+  }
+
+  template<>
+  inline void Array<int32_t>::operator-=(Array<int32_t>& another)
+  {
+    exec_dsp(dsps_sub_s32_esp, _array, another, _array, _length);
+  }
+
+  template<>
+  inline void Array<uint32_t>::operator-=(Array<uint32_t>& another)
+  {
+    exec_dsp(dsps_sub_s32_esp, (int32_t*)_array, (int32_t*)another.getArrayPntr(), (int32_t*)_array, _length);
+  }
+
+  template<>
+  inline void Array<int16_t>::operator-=(Array<int16_t>& another)
+  {
+    exec_dsp(dsps_sub_s16_esp, _array, another, _array, _length);
+  }
+
+  template<>
+  inline void Array<int8_t>::operator-=(Array<int8_t>& another)
+  {
+    exec_dsp(dsps_sub_s8_esp, _array, another, _array, _length);
   }
 
   template<>
@@ -826,9 +854,9 @@ namespace espmath{
   }
 
   template<>
-  inline void Array<uint8_t>::operator*=(Array<uint8_t>& another)
+  inline void Array<int8_t>::operator*=(Array<int8_t>& another)
   {
-    exec_dsp(dsps_mul_u8_esp,_array, another, _array, _length);
+    exec_dsp(dsps_mul_s8_esp,_array, another, _array, _length);
   }
 
   template<>
@@ -957,13 +985,13 @@ namespace espmath{
   }
 
   template<>
-  inline Array<uint8_t> operator+(Array<uint8_t>& onearray, Array<uint8_t> another)
+  inline Array<int8_t> operator+(Array<int8_t>& onearray, Array<int8_t> another)
   {
-    Array<uint8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.length());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_u8_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s8_esp, onearray, another, newArray, onearray.length());
 #else
-    exec_dsp(dsps_add_u8_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_add_s8_esp, onearray, another, newArray, onearray.length());
 #endif
     return newArray;
   }
@@ -1034,7 +1062,68 @@ namespace espmath{
   inline Array<float> operator-(Array<float>& onearray, Array<float> another)
   {
     Array<float> newArray(onearray.length());
-    exec_dsp(dsps_sub_f32_ae32, onearray, another, newArray, onearray.length(), 1, 1, 1);
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_f32_esp, onearray, another, newArray, onearray.length());
+#else
+    exec_dsp(dsps_sub_f32_esp, onearray, another, newArray, onearray.length());
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int32_t> operator-(Array<int32_t>& onearray, Array<int32_t> another)
+  {
+    Array<int32_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s32_esp, onearray, another, newArray, onearray.length());
+#else
+    exec_dsp(dsps_sub_s32_esp, onearray, another, newArray, onearray.length());
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<uint32_t> operator-(Array<uint32_t>& onearray, Array<uint32_t> another)
+  {
+    Array<uint32_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ",\
+                    dsps_sub_s32_esp,\
+                    (int32_t*)onearray.getArrayPntr(),\
+                    (int32_t*)another.getArrayPntr(),\
+                    (int32_t*)newArray.getArrayPntr(),\
+                    onearray.length());
+#else
+    exec_dsp(dsps_sub_s32_esp,\
+            (int32_t*)onearray.getArrayPntr(),\
+            (int32_t*)another.getArrayPntr(),\
+            (int32_t*)newArray.getArrayPntr(),\
+            onearray.length());
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int16_t> operator-(Array<int16_t>& onearray, Array<int16_t> another)
+  {
+    Array<int16_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s16_esp, onearray, another, newArray, onearray.length());
+#else
+    exec_dsp(dsps_sub_s16_esp, onearray, another, newArray, onearray.length());
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int8_t> operator-(Array<int8_t>& onearray, Array<int8_t> another)
+  {
+    Array<int8_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s8_esp, onearray, another, newArray, onearray.length());
+#else
+    exec_dsp(dsps_sub_s8_esp, onearray, another, newArray, onearray.length());
+#endif
     return newArray;
   }
 
@@ -1159,13 +1248,13 @@ namespace espmath{
   }
 
   template<>
-  inline Array<uint8_t> operator*(Array<uint8_t>& onearray, Array<uint8_t> another)
+  inline Array<int8_t> operator*(Array<int8_t>& onearray, Array<int8_t> another)
   {
-    Array<uint8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.length());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_u8_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s8_esp, onearray, another, newArray, onearray.length());
 #else
-    exec_dsp(dsps_mul_u8_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_mul_s8_esp, onearray, another, newArray, onearray.length());
 #endif
     return newArray;
   }
@@ -1242,13 +1331,13 @@ namespace espmath{
   }
 
   template<>
-  inline Array<uint8_t> operator*(Array<uint8_t>& onearray, const uint8_t value)
+  inline Array<int8_t> operator*(Array<int8_t>& onearray, const int8_t value)
   {
-    Array<uint8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.length());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_u8_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.length(), &value);
 #else
-    exec_dsp(dsps_mulc_u8_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.length(), &value);
 #endif
     return newArray;
   }
@@ -1323,13 +1412,13 @@ namespace espmath{
   }
 
   template<>
-  inline Array<uint8_t> operator*(const uint8_t value, Array<uint8_t> onearray)
+  inline Array<int8_t> operator*(const int8_t value, Array<int8_t> onearray)
   {
-    Array<uint8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.length());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_u8_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.length(), &value);
 #else
-    exec_dsp(dsps_mulc_u8_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.length(), &value);
 #endif
     return newArray;
   }

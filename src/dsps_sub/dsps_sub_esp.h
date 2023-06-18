@@ -1,8 +1,8 @@
-#ifndef _custom_dsps_add_H_
-#define _custom_dsps_add_H_
+#ifndef _custom_dsps_sub_H_
+#define _custom_dsps_sub_H_
 #include "dsp_err.h"
 
-#include "dsps_add_platform.h"
+#include "dsps_sub_platform.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -28,7 +28,7 @@ extern "C"
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_add_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len);
+esp_err_t dsps_sub_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len);
 
 /**
  * @brief   add arrays
@@ -50,7 +50,7 @@ esp_err_t dsps_add_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_add_s16_esp(const int16_t *x1, const int16_t *x2, int16_t *y, int len, int frac = 0);
+esp_err_t dsps_sub_s16_esp(const int16_t *x1, const int16_t *x2, int16_t *y, int len, int frac = 0);
 
 /**
  * @brief   add arrays
@@ -71,7 +71,7 @@ esp_err_t dsps_add_s16_esp(const int16_t *x1, const int16_t *x2, int16_t *y, int
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_add_s32_esp(const int32_t *x1, const int32_t *x2, int32_t *y, int len);
+esp_err_t dsps_sub_s32_esp(const int32_t *x1, const int32_t *x2, int32_t *y, int len);
 
 /**
  * @brief   add arrays
@@ -92,7 +92,7 @@ esp_err_t dsps_add_s32_esp(const int32_t *x1, const int32_t *x2, int32_t *y, int
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_add_f32_esp(const float *x1, const float *x2, float *y, int len);
+esp_err_t dsps_sub_f32_esp(const float *x1, const float *x2, float *y, int len);
 
 /**@}*/
 
@@ -100,4 +100,4 @@ esp_err_t dsps_add_f32_esp(const float *x1, const float *x2, float *y, int len);
 }
 #endif
 
-#endif // _dsps_add_H_
+#endif // _dsps_sub_H_

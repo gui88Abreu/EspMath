@@ -1,4 +1,4 @@
-#include "dsps_mul_platform.h"
+#include "dsps_sub_platform.h"
 #include "esp_opt.h"
 
 #define x1_addr   a2
@@ -9,7 +9,8 @@
 #define addr_msk  a7
 
 #define x1_r      a8
-#define x2_r      a12
+#define x2_r      a9
+#define y_r       a10
 
 #define bit_msk   a11
 
@@ -19,10 +20,10 @@
 
   .text
   .align  ALIGNMENT
-  .global dsps_mul_s8_esp
-  .type   dsps_mul_s8_esp,@function
+  .global dsps_sub_s8_esp
+  .type   dsps_sub_s8_esp,@function
 
-dsps_mul_s8_esp:
+dsps_sub_s8_esp:
 // x1       - a2
 // x2       - a3
 // output   - a4
@@ -32,11 +33,10 @@ dsps_mul_s8_esp:
 
 #if (!FAST_MODE)
   loopgtz len, return_success
-    l8si x1_r, x1_addr, 0          // Load next data
-    l8si x2_r, x2_addr, 0          // Load next data
-    mul.aa.ll x1_r, x2_r           // Store the multiplication in the acc
-    rsr a9, acclo                  // Read the 32 low bits from the acc
-    s8i a9, y_addr, 0              // Store result
+    l8ui x1_r, x1_addr, 0          // Load next data
+    l8ui x2_r, x2_addr, 0          // Load next data
+    sub  y_r, x1_r, x2_r           // Store the multiplication in the acc
+    s8i  y_r, y_addr, 0            // Store result
 
     addi y_addr, y_addr, 1         // next output;
     addi x1_addr, x1_addr, 1       // next input;
@@ -50,13 +50,13 @@ dsps_mul_s8_esp:
   beqz   bit_msk, loop_begin
   ee.vld.128.ip x1_v, x1_addr, 16         // load input
   ee.vld.128.ip x2_v, x2_addr, 16         // load input
-  ee.vmul.s8 y_v, x2_v, x1_v              // multiply, shift (sar), and store result
+  ee.vsubs.s8 y_v, x1_v, x2_v             // multiply, shift (sar), and store result
   ee.vst.128.ip y_v, y_addr, 16
 loop_begin:
   loopgtz len, return_success
     ee.vld.128.ip x1_v, x1_addr, 16         // load input
     ee.vld.128.ip x2_v, x2_addr, 16         // load input
-    ee.vmul.s8 y_v, x2_v, x1_v              // multiply, shift (sar), and store result
+    ee.vsubs.s8 y_v, x1_v, x2_v             // multiply, shift (sar), and store result
     ee.vst.128.ip y_v, y_addr, 16
 #endif
 return_success:

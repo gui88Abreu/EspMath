@@ -21,7 +21,7 @@ inline const size_t max_random<float>()
 }
 
 template<>
-inline const size_t max_random<uint8_t>()
+inline const size_t max_random<int8_t>()
 {
   return (size_t)(10);
 }

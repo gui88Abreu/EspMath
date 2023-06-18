@@ -20,10 +20,10 @@
 
   .text
   .align  ALIGNMENT
-  .global dsps_add_u8_esp
-  .type   dsps_add_u8_esp,@function
+  .global dsps_add_s8_esp
+  .type   dsps_add_s8_esp,@function
 
-dsps_add_u8_esp:
+dsps_add_s8_esp:
 // x1       - a2
 // x2       - a3
 // output   - a4

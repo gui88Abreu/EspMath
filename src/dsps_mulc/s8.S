@@ -16,10 +16,10 @@
 
   .text
   .align  ALIGNMENT
-  .global dsps_mulc_u8_esp
-  .type   dsps_mulc_u8_esp,@function
+  .global dsps_mulc_s8_esp
+  .type   dsps_mulc_s8_esp,@function
 
-dsps_mulc_u8_esp: 
+dsps_mulc_s8_esp: 
 // input    - a2
 // output   - a3
 // len      - a4
@@ -45,12 +45,12 @@ dsps_mulc_u8_esp:
   srli   len, len, 4
   beqz   bit_msk, loop_begin
   ee.vld.128.ip in_v, in_addr, 16          // load input
-  ee.vmul.u8 out_v, in_v, C_v              // multiply, shift (sar), and store result
+  ee.vmul.s8 out_v, in_v, C_v              // multiply, shift (sar), and store result
   ee.vst.128.ip out_v, out_addr, 16
 loop_begin:
   loopgtz len, return_success
     ee.vld.128.ip in_v, in_addr, 16        // load input
-    ee.vmul.u8 out_v, in_v, C_v            // multiply, shift (sar), and store result
+    ee.vmul.s8 out_v, in_v, C_v            // multiply, shift (sar), and store result
     ee.vst.128.ip out_v, out_addr, 16
 #endif
 return_success:

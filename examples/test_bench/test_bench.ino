@@ -25,7 +25,7 @@ void setup(){
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");
   debug.print("Testing integer 8 bits arrays arithmetic...");
-  test_ari<uint8_t>(array_length);
+  test_ari<int8_t>(array_length);
   debug.print("Completed!");
   debug.print("Free size[bytes]: " + String(xPortGetFreeHeapSize()));
   debug.print("----------------------------------------------------------------------");
