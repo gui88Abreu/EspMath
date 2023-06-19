@@ -30,6 +30,7 @@ extern "C"
  *      - One of the error codes from DSP library
  */
 esp_err_t dsps_divc_s32_esp(const int32_t *input, int32_t *output, int len, int32_t C, int step_in = 1, int step_out = 1);
+esp_err_t dsps_cdiv_s32_esp(const int32_t *input, int32_t *output, int len, int32_t C, int step_in = 1, int step_out = 1);
 
 /**
  * @brief divide by constant
@@ -54,6 +55,7 @@ esp_err_t dsps_divc_s32_esp(const int32_t *input, int32_t *output, int len, int3
  *      - One of the error codes from DSP library
  */
 esp_err_t dsps_divc_s16_esp(const int16_t *input, int16_t *output, int len, const int16_t C, int step_in = 1, int step_out = 1, int frac = 0);
+esp_err_t dsps_cdiv_s16_esp(const int16_t *input, int16_t *output, int len, const int16_t C, int step_in = 1, int step_out = 1, int frac = 0);
 
 /**
  * @brief divide by constant
@@ -75,6 +77,7 @@ esp_err_t dsps_divc_s16_esp(const int16_t *input, int16_t *output, int len, cons
  *      - One of the error codes from DSP library
  */
 esp_err_t dsps_divc_s8_esp(const int8_t *input, int8_t *output, int len, const int8_t C, int step_in = 1, int step_out = 1);
+esp_err_t dsps_cdiv_s8_esp(const int8_t *input, int8_t *output, int len, const int8_t C, int step_in = 1, int step_out = 1);
 
 /**
  * @brief divide by constant
@@ -96,6 +99,7 @@ esp_err_t dsps_divc_s8_esp(const int8_t *input, int8_t *output, int len, const i
  *      - One of the error codes from DSP library
  */
 esp_err_t dsps_divc_f32_esp(const float *input, float *output, int len, const float C, int step_in = 1, int step_out = 1);
+esp_err_t dsps_cdiv_f32_esp(const float *input, float *output, int len, const float C, int step_in = 1, int step_out = 1);
 
 /**@}*/
 

@@ -1787,6 +1787,54 @@ namespace espmath{
     return newArray;
   }
 
+  template<>
+  inline Array<float> operator/(const float value, Array<float> another)
+  {
+    Array<float> newArray(another.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_f32_esp, another, newArray, newArray.length(), value);
+#else
+    exec_dsp(dsps_cdiv_f32_esp, another, newArray, newArray.length(), value);
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int32_t> operator/(const int32_t value, Array<int32_t> another)
+  {
+    Array<int32_t> newArray(another.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s32_esp, another, newArray, newArray.length(), value);
+#else
+    exec_dsp(dsps_cdiv_s32_esp, another, newArray, newArray.length(), value);
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int16_t> operator/(const int16_t value, Array<int16_t> another)
+  {
+    Array<int16_t> newArray(another.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s16_esp, another, newArray, newArray.length(), value);
+#else
+    exec_dsp(dsps_cdiv_s16_esp, another, newArray, newArray.length(), value);
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int8_t> operator/(const int8_t value, Array<int8_t> another)
+  {
+    Array<int8_t> newArray(another.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s8_esp, another, newArray, newArray.length(), value);
+#else
+    exec_dsp(dsps_cdiv_s8esp, another, newArray, newArray.length(), value);
+#endif
+    return newArray;
+  }
+
   /**
    * @brief Divide an array by another
    * 
