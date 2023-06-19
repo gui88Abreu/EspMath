@@ -51,7 +51,6 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   T data1[_ARRAY_LENGTH_];
   T data2[_ARRAY_LENGTH_];
   T output[_ARRAY_LENGTH_];
-  float floatOutput[_ARRAY_LENGTH_];
 
   const T randomConstant = nonZeroRandomNumber<T>(max_random<T>());
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
@@ -64,7 +63,6 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   Array<T> array1(data1, _ARRAY_LENGTH_);
   Array<T> array2(data2, _ARRAY_LENGTH_);
   Array<T> result;
-  Array<float> floatResult;
   
   debug.print("Testing arrays addition...");
   result = array1 + array2;
@@ -117,17 +115,17 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
 
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
   {
-    floatOutput[i] = (float)((float)data1[i] / (float)data2[i]);
+    output[i] = data1[i] / data2[i];
   }
 
   debug.print("Testing arrays division...");
-  floatResult = array1 / array2;
-  if(!(floatResult == floatOutput))
+  result = array1 / array2;
+  if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
     debug.print((T*)array2, _ARRAY_LENGTH_);
-    debug.print(floatResult.getArrayPntr(), _ARRAY_LENGTH_);
-    debug.print(floatOutput, _ARRAY_LENGTH_);
+    debug.print(result.getArrayPntr(), _ARRAY_LENGTH_);
+    debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
   else
@@ -233,17 +231,17 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
 
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
   {
-    floatOutput[i] = (float)((float)data1[i] / randomConstant);
+    output[i] = data1[i] / randomConstant;
   }
   
   debug.print("Testing array / constant...");
-  floatResult = array1 / randomConstant;
-  if(!(floatResult == floatOutput))
+  result = array1 / randomConstant;
+  if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print(floatResult.getArrayPntr(), _ARRAY_LENGTH_);
-    debug.print(floatOutput, _ARRAY_LENGTH_);
+    debug.print(result.getArrayPntr(), _ARRAY_LENGTH_);
+    debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
   else
@@ -251,17 +249,17 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
 
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
   {
-    floatOutput[i] = (float)(randomConstant / (float)data1[i]);
+    output[i] = randomConstant / data1[i];
   }
 
   debug.print("Testing constant / array...");
-  floatResult = randomConstant / array1;
-  if(!(floatResult == floatOutput))
+  result = randomConstant / array1;
+  if(!(result == output))
   {
     debug.print((T*)array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print(floatResult, _ARRAY_LENGTH_);
-    debug.print(floatOutput, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
+    debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
   else

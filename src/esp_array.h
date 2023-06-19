@@ -356,7 +356,7 @@ namespace espmath{
      * @param value 
      * @note Float arrays make use of DSP instructions.
      */
-    void operator/=(const float value)
+    void operator/=(const T value)
     {
       divArrayByConst(_array, _array, _length, value);
     }
@@ -815,7 +815,37 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator*=(const int16_t value)
   {
-    exec_dsp(dsps_mulc_s16_esp,_array, _array, _length, value);
+    exec_dsp(dsps_mulc_s16_esp, _array, _array, _length, value);
+  }
+
+  template<>
+  inline void Array<float>::operator/=(const float value)
+  {
+    exec_dsp(dsps_divc_f32_esp, _array, _array, _length, value);
+  }
+
+  template<>
+  inline void Array<int32_t>::operator/=(const int32_t value)
+  {
+    exec_dsp(dsps_divc_s32_esp, _array, _array, _length, value);
+  }
+
+  template<>
+  inline void Array<uint32_t>::operator/=(const uint32_t value)
+  {
+    exec_dsp(dsps_divc_s32_esp, (int32_t*)_array, (int32_t*)_array, _length, (int32_t)value);
+  }
+
+  template<>
+  inline void Array<int16_t>::operator/=(const int16_t value)
+  {
+    exec_dsp(dsps_divc_s16_esp, _array, _array, _length, value);
+  }
+
+  template<>
+  inline void Array<int8_t>::operator/=(const int8_t value)
+  {
+    exec_dsp(dsps_divc_s8_esp, _array, _array, _length, value);
   }
 
   template<>
@@ -1688,9 +1718,9 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<float> operator/(Array<T>& onearray, const float value)
+  inline Array<T> operator/(Array<T>& onearray, const T value)
   {
-    Array<float> newArray(onearray.length());
+    Array<T> newArray(onearray.length());
     divArrayByConst((T*)onearray, newArray, onearray.length(), value);
     return newArray;
   }
@@ -1699,7 +1729,47 @@ namespace espmath{
   inline Array<float> operator/(Array<float>& onearray, const float value)
   {
     Array<float> newArray(onearray.length());
-    divArrayByConst((float*)onearray, newArray, newArray.length(), value);
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_f32_esp, onearray, newArray, onearray.length(), value);
+#else
+    exec_dsp(dsps_divc_f32_esp, onearray, newArray, onearray.length(), value);
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int32_t> operator/(Array<int32_t>& onearray, const int32_t value)
+  {
+    Array<int32_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s32_esp, onearray, newArray, onearray.length(), value);
+#else
+    exec_dsp(dsps_divc_s32_esp, onearray, newArray, onearray.length(), value);
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int16_t> operator/(Array<int16_t>& onearray, const int16_t value)
+  {
+    Array<int16_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s16_esp, onearray, newArray, onearray.length(), value);
+#else
+    exec_dsp(dsps_divc_s16_esp, onearray, newArray, onearray.length(), value);
+#endif
+    return newArray;
+  }
+
+  template<>
+  inline Array<int8_t> operator/(Array<int8_t>& onearray, const int8_t value)
+  {
+    Array<int8_t> newArray(onearray.length());
+#if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s8_esp, onearray, newArray, onearray.length(), value);
+#else
+    exec_dsp(dsps_divc_s8_esp, onearray, newArray, onearray.length(), value);
+#endif
     return newArray;
   }
 
@@ -1710,10 +1780,10 @@ namespace espmath{
    * @return Array 
    */
   template<typename T>
-  inline Array<float> operator/(const float value, Array<T> another)
+  inline Array<T> operator/(const T value, Array<T> another)
   {
-    Array<float> newArray(another.length());
-    divConstByArray((T*)another, newArray, newArray.length(), value);
+    Array<T> newArray(another.length());
+    divConstByArray((T*)another, (T*)newArray, newArray.length(), (T)value);
     return newArray;
   }
 
@@ -1726,10 +1796,10 @@ namespace espmath{
    * @return Array<T>& 
    */
   template<typename T>
-  inline Array<float> operator/(Array<T>& onearray, Array<T> another)
+  inline Array<T> operator/(Array<T>& onearray, Array<T> another)
   {
-    Array<float> newArray(onearray.length());
-    divArrayByArray((T*)onearray, (T*)another, newArray, onearray.length());
+    Array<T> newArray(onearray.length());
+    divArrayByArray((T*)onearray, (T*)another, (T*)newArray, onearray.length());
     return newArray;
   }
 

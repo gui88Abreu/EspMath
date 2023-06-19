@@ -7,5 +7,6 @@
 #include "dsp/addc/dsps_addc_esp.h"
 #include "dsp/subc/dsps_subc_esp.h"
 #include "dsp/mulc/dsps_mulc_esp.h"
+#include "dsp/divc/dsps_divc_esp.h"
 
 #endif

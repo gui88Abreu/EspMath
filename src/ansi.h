@@ -157,18 +157,17 @@ namespace espmath{
   /**
    * @brief dest[i] = (float)((float)src1[i]/(float)src2[i])*cnst;
    * 
-   * @tparam T1 Type of the source array.
-   * @tparam T2 Type of the destination array.
+   * @tparam T Type of the array.
    * @param src Source array.
    * @param dest Destination array.
    * @param len Quantity of elements to copy.
    * @param cnst Constant to multiply the output.
    */
-  template<typename T1, typename T2>
-  inline void divArrayByArray(const T1* src1, const T2* src2, float* const dest, const size_t len, float cnst = 1)
+  template<typename T>
+  inline void divArrayByArray(const T* src1, const T* src2, T* const dest, const size_t len, float cnst = 1)
   {
     for(size_t i = 0; i < len; i++)
-      dest[i] = (float)((float)src1[i]/(float)src2[i])*cnst;
+      dest[i] = (src1[i] / src2[i])*cnst;
   }
 
   /**
@@ -181,7 +180,7 @@ namespace espmath{
    * @param cnst Constant to multiply the output.
    */
   template<typename T>
-  inline void divArrayByConst(T* src, float* dest, const size_t len, const float cnst = 1)
+  inline void divArrayByConst(T* src, T* dest, const size_t len, const T cnst = 1)
   {
     for(size_t i = 0; i < len; i++)
       dest[i] = src[i] / cnst;
@@ -197,10 +196,10 @@ namespace espmath{
    * @param cnst Constant to multiply the output.
    */
   template<typename T>
-  inline void divConstByArray(T* src, float* dest, const size_t len, const float cnst = 1)
+  inline void divConstByArray(T* src, T* dest, const size_t len, const float cnst = 1)
   {
     for(size_t i = 0; i < len; i++)
-      dest[i] = cnst / (float)src[i];
+      dest[i] = cnst / src[i];
   }
 }
 
