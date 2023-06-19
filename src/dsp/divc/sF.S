@@ -29,7 +29,7 @@ dsps_divc_f32_esp:
     l32i a10, in_addr, 0
     mov.n   a11, C
     call8   __divsf3
-    s32i.n  a10, out_addr, 0
+    s32i  a10, out_addr, 0
 
     add in_addr, in_addr, step_in
     add out_addr, out_addr, step_out

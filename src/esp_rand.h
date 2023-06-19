@@ -14,11 +14,7 @@ template<typename T>
 inline const T nonZeroRandomNumber(size_t _MAX_NUM_)
 {
   T rn;
-  do
-  {
-    rn = (T)(esp_random() % _MAX_NUM_);
-  }while(rn==0);
-
+  rn = (T)(esp_random() % _MAX_NUM_) + 1;
   return rn;
 }
 
