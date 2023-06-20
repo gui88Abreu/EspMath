@@ -5,13 +5,17 @@
 #define x2_addr   a3
 #define y_addr    a4
 #define len       a5
-#define addr_msk  a6
+#define step_x1   a6
+#define step_x2   a7
+#define step_y    a8
 
 #define x1_r      f0
 #define x2_r      f1
 #define y_r       f2
 
+#if MEMORY_ALIGN
 #define bit_msk   a11
+#endif
 
   .text
   .align  ALIGNMENT
@@ -23,20 +27,33 @@ dsps_add_f32_esp:
 // x2       - a3
 // output   - a4
 // len      - a5
+// step_x1  - a6
+// step_x2  - a7
+// step_y   - a8 (stack)
 
-    entry	a1, 16
-#if (!FAST_MODE)
+  entry	a1, 16
+  
+  l32i step_y, a1, 16
+#if (MEMORY_ALIGN)
+  beqi step_x1, 1, no_step_mode
+#endif
+step_mode:
+  slli step_x1, step_x1, 2
+  slli step_x2, step_x2, 2
+  slli  step_y,  step_y, 2
   loopgtz len, return_success
     lsi x1_r, x1_addr, 0
     lsi x2_r, x2_addr, 0
     add.s y_r, x1_r, x2_r
     ssi y_r, y_addr, 0
 
-    addi x1_addr, x1_addr, 4
-    addi x2_addr, x2_addr, 4
-    addi y_addr, y_addr, 4
-
-#else
+    add y_addr, y_addr, step_y      // next output;
+    add x1_addr, x1_addr, step_x1   // next input;
+    add x2_addr, x2_addr, step_x2   // next input;
+#if (MEMORY_ALIGN)
+no_step_mode:
+  bgei step_x2, 2, step_mode
+  bgei  step_y, 2, step_mode
   movi.n bit_msk, 0b11
   and    bit_msk, bit_msk, len
   srli   len, len, 2

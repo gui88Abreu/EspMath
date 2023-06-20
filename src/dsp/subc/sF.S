@@ -22,7 +22,7 @@ dsps_csub_f32_esp:
     entry	a1, 16
     
     wfr		C, a5		// a5 - load to the f0
-#if (!FAST_MODE)
+#if (!MEMORY_ALIGN)
   loopgtz len, return_success
     lsi f1, in_addr, 0
     sub.s f1, C, f1

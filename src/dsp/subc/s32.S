@@ -24,7 +24,7 @@ dsps_csub_s32_esp:
 
   entry	a1, 16
 
-#if (!FAST_MODE)
+#if (!MEMORY_ALIGN)
   loopgtz len, return_success
     l32i a8, in_addr, 0          // Load next data
     sub a9, C, a8              // Store the multiplication in the a9

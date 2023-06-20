@@ -30,7 +30,7 @@ dsps_csub_s16_esp:
   entry	a1, 16
 
   ee.vldbc.16 C_v, C           // C_v = C
-#if (!FAST_MODE)
+#if (!MEMORY_ALIGN)
   l32i C, C, 0                 // Load const
   ssr     frac                 // sar = frac
   loopgtz len, return_success

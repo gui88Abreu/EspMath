@@ -1,19 +1,25 @@
 #include "dsps_addc_platform.h"
 #include "esp_opt.h"
 
-#define in_addr   a2
-#define out_addr  a3
+#define x_addr    a2
+#define y_addr    a3
 #define len       a4
 #define C         a5
-#define frac      a6
-#define addr_msk  a7
-#define bit_msk   a11
+#define step_x    a6
+#define step_y    a7
+#define frac      a8
 
-#define C_v       q0
-#define in_v      q1
-#define out_v     q2
+#define x_r       a9
+#define y_r       a10
 
-#define sel_p     0
+#if MEMORY_ALIGN
+#define bit_msk   a6
+#define aone      a7
+#define x_v       q0
+#define c_v       q1
+#define y_v       q2
+#define v1        q3
+#endif
 
   .text
   .align  ALIGNMENT
@@ -21,42 +27,60 @@
   .type   dsps_addc_s16_esp,@function
 
 dsps_addc_s16_esp: 
-// input    - a2
-// output   - a3
+// x        - a2
+// y        - a3
 // len      - a4
-// C        - a5
-// frac     - a6
+// Constant - a5
+// step_x   - a6
+// step_y   - a7
+// frac     - a8 (stack)
 
   entry	a1, 16
 
-  ee.vldbc.16 C_v, C           // C_v = C
-#if (!FAST_MODE)
-  l32i C, C, 0                 // Load const
+  l32i frac, a1, 16
   ssr     frac                 // sar = frac
+#if (MEMORY_ALIGN)
+  beqi step_x, 1, no_step_mode
+#endif
+step_mode:
+  l16si C, C, 0                // Load const
+  slli step_x,  step_x, 1
+  slli step_y,  step_y, 1
   loopgtz len, return_success
-    l16si a8, in_addr, 0         // load next data
-    add.n a8, a8, C              // Store the multiplication at a8
-    srl a8, a8                   // Shift right (sar), and store in a8
-    s16i a8, out_addr, 0         // Store result in the output memory
-    addi.n out_addr, out_addr, 2 // next output;
-    addi.n in_addr, in_addr, 2   // next input;
+    l16si x_r, x_addr, 0        // load next data
+    add.n y_r, x_r, C            // Store the multiplication at x_r
+    srl y_r, y_r                 // Shift right (sar), and store in x_r
+    s16i y_r, y_addr, 0        // Store result in the output memory
 
-#else
+    add  y_addr, y_addr, step_y  // next output;
+    add  x_addr, x_addr, step_x  // next input;
+
+#if (MEMORY_ALIGN)
+no_step_mode:
+  bgei  step_y, 2, step_mode
+  movi aone, 0x00010001
+  ee.movi.32.a v1, aone, 0
+  ee.movi.32.a v1, aone, 1
+  ee.movi.32.a v1, aone, 2
+  ee.movi.32.a v1, aone, 3
+  ee.vldbc.16 c_v, C           // c_v = C
   movi.n bit_msk, 0b111
   and    bit_msk, bit_msk, len
   srli   len, len, 3
   beqz   bit_msk, loop_begin
   ee.zero.qacc                         // clear accumulator
-  ee.vld.128.ip in_v, in_addr, 16      // load input
-  ee.vadds.s16 out_v, in_v, C_v        // Add constant
-  ee.vst.128.ip out_v, out_addr, 16    // store results
+  ee.vld.128.ip x_v, x_addr, 16      // load input
+  ee.vadds.s16 y_v, x_v, c_v        // Add constant
+  ee.vmul.s16    y_v, y_v, v1
+  ee.vst.128.ip y_v, y_addr, 16    // store results
 loop_begin:
   loopgtz len, return_success
     ee.zero.qacc                         // clear accumulator
-    ee.vld.128.ip in_v, in_addr, 16      // load input
-    ee.vadds.s16 out_v, in_v, C_v        // Add constant
-    ee.vst.128.ip out_v, out_addr, 16    // store results
+    ee.vld.128.ip x_v, x_addr, 16      // load input
+    ee.vadds.s16 y_v, x_v, c_v        // Add constant
+    ee.vmul.s16    y_v, y_v, v1
+    ee.vst.128.ip y_v, y_addr, 16    // store results
 #endif
 return_success:
-  movi.n	in_addr, 0  //
+  movi.n	x_addr, 0  //
   retw.n              // return status ESP_OK

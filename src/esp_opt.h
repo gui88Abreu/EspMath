@@ -6,7 +6,7 @@
 /**
  * @brief Memory Alignment
  * 
- * Memory Alignment is more useful when FAST_MODE is enabled as well.
+ * Memory Alignment is more useful when MEMORY_ALIGN is enabled as well.
  * 
  */
 #ifndef ALIGNMENT
@@ -20,10 +20,10 @@
  * chuncks of 128 bits. When it is disabled, 64, 32, 16, and 8 bits chunks 
  * can be used as well.
  * 
- * @note define FAST_MODE as 0 to disable this and consume less memory.
+ * @note define MEMORY_ALIGN as 0 to disable this and consume less memory.
  */
-#ifndef FAST_MODE
-#define FAST_MODE 1
+#ifndef MEMORY_ALIGN
+#define MEMORY_ALIGN 1
 #endif
 
 /**

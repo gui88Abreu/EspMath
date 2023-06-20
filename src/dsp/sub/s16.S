@@ -32,7 +32,7 @@ dsps_sub_s16_esp:
 
   entry	a1, 16
   ssr     frac                 // sar = frac
-#if (!FAST_MODE)
+#if (!MEMORY_ALIGN)
   loopgtz len, return_success
     l16si x1_r, x1_addr, 0       // load next data
     l16si x2_r, x2_addr, 0       // load next data

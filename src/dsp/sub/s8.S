@@ -31,7 +31,7 @@ dsps_sub_s8_esp:
 
   entry	a1, 16
 
-#if (!FAST_MODE)
+#if (!MEMORY_ALIGN)
   loopgtz len, return_success
     l8ui x1_r, x1_addr, 0          // Load next data
     l8ui x2_r, x2_addr, 0          // Load next data

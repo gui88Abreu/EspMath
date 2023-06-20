@@ -673,7 +673,7 @@ namespace espmath{
     size_t _mem2alloc(const size_t min)
     {
       size_t minBytes = min*sizeof(T);
-#if (FAST_MODE)
+#if (MEMORY_ALIGN)
       size_t extraBytes = extraToAlign(minBytes);
       return minBytes + extraBytes;
 #else

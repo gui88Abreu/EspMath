@@ -17,7 +17,7 @@ extern "C"
  * x[i] = y[i] - C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -43,7 +43,7 @@ inline esp_err_t dsps_subc_s32_esp(const int32_t *input, int32_t *output, int le
  * Also, it uses fixed-point arithmetic. Use frac parameter to define the fractional 
  * number of the input.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -59,7 +59,7 @@ inline esp_err_t dsps_subc_s32_esp(const int32_t *input, int32_t *output, int le
 inline esp_err_t dsps_subc_s16_esp(const int16_t *input, int16_t *output, int len, const int16_t* C, int frac = 0)
 {
   const int16_t constant = (*C)*(-1);
-  return dsps_addc_s16_esp(input, output, len, &constant, frac);
+  return dsps_addc_s16_esp(input, output, len, &constant, 1, 1, frac);
 }
 
 /**
@@ -69,7 +69,7 @@ inline esp_err_t dsps_subc_s16_esp(const int16_t *input, int16_t *output, int le
  * x[i] = y[i] - C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -94,7 +94,7 @@ inline esp_err_t dsps_subc_s8_esp(const int8_t *input, int8_t *output, int len, 
  * x[i] = y[i] - C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -118,7 +118,7 @@ inline esp_err_t dsps_subc_f32_esp(const float *input, float *output, int len, c
  * x[i] = c - Y[I] ; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -141,7 +141,7 @@ inline esp_err_t dsps_csub_s32_esp(const int32_t *input, int32_t *output, int le
  * Also, it uses fixed-point arithmetic. Use frac parameter to define the fractional 
  * number of the input.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -163,7 +163,7 @@ inline esp_err_t dsps_csub_s16_esp(const int16_t *input, int16_t *output, int le
  * x[i] = c - Y[I] ; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -184,7 +184,7 @@ inline esp_err_t dsps_csub_s8_esp(const int8_t *input, int8_t *output, int len, 
  * x[i] = c - Y[I] ; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array

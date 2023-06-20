@@ -16,7 +16,7 @@ extern "C"
  * y[i] = x1[i]*x2[i]; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param x1: input array
@@ -28,7 +28,13 @@ extern "C"
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mul_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len);
+esp_err_t dsps_mul_s8_esp(const int8_t *x1,\
+                          const int8_t *x2,\
+                          int8_t *y,\
+                          int len,\
+                          int step_x1 = 1,\
+                          int step_x2 = 1,\
+                          int step_y  = 1);
 
 /**
  * @brief   multiply arrays
@@ -37,7 +43,7 @@ esp_err_t dsps_mul_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len
  * y[i] = x1[i]*x2[i]; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param x1: input array
@@ -50,7 +56,14 @@ esp_err_t dsps_mul_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mul_s16_esp(const int16_t *x1, const int16_t *x2, int16_t *y, int len, int frac = 0);
+esp_err_t dsps_mul_s16_esp(const int16_t *x1,\
+                          const int16_t *x2,\
+                          int16_t *y,\
+                          int len,\
+                          int step_x1 = 1,\
+                          int step_x2 = 1,\
+                          int step_y  = 1,\
+                          int frac = 0);
 
 /**
  * @brief   multiply arrays
@@ -59,7 +72,7 @@ esp_err_t dsps_mul_s16_esp(const int16_t *x1, const int16_t *x2, int16_t *y, int
  * y[i] = x1[i]*x2[i]; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param x1: input array
@@ -71,7 +84,13 @@ esp_err_t dsps_mul_s16_esp(const int16_t *x1, const int16_t *x2, int16_t *y, int
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mul_s32_esp(const int32_t *x1, const int32_t *x2, int32_t *y, int len);
+esp_err_t dsps_mul_s32_esp(const int32_t *x1,\
+                          const int32_t *x2,\
+                          int32_t *y,\
+                          int len,\
+                          int step_x1 = 1,\
+                          int step_x2 = 1,\
+                          int step_y  = 1);
 
 /**
  * @brief   multiply arrays
@@ -80,7 +99,7 @@ esp_err_t dsps_mul_s32_esp(const int32_t *x1, const int32_t *x2, int32_t *y, int
  * y[i] = x1[i]*x2[i]; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param x1: input array
@@ -92,7 +111,13 @@ esp_err_t dsps_mul_s32_esp(const int32_t *x1, const int32_t *x2, int32_t *y, int
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mul_f32_esp(const float *x1, const float *x2, float *y, int len);
+esp_err_t dsps_mul_f32_esp(const float *x1,\
+                          const float *x2,\
+                          float *y,\
+                          int len,\
+                          int step_x1 = 1,\
+                          int step_x2 = 1,\
+                          int step_y  = 1);
 
 /**@}*/
 

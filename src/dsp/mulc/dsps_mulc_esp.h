@@ -10,6 +10,33 @@ extern "C"
 #endif
 
 /**@{*/
+
+/**
+ * @brief   multiply constant
+ *
+ * The function multiplies input array to the constant value
+ * x[i] = y[i]*C; i=[0..len)
+ * The implementation target ESP32 devices and it's optmized using DSP instructions.
+ * 
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
+ * If you are using espmath::Array, you don't have to worry about it.
+ *
+ * @param input: input array
+ * @param output: output array
+ * @param len: amount of operations for arrays
+ * @param C: constant value
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - One of the error codes from DSP library
+ */
+esp_err_t dsps_mulc_s8_esp(const int8_t *input,\
+                           int8_t *output,\
+                           int len,\
+                           const int8_t* C,\
+                           int step_x = 1,\
+                           int step_y = 1);
+
 /**
  * @brief   multiply constant
  *
@@ -19,7 +46,7 @@ extern "C"
  * Also, it uses fixed-point arithmetic. Use frac parameter to define the fractional 
  * number of the input.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -32,7 +59,13 @@ extern "C"
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mulc_s16_esp(const int16_t *input, int16_t *output, int len, int16_t C, int frac = 0);
+esp_err_t dsps_mulc_s16_esp(const int16_t *input,\
+                            int16_t *output,\
+                            int len,\
+                            int16_t C,\
+                            int step_x = 1,\
+                            int step_y = 1,\
+                            int frac = 0);
 
 /**
  * @brief   multiply constant
@@ -41,7 +74,7 @@ esp_err_t dsps_mulc_s16_esp(const int16_t *input, int16_t *output, int len, int1
  * x[i] = y[i]*C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -53,7 +86,12 @@ esp_err_t dsps_mulc_s16_esp(const int16_t *input, int16_t *output, int len, int1
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mulc_s32_esp(const int32_t *input, int32_t *output, int len, int32_t C);
+esp_err_t dsps_mulc_s32_esp(const int32_t *input,\
+                            int32_t *output,\
+                            int len,\
+                            int32_t C,\
+                            int step_x = 1,\
+                            int step_y = 1);
 
 /**
  * @brief   multiply constant
@@ -62,7 +100,7 @@ esp_err_t dsps_mulc_s32_esp(const int32_t *input, int32_t *output, int len, int3
  * x[i] = y[i]*C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -74,28 +112,12 @@ esp_err_t dsps_mulc_s32_esp(const int32_t *input, int32_t *output, int len, int3
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_mulc_s8_esp(const int8_t *input, int8_t *output, int len, const int8_t* C);
-
-/**
- * @brief   multiply constant
- *
- * The function multiplies input array to the constant value
- * x[i] = y[i]*C; i=[0..len)
- * The implementation target ESP32 devices and it's optmized using DSP instructions.
- * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
- * If you are using espmath::Array, you don't have to worry about it.
- *
- * @param input: input array
- * @param output: output array
- * @param len: amount of operations for arrays
- * @param C: constant value
- *
- * @return
- *      - ESP_OK on success
- *      - One of the error codes from DSP library
- */
-esp_err_t dsps_mulc_f32_esp(const float *input, float *output, int len, const float C);
+esp_err_t dsps_mulc_f32_esp(const float *input,\
+                            float *output,\
+                            int len,\
+                            const float C,\
+                            int step_x = 1,\
+                            int step_y = 1);
 
 /**@}*/
 

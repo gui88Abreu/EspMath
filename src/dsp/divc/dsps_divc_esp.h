@@ -17,7 +17,7 @@ extern "C"
  * x[i] = y[i] / C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -41,7 +41,7 @@ esp_err_t dsps_cdiv_s32_esp(const int32_t *input, int32_t *output, int len, int3
  * Also, it uses fixed-point arithmetic. Use frac parameter to define the fractional 
  * number of the input.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -64,7 +64,7 @@ esp_err_t dsps_cdiv_s16_esp(const int16_t *input, int16_t *output, int len, cons
  * x[i] = y[i] / C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array
@@ -86,7 +86,7 @@ esp_err_t dsps_cdiv_s8_esp(const int8_t *input, int8_t *output, int len, const i
  * x[i] = y[i] / C; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
- * @note Caution. If FAST_MODE is enabled, only 16 bytes aligned data can be used with it.
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
  *
  * @param input: input array

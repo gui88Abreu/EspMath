@@ -27,7 +27,7 @@ dsps_csub_s8_esp:
 
   entry	a1, 16
   ee.vldbc.8 C_v, C          // C_v = C
-#if (!FAST_MODE)
+#if (!MEMORY_ALIGN)
   l32i cnst, C, 0                // Load const
   loopgtz len, return_success
     l8ui a8, in_addr, 0          // Load next data

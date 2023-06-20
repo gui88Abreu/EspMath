@@ -25,7 +25,7 @@ dsps_sub_f32_esp:
 // len      - a5
 
     entry	a1, 16
-#if (!FAST_MODE)
+#if (!MEMORY_ALIGN)
   loopgtz len, return_success
     lsi x1_r, x1_addr, 0
     lsi x2_r, x2_addr, 0

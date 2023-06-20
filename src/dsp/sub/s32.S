@@ -29,7 +29,7 @@ dsps_sub_s32_esp:
 // len      - a5
 
   entry	a1, 16
-#if (!FAST_MODE)
+#if (!MEMORY_ALIGN)
   loopgtz len, return_success
     l32i x1_r, x1_addr, 0        // Load next data
     l32i x2_r, x2_addr, 0        // Load next data
