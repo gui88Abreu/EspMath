@@ -51,6 +51,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   T data1[_ARRAY_LENGTH_];
   T data2[_ARRAY_LENGTH_];
   T output[_ARRAY_LENGTH_];
+  shape2D shape = shape2D(1, _ARRAY_LENGTH_);
 
   const T randomConstant = nonZeroRandomNumber<T>(max_random<T>());
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
@@ -60,8 +61,8 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
     output[i] = data1[i] + data2[i];
   }
 
-  Array<T> array1(data1, _ARRAY_LENGTH_);
-  Array<T> array2(data2, _ARRAY_LENGTH_);
+  Array<T> array1(data1, shape);
+  Array<T> array2(data2, shape);
   Array<T> result;
   
   debug.print("Testing arrays addition...");
@@ -124,7 +125,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   {
     debug.print(array1, _ARRAY_LENGTH_);
     debug.print(array2, _ARRAY_LENGTH_);
-    debug.print(result.getArrayPntr(), _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -240,7 +241,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   {
     debug.print(array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print(result.getArrayPntr(), _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
