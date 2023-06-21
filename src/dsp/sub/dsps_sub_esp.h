@@ -10,10 +10,10 @@ extern "C"
 #endif
 
 /**
- * @brief   add arrays
+ * @brief   subtract arrays
  *
  * The function multiplies input array to the constant value
- * y[i] = x1[i]+x2[i]; i=[0..len)
+ * y[i] = x1[i] - x2[i]; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
  * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
@@ -21,20 +21,26 @@ extern "C"
  *
  * @param x1: input array
  * @param x2: input array
- * @param output: output array
+ * @param y: output array
  * @param len: amount of operations for arrays
  *
  * @return
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_sub_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len);
+esp_err_t dsps_sub_s8_esp(const int8_t *x1,\
+                          const int8_t *x2,\
+                          int8_t *y,\
+                          int len,\
+                          int step_x1 = 1,\
+                          int step_x2 = 1,\
+                          int step_y  = 1);
 
 /**
- * @brief   add arrays
+ * @brief   subtract arrays
  *
  * The function multiplies input array to the constant value
- * y[i] = x1[i]+x2[i]; i=[0..len)
+ * y[i] = x1[i] - x2[i]; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
  * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
@@ -42,7 +48,7 @@ esp_err_t dsps_sub_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len
  *
  * @param x1: input array
  * @param x2: input array
- * @param output: output array
+ * @param y: output array
  * @param len: amount of operations for arrays
  * @param frac: Fractional part. For instance, if Q15, then frac = 15
  *
@@ -50,13 +56,20 @@ esp_err_t dsps_sub_s8_esp(const int8_t *x1, const int8_t *x2, int8_t *y, int len
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_sub_s16_esp(const int16_t *x1, const int16_t *x2, int16_t *y, int len, int frac = 0);
+esp_err_t dsps_sub_s16_esp(const int16_t *x1,\
+                          const int16_t *x2,\
+                          int16_t *y,\
+                          int len,\
+                          int step_x1 = 1,\
+                          int step_x2 = 1,\
+                          int step_y  = 1,\
+                          int frac = 0);
 
 /**
- * @brief   add arrays
+ * @brief   subtract arrays
  *
  * The function multiplies input array to the constant value
- * y[i] = x1[i]+x2[i]; i=[0..len)
+ * y[i] = x1[i] - x2[i]; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
  * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
@@ -64,20 +77,26 @@ esp_err_t dsps_sub_s16_esp(const int16_t *x1, const int16_t *x2, int16_t *y, int
  *
  * @param x1: input array
  * @param x2: input array
- * @param output: output array
+ * @param y: output array
  * @param len: amount of operations for arrays
  *
  * @return
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_sub_s32_esp(const int32_t *x1, const int32_t *x2, int32_t *y, int len);
+esp_err_t dsps_sub_s32_esp(const int32_t *x1,\
+                          const int32_t *x2,\
+                          int32_t *y,\
+                          int len,\
+                          int step_x1 = 1,\
+                          int step_x2 = 1,\
+                          int step_y  = 1);
 
 /**
- * @brief   add arrays
+ * @brief   subtract arrays
  *
  * The function multiplies input array to the constant value
- * y[i] = x1[i]+x2[i]; i=[0..len)
+ * y[i] = x1[i] - x2[i]; i=[0..len)
  * The implementation target ESP32 devices and it's optmized using DSP instructions.
  * 
  * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
@@ -85,14 +104,20 @@ esp_err_t dsps_sub_s32_esp(const int32_t *x1, const int32_t *x2, int32_t *y, int
  *
  * @param x1: input array
  * @param x2: input array
- * @param output: output array
+ * @param y: output array
  * @param len: amount of operations for arrays
  *
  * @return
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-esp_err_t dsps_sub_f32_esp(const float *x1, const float *x2, float *y, int len);
+esp_err_t dsps_sub_f32_esp(const float *x1,\
+                          const float *x2,\
+                          float *y,\
+                          int len,\
+                          int step_x1 = 1,\
+                          int step_x2 = 1,\
+                          int step_y  = 1);
 
 /**@}*/
 

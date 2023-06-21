@@ -14,14 +14,13 @@
 #define x2_r      a11
 #define y_r       a12
 
-#if MEMORY_ALIGN
-#define bit_msk   a6
-#define aone      a7
+#define unligned  a6
+#define bit_msk   a7
+#define aone      a8
 #define x1_v      q0
 #define x2_v      q1
 #define y_v       q2
 #define v1        q3
-#endif
 
   .text
   .align  ALIGNMENT
@@ -43,11 +42,7 @@ dsps_add_s16_esp:
   l32i step_y, a1, 16
   l32i   frac, a1, 20
   ssr    frac                 // sar = frac
-  
-
-#if (MEMORY_ALIGN)
   beqi step_x1, 1, no_step_mode
-#endif
 step_mode:
   slli step_x1, step_x1, 1
   slli step_x2, step_x2, 1
@@ -62,7 +57,6 @@ step_mode:
     add y_addr, y_addr, step_y      // next output;
     add x1_addr, x1_addr, step_x1   // next input;
     add x2_addr, x2_addr, step_x2   // next input;
-#if (MEMORY_ALIGN)
 no_step_mode:
   bgei step_x2, 2, step_mode
   bgei  step_y, 2, step_mode
@@ -70,22 +64,26 @@ no_step_mode:
   addi aone, aone, 16
   ee.vldbc.16 v1, aone
   movi.n bit_msk, 0b111
-  and    bit_msk, bit_msk, len
+  and    unligned, bit_msk, len
   srli   len, len, 3
-  beqz   bit_msk, loop_begin
-  ee.vld.128.ip x1_v, x1_addr, 16    // load input
-  ee.vld.128.ip x2_v, x2_addr, 16    // load input
-  ee.vadds.s16   y_v, x1_v, x2_v     // add
-  ee.vmul.s16    y_v, y_v, v1
-  ee.vst.128.ip y_v, y_addr, 16      // store results
 loop_begin:
-  loopgtz len, return_success
+  loopgtz len, loop_unligned
     ee.vld.128.ip x1_v, x1_addr, 16    // load input
     ee.vld.128.ip x2_v, x2_addr, 16    // load input
     ee.vadds.s16   y_v, x1_v, x2_v     // add
     ee.vmul.s16    y_v, y_v, v1
     ee.vst.128.ip y_v, y_addr, 16      // store results
-#endif
+loop_unligned:
+  loopgtz unligned, return_success
+    l16si x1_r, x1_addr, 0       // load next data
+    l16si x2_r, x2_addr, 0       // load next data
+    add.n y_r, x1_r, x2_r        // add
+    srl y_r, y_r                 // Shift right (sar), and store in x1_r
+    s16i y_r, y_addr, 0          // Store result in the output memory
+
+    addi y_addr, y_addr, 2      // next output;
+    addi x1_addr, x1_addr, 2   // next input;
+    addi x2_addr, x2_addr, 2   // next input;
 return_success:
   movi.n	x1_addr, 0  //
   retw.n              // return status ESP_OK

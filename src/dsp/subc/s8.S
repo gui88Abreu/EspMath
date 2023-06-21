@@ -1,18 +1,21 @@
 #include "dsps_addc_platform.h"
 #include "esp_opt.h"
 
-#define in_addr   a2
-#define out_addr  a3
+#define x_addr    a2
+#define y_addr    a3
 #define len       a4
 #define C         a5
-#define shift     a6
-#define addr_msk  a7
-#define bit_msk   a11
-#define cnst      a12
+#define step_x    a6
+#define step_y    a7
 
-#define in_v      q0
-#define C_v       q1
-#define out_v     q2
+#define x_r       a8
+#define y_r       a9
+
+#define unligned  a6
+#define bit_msk   a7
+#define x_v       q0
+#define c_v       q1
+#define y_v       q2
 
   .text
   .align  ALIGNMENT
@@ -20,38 +23,45 @@
   .type   dsps_csub_s8_esp,@function
 
 dsps_csub_s8_esp: 
-// input    - a2
-// output   - a3
+// x        - a2
+// y        - a3
 // len      - a4
 // C        - a5
+// step_x   - a6
+// step_y   - a7
 
   entry	a1, 16
-  ee.vldbc.8 C_v, C          // C_v = C
-#if (!MEMORY_ALIGN)
-  l32i cnst, C, 0                // Load const
-  loopgtz len, return_success
-    l8ui a8, in_addr, 0          // Load next data
-    sub a9, cnst, a8             // Store the multiplication
-    s8i a9, out_addr, 0          // Store result
 
-    addi out_addr, out_addr, 1 // next output;
-    addi in_addr, in_addr, 1   // next input;
-#else
-  movi shift, 0
-  ssr    shift               // sar = frac
-  movi   bit_msk, 0b1111
-  and    bit_msk, bit_msk, len
-  srli   len, len, 4
-  beqz   bit_msk, loop_begin
-  ee.vld.128.ip in_v, in_addr, 16           // load input
-  ee.vsubs.s8 out_v, C_v, in_v              // sub
-  ee.vst.128.ip out_v, out_addr, 16
-loop_begin:
+  beqi step_x, 1, no_step_mode
+step_mode:
+  l32i C, C, 0                   // Load const
   loopgtz len, return_success
-    ee.vld.128.ip in_v, in_addr, 16         // load input
-    ee.vsubs.s8 out_v, C_v, in_v            // sub
-    ee.vst.128.ip out_v, out_addr, 16
-#endif
+    l8ui x_r, x_addr, 0          // Load next data
+    sub y_r, C, x_r              // Store the multiplication
+    s8i y_r, y_addr, 0           // Store result
+
+    add  y_addr, y_addr, step_y  // next output;
+    add  x_addr, x_addr, step_x  // next input;
+no_step_mode:
+  bgei  step_y, 2, step_mode
+  ee.vldbc.8 c_v, C          // c_v = C
+  movi   bit_msk, 0b1111
+  and    unligned, bit_msk, len
+  srli   len, len, 4
+loop_begin:
+  loopgtz len, loop_unligned
+    ee.vld.128.ip x_v, x_addr, 16         // load input
+    ee.vsubs.s8 y_v, c_v, x_v           // sub
+    ee.vst.128.ip y_v, y_addr, 16
+loop_unligned:
+  l32i C, C, 0                // Load const
+  loopgtz unligned, return_success
+    l8ui x_r, x_addr, 0          // Load next data
+    sub y_r, C, x_r              // Store the multiplication
+    s8i y_r, y_addr, 0           // Store result
+
+    addi  y_addr, y_addr, 1  // next output;
+    addi  x_addr, x_addr, 1  // next input;
 return_success:
-  movi.n	in_addr, 0  //
+  movi.n	x_addr, 0  //
   retw.n              // return status ESP_OK

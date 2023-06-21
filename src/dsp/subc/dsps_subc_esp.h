@@ -130,7 +130,12 @@ inline esp_err_t dsps_subc_f32_esp(const float *input, float *output, int len, c
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_csub_s32_esp(const int32_t *input, int32_t *output, int len, int32_t C);
+inline esp_err_t dsps_csub_s32_esp(const int32_t *input,\
+                                   int32_t *output,\
+                                   int len,\
+                                   int32_t C,\
+                                   int step_x = 1,\
+                                   int step_y = 1);
 
 /**
  * @brief subtract constant
@@ -154,7 +159,13 @@ inline esp_err_t dsps_csub_s32_esp(const int32_t *input, int32_t *output, int le
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_csub_s16_esp(const int16_t *input, int16_t *output, int len, const int16_t* C, int frac = 0);
+inline esp_err_t dsps_csub_s16_esp(const int16_t *input,\
+                                   int16_t *output,\
+                                   int len,\
+                                   const int16_t* C,\
+                                   int step_x = 1,\
+                                   int step_y = 1,\
+                                   int frac = 0);
 
 /**
  * @brief subtract constant
@@ -175,7 +186,12 @@ inline esp_err_t dsps_csub_s16_esp(const int16_t *input, int16_t *output, int le
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_csub_s8_esp(const int8_t *input, int8_t *output, int len, const int8_t* C);
+inline esp_err_t dsps_csub_s8_esp(const int8_t *input,\
+                                  int8_t *output,\
+                                  int len,\
+                                  const int8_t* C,\
+                                  int step_x = 1,\
+                                  int step_y = 1);
 
 /**
  * @brief subtract constant
@@ -196,7 +212,12 @@ inline esp_err_t dsps_csub_s8_esp(const int8_t *input, int8_t *output, int len, 
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_csub_f32_esp(const float *input, float *output, int len, const float C);
+inline esp_err_t dsps_csub_f32_esp(const float *input,\
+                                   float *output,\
+                                   int len,\
+                                   const float C,\
+                                   int step_x = 1,\
+                                   int step_y = 1);
 
 /**@}*/
 

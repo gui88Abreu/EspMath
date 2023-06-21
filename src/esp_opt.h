@@ -9,22 +9,7 @@
  * Memory Alignment is more useful when MEMORY_ALIGN is enabled as well.
  * 
  */
-#ifndef ALIGNMENT
 #define ALIGNMENT 16
-#endif
-
-/**
- * @brief Fast mode consumes more RAM memory, but speed up operations
- * 
- * When fast mode is enabled, all read and write operations are done in 
- * chuncks of 128 bits. When it is disabled, 64, 32, 16, and 8 bits chunks 
- * can be used as well.
- * 
- * @note define MEMORY_ALIGN as 0 to disable this and consume less memory.
- */
-#ifndef MEMORY_ALIGN
-#define MEMORY_ALIGN 1
-#endif
 
 /**
  * @brief If enabled, benchmark test willbe done and result will be printed via serial port

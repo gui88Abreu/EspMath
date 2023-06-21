@@ -673,12 +673,8 @@ namespace espmath{
     size_t _mem2alloc(const size_t min)
     {
       size_t minBytes = min*sizeof(T);
-#if (MEMORY_ALIGN)
-      size_t extraBytes = extraToAlign(minBytes);
+      size_t extraBytes = extra2align(minBytes);
       return minBytes + extraBytes;
-#else
-      return minBytes;
-#endif
     }
 
     /**
@@ -687,7 +683,7 @@ namespace espmath{
      * @param min Minumum quantity of bytes
      * @return size_t Result
      */
-    static size_t extraToAlign(const size_t min)
+    static size_t extra2align(const size_t min)
     {
       return (ALIGNMENT - min%ALIGNMENT)%ALIGNMENT;
     }

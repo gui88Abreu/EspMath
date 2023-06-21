@@ -1,16 +1,20 @@
 #include "dsps_addc_platform.h"
 #include "esp_opt.h"
 
-#define in_addr   a2
-#define out_addr  a3
+#define x_addr    a2
+#define y_addr    a3
 #define len       a4
 #define C         a5
 #define step_in   a6
 #define step_out  a7
-#define bit_msk   a8
 
-#define in_v      q1
-#define out_v     q2
+#define x_r       a8
+#define y_r       a9
+
+#define bit_msk   a6
+#define unligned  a7
+#define x_v       q1
+#define y_v       q2
 
     .text
     .align  ALIGNMENT
@@ -32,49 +36,41 @@ step_mode:
   slli step_in, step_in, 2
   slli step_out, step_out, 2
   loopgtz len, return_success
-    l32i a8, in_addr, 0          // Load next data
-    quos  a9, a8, C               // Store the multiplication in the a9
-    s32i a9, out_addr, 0         // Store result in the output memory
+    l32i x_r, x_addr, 0          // Load next data
+    quos  y_r, x_r, C               // Store the multiplication in the a9
+    s32i y_r, y_addr, 0         // Store result in the output memory
 
-    add in_addr, in_addr, step_in
-    add out_addr, out_addr, step_out
-
+    add x_addr, x_addr, step_in
+    add y_addr, y_addr, step_out
 no_step_mode:
   bgei step_out, 2, step_mode
   movi.n bit_msk, 0b11
-  and    bit_msk, bit_msk, len
+  and    unligned, bit_msk, len
   srli   len, len, 2
-  beqz   bit_msk, loop_begin
-  ee.vld.128.ip in_v, in_addr, 16      // load input
-  ee.movi.32.a in_v, a8, 0             // Move first operand
-  ee.movi.32.a in_v, a9, 1             // Move second operand
-  ee.movi.32.a in_v, a10, 2            // Move third operand
-  ee.movi.32.a in_v, a11, 3            // Move fourth operand
-  quos a8, a8, C                       // Store the multiplication in the a8
-  quos a9, a9, C                       // Store the multiplication in the a9
-  quos a10, a10, C                     // Store the multiplication in the a10
-  quos a11, a11, C                     // Store the multiplication in the a11
-  ee.movi.32.q out_v, a8, 0            // Move result of the first multiplication
-  ee.movi.32.q out_v, a9, 1            // Move result of the second multiplication
-  ee.movi.32.q out_v, a10, 2           // Move result of the third multiplication
-  ee.movi.32.q out_v, a11, 3           // Move result of the fourth multiplication
-  ee.vst.128.ip out_v, out_addr, 16    // store results
 loop_begin:
-  loopgtz len, return_success
-    ee.vld.128.ip in_v, in_addr, 16      // load input
-    ee.movi.32.a in_v, a8, 0             // Move first operand
-    ee.movi.32.a in_v, a9, 1             // Move second operand
-    ee.movi.32.a in_v, a10, 2            // Move third operand
-    ee.movi.32.a in_v, a11, 3            // Move fourth operand
+  loopgtz len, loop_unligned
+    ee.vld.128.ip x_v, x_addr, 16      // load input
+    ee.movi.32.a x_v, a8, 0             // Move first operand
+    ee.movi.32.a x_v, a9, 1             // Move second operand
+    ee.movi.32.a x_v, a10, 2            // Move third operand
+    ee.movi.32.a x_v, a11, 3            // Move fourth operand
     quos a8, a8, C                       // Store the multiplication in the a8
     quos a9, a9, C                       // Store the multiplication in the a9
     quos a10, a10, C                     // Store the multiplication in the a10
     quos a11, a11, C                     // Store the multiplication in the a11
-    ee.movi.32.q out_v, a8, 0            // Move result of the first multiplication
-    ee.movi.32.q out_v, a9, 1            // Move result of the second multiplication
-    ee.movi.32.q out_v, a10, 2           // Move result of the third multiplication
-    ee.movi.32.q out_v, a11, 3           // Move result of the fourth multiplication
-    ee.vst.128.ip out_v, out_addr, 16    // store results
+    ee.movi.32.q y_v, a8, 0            // Move result of the first multiplication
+    ee.movi.32.q y_v, a9, 1            // Move result of the second multiplication
+    ee.movi.32.q y_v, a10, 2           // Move result of the third multiplication
+    ee.movi.32.q y_v, a11, 3           // Move result of the fourth multiplication
+    ee.vst.128.ip y_v, y_addr, 16    // store results
+loop_unligned:
+  loopgtz unligned, return_success
+    l32i x_r, x_addr, 0          // Load next data
+    quos  y_r, x_r, C               // Store the multiplication in the a9
+    s32i y_r, y_addr, 0         // Store result in the output memory
+
+    addi x_addr,  x_addr, 4
+    addi y_addr,  y_addr, 4
 return_success:
-  movi.n	in_addr, 0  //
+  movi.n	x_addr, 0  //
   retw.n              // return status ESP_OK

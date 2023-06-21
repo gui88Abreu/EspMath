@@ -13,9 +13,8 @@
 #define x2_r      f1
 #define y_r       f2
 
-#if MEMORY_ALIGN
-#define bit_msk   a11
-#endif
+#define unligned  a6
+#define bit_msk   a7
 
   .text
   .align  ALIGNMENT
@@ -34,9 +33,7 @@ dsps_add_f32_esp:
   entry	a1, 16
   
   l32i step_y, a1, 16
-#if (MEMORY_ALIGN)
   beqi step_x1, 1, no_step_mode
-#endif
 step_mode:
   slli step_x1, step_x1, 2
   slli step_x2, step_x2, 2
@@ -50,23 +47,14 @@ step_mode:
     add y_addr, y_addr, step_y      // next output;
     add x1_addr, x1_addr, step_x1   // next input;
     add x2_addr, x2_addr, step_x2   // next input;
-#if (MEMORY_ALIGN)
 no_step_mode:
   bgei step_x2, 2, step_mode
   bgei  step_y, 2, step_mode
   movi.n bit_msk, 0b11
-  and    bit_msk, bit_msk, len
+  and    unligned, bit_msk, len
   srli   len, len, 2
-  beqz   bit_msk, loop_begin
-  ee.ldf.128.ip f3, f2, f1, f0, x1_addr, 16          // load input
-  ee.ldf.128.ip f7, f6, f5, f4, x2_addr, 16          // load input
-  add.s f3, f3, f7
-  add.s f2, f2, f6
-  add.s f1, f1, f5
-  add.s f0, f0, f4
-  ee.stf.128.ip f3, f2, f1, f0, y_addr, 16         // store result
 loop_begin:
-  loopgtz len, return_success
+  loopgtz len, loop_unligned
     ee.ldf.128.ip f3, f2, f1, f0, x1_addr, 16          // load input
     ee.ldf.128.ip f7, f6, f5, f4, x2_addr, 16          // load input
     add.s f3, f3, f7
@@ -74,7 +62,16 @@ loop_begin:
     add.s f1, f1, f5
     add.s f0, f0, f4
     ee.stf.128.ip f3, f2, f1, f0, y_addr, 16         // store result
-#endif
+loop_unligned:
+  loopgtz unligned, return_success
+    lsi x1_r, x1_addr, 0
+    lsi x2_r, x2_addr, 0
+    add.s y_r, x1_r, x2_r
+    ssi y_r, y_addr, 0
+
+    addi y_addr, y_addr, 4      // next output;
+    addi x1_addr, x1_addr, 4   // next input;
+    addi x2_addr, x2_addr, 4   // next input;
 return_success:
   movi.n	x1_addr, 0  //
   retw.n              // return status ESP_OK
