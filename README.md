@@ -12,7 +12,7 @@ Until now, these libraries are guaranteed to work only on ESP32-S3 devices. To u
 
 ## Array Class
 
-The array class allows us to provide multiple features to perform the essential operations for an array type. Please read its documentation alongside the code at [Array](src/esp_array.h) for more information.
+The array class provides multiple features to perform essential operations for an array type. Please read its documentation alongside the code at [Array](src/esp_array.h) for more information.
 
 ## ANSI C version
 
