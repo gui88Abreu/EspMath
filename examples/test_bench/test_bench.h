@@ -68,9 +68,9 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 + array2;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
-    debug.print((T*)array2, _ARRAY_LENGTH_);
-    debug.print((T*)result, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
+    debug.print(array2, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -86,9 +86,9 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 - array2;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
-    debug.print((T*)array2, _ARRAY_LENGTH_);
-    debug.print((T*)result, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
+    debug.print(array2, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -104,9 +104,9 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 * array2;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
-    debug.print((T*)array2, _ARRAY_LENGTH_);
-    debug.print((T*)result, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
+    debug.print(array2, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -122,8 +122,8 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 / array2;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
-    debug.print((T*)array2, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
+    debug.print(array2, _ARRAY_LENGTH_);
     debug.print(result.getArrayPntr(), _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -140,9 +140,9 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 + randomConstant;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print((T*)result, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -153,9 +153,9 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = randomConstant + array1;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print((T*)result, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -171,9 +171,9 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 - randomConstant;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print((T*)result, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -189,9 +189,9 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = randomConstant - array1;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print((T*)result, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -207,9 +207,9 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 * randomConstant;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print((T*)result, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -220,9 +220,9 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = randomConstant * array1;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
-    debug.print((T*)result, _ARRAY_LENGTH_);
+    debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -238,7 +238,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 / randomConstant;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
     debug.print(result.getArrayPntr(), _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
@@ -256,7 +256,7 @@ void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = randomConstant / array1;
   if(!(result == output))
   {
-    debug.print((T*)array1, _ARRAY_LENGTH_);
+    debug.print(array1, _ARRAY_LENGTH_);
     debug.print(randomConstant);
     debug.print(result, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);

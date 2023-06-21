@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <type_traits>
+#include <esp_err.h>
 
 #include "dsps_conv.h"
 #include "dsps_corr.h"
@@ -41,6 +42,7 @@
  */
 namespace espmath{
   using namespace espmath;
+  
   /**
    * @brief Custom Array implementation suitable for ESP32 devices.
    * 
@@ -77,12 +79,14 @@ namespace espmath{
      * @param initialMem The initial size of the array.
      * @param capabilities Memory capabilities.
      */
-    Array(const size_t initialMem = 0, uint32_t capabilities = UINT32_MAX)
+    Array(const size_t cols = 0, const size_t rows = 1, uint32_t capabilities = UINT32_MAX)
     {
+      ESP_ERROR_CHECK(rows == 0); //"rows must be greater than 0!"
       if (capabilities != UINT32_MAX)
         _caps = capabilities;
-      _length = initialMem;
-       _size = _mem2alloc(initialMem);
+      _rows = rows;
+      _cols = cols;
+       _size = _mem2alloc(_cols);
       _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
       if(!_array)
         _size = 0;
@@ -96,11 +100,12 @@ namespace espmath{
      * @param capabilities Memory capabilities
      */
     Array(const T* initialValues,\
-          const size_t initialMem = 0,\
-          uint32_t capabilities = UINT32_MAX):Array(initialMem, capabilities)
+          const size_t cols = 0,\
+          const size_t rows = 1,\
+          uint32_t capabilities = UINT32_MAX):Array(cols, rows, capabilities)
     {
       if (_array)
-        cpyArray(initialValues, _array, _length);
+        cpyArray(initialValues, _array, _cols);
     }
 
     /**
@@ -125,9 +130,14 @@ namespace espmath{
      * @param index 
      * @return T 
      */
-    T& operator[](const size_t index)
+    T* operator[](const size_t index)
     {
-      return _array[index];
+      return &_array[_cols*index];
+    }
+
+    T* operator()(const size_t i = 0)
+    {
+      return &_array[i];
     }
 
     /**
@@ -145,8 +155,8 @@ namespace espmath{
     Array operator[](Array filter)
     {
       Array<T> newArray();
-      for (size_t i = 0; i < _length; i++)
-        if(filter[i]) newArray << _array[i];
+      for (size_t i = 0; i < _cols; i++)
+        if(filter()[i]) newArray << _array[i];
       return newArray;
     }
 
@@ -158,9 +168,9 @@ namespace espmath{
      */
     Array operator==(const T value)
     {
-      Array<T> newArray(_length);
-      for (size_t i = 0; i < _length; i++)
-        _array[i] == value ? newArray[i] = 1 : 0;
+      Array<T> newArray(_cols, _rows);
+      for (size_t i = 0; i < _rows*_cols; i++)
+        _array[i] == value ? newArray()[i] = 1 : 0;
       
       return newArray;
     }
@@ -173,9 +183,9 @@ namespace espmath{
      */
     Array operator!=(const T value) const
     {
-      Array<T> newArray(_length);
-      for (size_t i = 0; i < _length; i++)
-        _array[i] != value ? newArray[i] = 1 : 0;
+      Array<T> newArray(_cols, _rows);
+      for (size_t i = 0; i < _rows*_cols; i++)
+        _array[i] != value ? newArray()[i] = 1 : 0;
       
       return newArray;
     }
@@ -188,9 +198,9 @@ namespace espmath{
      */
     Array operator>(const T value) const
     {
-      Array<T> newArray(_length);
-      for (size_t i = 0; i < _length; i++)
-        _array[i] > value ? newArray[i] = 1 : 0;
+      Array<T> newArray(_cols, _rows);
+      for (size_t i = 0; i < _rows*_cols; i++)
+        _array[i] > value ? newArray()[i] = 1 : 0;
       
       return newArray;
     }
@@ -203,9 +213,9 @@ namespace espmath{
      */
     Array operator<(const T value) const
     {
-      Array<T> newArray(_length);
-      for (size_t i = 0; i < _length; i++)
-        _array[i] < value ? newArray[i] = 1 : 0;
+      Array<T> newArray(_cols, _rows);
+      for (size_t i = 0; i < _rows*_cols; i++)
+        _array[i] < value ? newArray()[i] = 1 : 0;
       
       return newArray;
     }
@@ -218,9 +228,9 @@ namespace espmath{
      */
     Array operator>=(const T value) const
     {
-      Array<T> newArray(_length);
-      for (size_t i = 0; i < _length; i++)
-        _array[i] >= value ? newArray[i] = 1 : 0;
+      Array<T> newArray(_cols, _rows);
+      for (size_t i = 0; i < _rows*_cols; i++)
+        _array[i] >= value ? newArray()[i] = 1 : 0;
       
       return newArray;
     }
@@ -233,23 +243,23 @@ namespace espmath{
      */
     Array operator<=(const T value) const
     {
-      Array<T> newArray(_length);
-      for (size_t i = 0; i < _length; i++)
-        _array[i] <= value ? newArray[i] = 1 : 0;
+      Array<T> newArray(_cols, _rows);
+      for (size_t i = 0; i < _rows*_cols; i++)
+        _array[i] <= value ? newArray()[i] = 1 : 0;
       
       return newArray;
     }
 
     /**
-     * @brief copy[i] = !array[i], i = 0,1,2,3...
+     * @brief copy()[i] = !array()[i], i = 0,1,2,3...
      * 
      * @return Array 
      */
     Array operator!()
     {
-      Array<T> newArray(_length);
-      for (size_t i = 0; i < _length; i++)
-        newArray[i] = !_array[i];
+      Array<T> newArray(_cols, _rows);
+      for (size_t i = 0; i < _rows*_cols; i++)
+        newArray()[i] = !_array[i];
       
       return newArray;
     }
@@ -261,9 +271,9 @@ namespace espmath{
      */
     Array operator~()
     {
-      Array<T> newArray(_length);
-      for (size_t i = 0; i < _length; i++)
-        newArray[i] = ~_array[i];
+      Array<T> newArray(_cols, _rows);
+      for (size_t i = 0; i < _rows*_cols; i++)
+        newArray()[i] = ~_array[i];
       
       return newArray;
     }
@@ -278,7 +288,7 @@ namespace espmath{
     const bool operator==(const T* input)
     {
       size_t i = 0;
-      while( i < _length)
+      while( i < _rows*_cols)
       {
         if (_array[i] != input[i])
           return false;
@@ -325,7 +335,7 @@ namespace espmath{
      */
     void operator+=(const T value)
     {
-      addConstToArray(_array, _array, _length, value);
+      addConstToArray(_array, _array, _cols, value);
     }
 
     /**
@@ -347,7 +357,7 @@ namespace espmath{
      */
     void operator*=(const T value)
     { 
-      mulConstByArray(_array, _array, _length, value);
+      mulConstByArray(_array, _array, _cols, value);
     }
 
     /**
@@ -358,7 +368,7 @@ namespace espmath{
      */
     void operator/=(const T value)
     {
-      divArrayByConst(_array, _array, _length, value);
+      divArrayByConst(_array, _array, _cols, value);
     }
 
     /**
@@ -369,7 +379,7 @@ namespace espmath{
      */
     void operator+=(Array& another)
     { 
-      addArrayToArray((T*)another, _array, _array, _length);
+      addArrayToArray((T*)another, _array, _array, _cols);
     }
     void operator+=(Array&& another)
     {
@@ -384,7 +394,7 @@ namespace espmath{
      */
     void operator-=(Array& another)
     {
-      subArrayFromArray((T*)another, _array, _array, _length);
+      subArrayFromArray((T*)another, _array, _array, _cols);
     }
     void operator-=(Array&& another)
     {
@@ -399,7 +409,7 @@ namespace espmath{
      */
     void operator*=(Array& another)
     {
-      mulArrayByArray((T*)another, _array, _array, _length);
+      mulArrayByArray((T*)another, _array, _array, _cols);
     }
     void operator*=(Array&& another)
     {
@@ -414,7 +424,7 @@ namespace espmath{
      */
     void operator/=(Array& another)
     {
-      divArrayByArray(_array, another, _array, _length);
+      divArrayByArray(_array, another, _array, _cols);
     }
     void operator/=(Array&& another)
     {
@@ -441,9 +451,9 @@ namespace espmath{
      */
     Array& operator<<(Array& another)
     {
-      for(size_t i = 0; i < another.length(); i++)
+      for(size_t i = 0; i < another.cols(); i++)
       {
-        *this = *this << another[i];
+        *this = *this << another()[i];
       }
       return *this;
     }
@@ -457,19 +467,6 @@ namespace espmath{
 
     template<typename _type>
     operator _type*() const {return (_type*)_array;}
-    
-    /**
-     * @brief Assign a value to an existent position of the _array
-     * 
-     * @param value 
-     * @param index 
-     */
-    const bool assign(const T value, const size_t index)
-    {
-      if (index >= _length) return false;
-      (*this)[index] = value;
-      return true;
-    }
 
     /**
      * @brief Append a value to the _array
@@ -480,13 +477,14 @@ namespace espmath{
      */
     const bool append(const T value)
     {
-      if(_length < _size/sizeof(T))
+      assert(_rows == 1);
+      if(_cols < _size/sizeof(T))
       {
-        (*this)[_length++] = value;
+        (*this)[_cols++] = value;
         return true;
       }
 
-      _size = _mem2alloc(_length+1);
+      _size = _mem2alloc(_cols+1);
 
       if (_array)
       {
@@ -500,7 +498,7 @@ namespace espmath{
 
       if (_array)
       {
-        (*this)[_length++] = value;
+        (*this)[_cols++] = value;
         return true;
       }
       return false;
@@ -536,16 +534,16 @@ namespace espmath{
      */
     Array conv(Array& kernel)
     {
-      const size_t outputLength = _length + kernel.length() -1;
+      const size_t outputLength = _cols + kernel.cols() -1;
       Array convOutput(outputLength);
 
       float output[outputLength];
-      float itself[_length];
-      float _kernel[kernel.length()];
+      float itself[_cols];
+      float _kernel[kernel.cols()];
 
-      cpyArray(_array, itself, _length);
-      cpyArray(kernel, _kernel, kernel.length());
-      exec_dsp(dsps_conv_f32_ae32, itself, _length, _kernel, kernel.length(), output);
+      cpyArray(_array, itself, _cols);
+      cpyArray(kernel, _kernel, kernel.cols());
+      exec_dsp(dsps_conv_f32_ae32, itself, _cols, _kernel, kernel.cols(), output);
       cpyArray(output, convOutput, outputLength);
       
       return convOutput;
@@ -561,12 +559,13 @@ namespace espmath{
       if (_array)
         heap_caps_free(_array);
 
-      _length = another.length();
+      _rows = another._rows;
+      _cols = another._cols;
       _size = another.memSize();
       _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
       
-      for(size_t i = 0; i < _length; i++)
-        _array[i] = another[i];
+      for(size_t i = 0; i < _cols; i++)
+        _array[i] = another()[i];
     }
 
     /**
@@ -579,7 +578,8 @@ namespace espmath{
       if (_array)
         heap_caps_free(_array);
 
-      _length = another.length();
+      _rows = another._rows;
+      _cols = another._cols;
       _size = another.memSize();
       _array = another.preserveMem();
     }
@@ -594,14 +594,14 @@ namespace espmath{
      */
     Array<float> correlation(Array& pattern)
     {
-      Array<float> corr(_length);
+      Array<float> corr(_cols, _rows);
 
-      float itself[_length];
-      float _pattern[pattern.length()];
+      float itself[_cols];
+      float _pattern[pattern.cols()];
 
-      cpyArray(_array, itself, _length);
-      cpyArray(pattern, _pattern, pattern.length());
-      exec_dsp(dsps_corr_f32_ae32, itself, _length, _pattern, pattern.length(), corr);
+      cpyArray(_array, itself, _cols);
+      cpyArray(pattern, _pattern, pattern.cols());
+      exec_dsp(dsps_corr_f32_ae32, itself, _cols, _pattern, pattern.cols(), corr);
       return corr;
     }
 
@@ -616,9 +616,9 @@ namespace espmath{
     const bool diff(Array& another, const float EPSILON = 0.0001)
     {
       size_t i = 0;
-      while (i < _length)
+      while (i < _rows*_cols)
       {
-        if (_array[i]!=another[i])
+        if (_array[i]!=another()[i])
           return true;
         i++;
       }
@@ -635,15 +635,8 @@ namespace espmath{
       return _array;
     }
 
-    /**
-     * @brief Get the Array Size
-     * 
-     * @return size_t 
-     */
-    size_t length() const
-    {
-      return _length;
-    }
+    size_t cols() const{return _cols;}
+    size_t rows() const{return _rows;}
 
     /**
      * @brief Get the allocated memory bytes
@@ -657,7 +650,8 @@ namespace espmath{
 
   protected:
     size_t _size = 0; /*Total bytes allocated*/
-    size_t _length = 0; /*Length of the _array*/
+    size_t _rows = 1; /*Number of rows if Array is a matrix*/
+    size_t _cols = 0; /*Number of columns if Array is a matrix*/
     T* _array = NULL; /*Array pointer*/
     uint32_t _caps = this->memCaps();
 
@@ -727,243 +721,243 @@ namespace espmath{
   template<>
   inline void Array<float>::operator+=(const float value)
   {
-    exec_dsp(dsps_addc_f32_esp, _array, _array, _length, value);
+    exec_dsp(dsps_addc_f32_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<int32_t>::operator+=(const int32_t value)
   {
-    exec_dsp(dsps_addc_s32_esp, _array, _array, _length, value);
+    exec_dsp(dsps_addc_s32_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<uint32_t>::operator+=(const uint32_t value)
   {
-    exec_dsp(dsps_addc_s32_esp, (int32_t*)_array, (int32_t*)_array, _length, value);
+    exec_dsp(dsps_addc_s32_esp, (int32_t*)_array, (int32_t*)_array, _cols, value);
   }
 
   template<>
   inline void Array<int16_t>::operator+=(const int16_t value)
   {
-    exec_dsp(dsps_addc_s16_esp, _array, _array, _length, &value);
+    exec_dsp(dsps_addc_s16_esp, _array, _array, _cols, &value);
   }
 
   template<>
   inline void Array<int8_t>::operator+=(const int8_t value)
   {
-    exec_dsp(dsps_addc_s8_esp, _array, _array, _length, &value);
+    exec_dsp(dsps_addc_s8_esp, _array, _array, _cols, &value);
   }
 
   template<>
   inline void Array<float>::operator-=(const float value)
   {
-    exec_dsp(dsps_subc_f32_esp, _array, _array, _length, value);
+    exec_dsp(dsps_subc_f32_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<int32_t>::operator-=(const int32_t value)
   {
-    exec_dsp(dsps_subc_s32_esp, _array, _array, _length, value);
+    exec_dsp(dsps_subc_s32_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<uint32_t>::operator-=(const uint32_t value)
   {
-    exec_dsp(dsps_subc_s32_esp, (int32_t*)_array, (int32_t*)_array, _length, value);
+    exec_dsp(dsps_subc_s32_esp, (int32_t*)_array, (int32_t*)_array, _cols, value);
   }
 
   template<>
   inline void Array<int16_t>::operator-=(const int16_t value)
   {
-    exec_dsp(dsps_subc_s16_esp, _array, _array, _length, &value);
+    exec_dsp(dsps_subc_s16_esp, _array, _array, _cols, &value);
   }
 
   template<>
   inline void Array<int8_t>::operator-=(const int8_t value)
   {
-    exec_dsp(dsps_subc_s8_esp, _array, _array, _length, &value);
+    exec_dsp(dsps_subc_s8_esp, _array, _array, _cols, &value);
   }
 
   template<>
   inline void Array<float>::operator*=(const float value)
   {
-    exec_dsp(dsps_mulc_f32_esp, _array, _array, _length, value);
+    exec_dsp(dsps_mulc_f32_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<int32_t>::operator*=(const int32_t value)
   {
-    exec_dsp(dsps_mulc_s32_esp, _array, _array, _length, value);
+    exec_dsp(dsps_mulc_s32_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<uint32_t>::operator*=(const uint32_t value)
   {
-    exec_dsp(dsps_mulc_s32_esp, (int32_t*)_array, (int32_t*)_array, _length, (int32_t)value);
+    exec_dsp(dsps_mulc_s32_esp, (int32_t*)_array, (int32_t*)_array, _cols, (int32_t)value);
   }
 
   template<>
   inline void Array<int8_t>::operator*=(const int8_t value)
   {
-    exec_dsp(dsps_mulc_s8_esp, _array, _array, _length, &value);
+    exec_dsp(dsps_mulc_s8_esp, _array, _array, _cols, &value);
   }
 
   template<>
   inline void Array<int16_t>::operator*=(const int16_t value)
   {
-    exec_dsp(dsps_mulc_s16_esp, _array, _array, _length, value);
+    exec_dsp(dsps_mulc_s16_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<float>::operator/=(const float value)
   {
-    exec_dsp(dsps_divc_f32_esp, _array, _array, _length, value);
+    exec_dsp(dsps_divc_f32_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<int32_t>::operator/=(const int32_t value)
   {
-    exec_dsp(dsps_divc_s32_esp, _array, _array, _length, value);
+    exec_dsp(dsps_divc_s32_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<uint32_t>::operator/=(const uint32_t value)
   {
-    exec_dsp(dsps_divc_s32_esp, (int32_t*)_array, (int32_t*)_array, _length, (int32_t)value);
+    exec_dsp(dsps_divc_s32_esp, (int32_t*)_array, (int32_t*)_array, _cols, (int32_t)value);
   }
 
   template<>
   inline void Array<int16_t>::operator/=(const int16_t value)
   {
-    exec_dsp(dsps_divc_s16_esp, _array, _array, _length, value);
+    exec_dsp(dsps_divc_s16_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<int8_t>::operator/=(const int8_t value)
   {
-    exec_dsp(dsps_divc_s8_esp, _array, _array, _length, value);
+    exec_dsp(dsps_divc_s8_esp, _array, _array, _cols, value);
   }
 
   template<>
   inline void Array<float>::operator+=(Array<float>& another)
   {
-    exec_dsp(dsps_add_f32_esp, _array, another, _array, _length);
+    exec_dsp(dsps_add_f32_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<int32_t>::operator+=(Array<int32_t>& another)
   {
-    exec_dsp(dsps_add_s32_esp, _array, another, _array, _length);
+    exec_dsp(dsps_add_s32_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<uint32_t>::operator+=(Array<uint32_t>& another)
   {
-    exec_dsp(dsps_add_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _length);
+    exec_dsp(dsps_add_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _cols);
   }
 
   template<>
   inline void Array<int16_t>::operator+=(Array<int16_t>& another)
   {
-    exec_dsp(dsps_add_s16_esp, _array, another, _array, _length);
+    exec_dsp(dsps_add_s16_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<int8_t>::operator+=(Array<int8_t>& another)
   {
-    exec_dsp(dsps_add_s8_esp, _array, another, _array, _length);
+    exec_dsp(dsps_add_s8_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<float>::operator-=(Array<float>& another)
   {
-    exec_dsp(dsps_sub_f32_esp, _array, another, _array, _length);
+    exec_dsp(dsps_sub_f32_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<int32_t>::operator-=(Array<int32_t>& another)
   {
-    exec_dsp(dsps_sub_s32_esp, _array, another, _array, _length);
+    exec_dsp(dsps_sub_s32_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<uint32_t>::operator-=(Array<uint32_t>& another)
   {
-    exec_dsp(dsps_sub_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _length);
+    exec_dsp(dsps_sub_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _cols);
   }
 
   template<>
   inline void Array<int16_t>::operator-=(Array<int16_t>& another)
   {
-    exec_dsp(dsps_sub_s16_esp, _array, another, _array, _length);
+    exec_dsp(dsps_sub_s16_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<int8_t>::operator-=(Array<int8_t>& another)
   {
-    exec_dsp(dsps_sub_s8_esp, _array, another, _array, _length);
+    exec_dsp(dsps_sub_s8_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<float>::operator*=(Array<float>& another)
   {
-    exec_dsp(dsps_mul_f32_esp, _array, another, _array, _length);
+    exec_dsp(dsps_mul_f32_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<int32_t>::operator*=(Array<int32_t>& another)
   {
-    exec_dsp(dsps_mul_s32_esp, _array, another, _array, _length);
+    exec_dsp(dsps_mul_s32_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<uint32_t>::operator*=(Array<uint32_t>& another)
   {
-    exec_dsp(dsps_mul_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _length);
+    exec_dsp(dsps_mul_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _cols);
   }
 
   template<>
   inline void Array<int16_t>::operator*=(Array<int16_t>& another)
   {
-    exec_dsp(dsps_mul_s16_esp,_array, another, _array, _length);
+    exec_dsp(dsps_mul_s16_esp,_array, another, _array, _cols);
   }
 
   template<>
   inline void Array<int8_t>::operator*=(Array<int8_t>& another)
   {
-    exec_dsp(dsps_mul_s8_esp,_array, another, _array, _length);
+    exec_dsp(dsps_mul_s8_esp,_array, another, _array, _cols);
   }
 
   template<>
   inline void Array<float>::operator/=(Array<float>& another)
   {
-    exec_dsp(dsps_div_f32_esp, _array, another, _array, _length);
+    exec_dsp(dsps_div_f32_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<int32_t>::operator/=(Array<int32_t>& another)
   {
-    exec_dsp(dsps_div_s32_esp, _array, another, _array, _length);
+    exec_dsp(dsps_div_s32_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<int16_t>::operator/=(Array<int16_t>& another)
   {
-    exec_dsp(dsps_div_s16_esp, _array, another, _array, _length);
+    exec_dsp(dsps_div_s16_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline void Array<int8_t>::operator/=(Array<int8_t>& another)
   {
-    exec_dsp(dsps_div_s8_esp, _array, another, _array, _length);
+    exec_dsp(dsps_div_s8_esp, _array, another, _array, _cols);
   }
 
   template<>
   inline Array<float> Array<float>::operator==(const float value)
   {
-    Array<float> newArray(_length);
-    for (size_t i = 0; i < _length; i++)
-      eqFloats(_array[i++], value) ? newArray[i] = 1 : 0;
+    Array<float> newArray(_cols, _rows);
+    for (size_t i = 0; i < _rows*_cols; i++)
+      eqFloats(_array[i], value) ? newArray()[i] = 1 : 0;
     return newArray;
   }
 
@@ -971,7 +965,7 @@ namespace espmath{
   inline const bool Array<float>::operator==(const float* input)
   {
     size_t i = 0;
-    while( i < _length)
+    while( i < _rows*_cols)
     {
       if (!eqFloats(_array[i], input[i]))
         return false;
@@ -983,17 +977,17 @@ namespace espmath{
   template<>
   inline Array<float> Array<float>::conv(Array<float>& kernel)
   {
-    const size_t outputLength = _length + kernel.length() -1;
+    const size_t outputLength = _cols + kernel.cols() -1;
     Array<float> convOutput(outputLength);
-    exec_dsp(dsps_conv_f32_ae32, _array, _length, kernel, kernel.length(), convOutput);
+    exec_dsp(dsps_conv_f32_ae32, _array, _cols, kernel, kernel.cols(), convOutput);
     return convOutput;
   }
 
   template<>
   inline Array<float> Array<float>::correlation(Array<float>& pattern)
   {
-    Array<float> corr(_length);
-    exec_dsp(dsps_corr_f32_ae32, _array, _length, pattern, pattern.length(), corr);
+    Array<float> corr(_cols, _rows);
+    exec_dsp(dsps_corr_f32_ae32, _array, _cols, pattern, pattern.cols(), corr);
     return corr;
   }
 
@@ -1001,9 +995,9 @@ namespace espmath{
   inline const bool Array<float>::diff(Array<float>& another, const float EPSILON)
   {
     size_t i = 0;
-    while(i < _length)
+    while(i < _cols)
     {
-      if (!eqFloats(_array[i], another[i], EPSILON))
+      if (!eqFloats(_array[i], another()[i], EPSILON))
         return true;
       i++;
     }
@@ -1021,19 +1015,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator+(Array<T>& onearray, Array<T> another)
   {
-    Array<T> newArray(onearray.length());
-    addArrayToArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.length());
+    Array<T> newArray(onearray.cols());
+    addArrayToArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.cols());
     return newArray;
   }
 
   template<>
   inline Array<float> operator+(Array<float>& onearray, Array<float> another)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_f32_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_f32_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_add_f32_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_add_f32_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1041,11 +1035,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator+(Array<int32_t>& onearray, Array<int32_t> another)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s32_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s32_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_add_s32_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_add_s32_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1053,20 +1047,20 @@ namespace espmath{
   template<>
   inline Array<uint32_t> operator+(Array<uint32_t>& onearray, Array<uint32_t> another)
   {
-    Array<uint32_t> newArray(onearray.length());
+    Array<uint32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
                     dsps_add_s32_esp,\
                     (int32_t*)onearray,\
                     (int32_t*)another,\
                     (int32_t*)newArray,\
-                    onearray.length());
+                    onearray.cols());
 #else
     exec_dsp(dsps_add_s32_esp,\
             (int32_t*)onearray,\
             (int32_t*)another,\
             (int32_t*)newArray,\
-            onearray.length());
+            onearray.cols());
 #endif
     return newArray;
   }
@@ -1074,11 +1068,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator+(Array<int16_t>& onearray, Array<int16_t> another)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s16_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s16_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_add_s16_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_add_s16_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1086,11 +1080,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator+(Array<int8_t>& onearray, Array<int8_t> another)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s8_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s8_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_add_s8_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_add_s8_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1106,19 +1100,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator+(Array<T>& onearray, const T value)
   {
-    Array<T> newArray(onearray.length());
-    addConstToArray<T>(onearray, newArray, newArray.length(), value);
+    Array<T> newArray(onearray.cols());
+    addConstToArray<T>(onearray, newArray, newArray.cols(), value);
     return newArray;
   }
 
   template<>
   inline Array<float> operator+(Array<float>& onearray, const float value)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_addc_f32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_addc_f32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1126,11 +1120,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator+(Array<int32_t>& onearray, const int32_t value)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_addc_s32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_addc_s32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1138,11 +1132,11 @@ namespace espmath{
   template<>
   inline Array<uint32_t> operator+(Array<uint32_t>& onearray, const uint32_t value)
   {
-    Array<uint32_t> newArray(onearray.length());
+    Array<uint32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.length(), value);
+    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1150,11 +1144,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator+(Array<int16_t>& onearray, const int16_t value)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_addc_s16_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_addc_s16_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1162,11 +1156,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator+(Array<int8_t>& onearray, const int8_t value)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_addc_s8_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_addc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1180,19 +1174,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator+(const T value, Array<T> onearray)
   {
-    Array<T> newArray(onearray.length());
-    addConstToArray<T>(onearray, newArray, newArray.length(), value);
+    Array<T> newArray(onearray.cols());
+    addConstToArray<T>(onearray, newArray, newArray.cols(), value);
     return newArray;
   }
 
   template<>
   inline Array<float> operator+(const float value, Array<float> onearray)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_addc_f32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_addc_f32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1200,11 +1194,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator+(const int32_t value, Array<int32_t> onearray)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_addc_s32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_addc_s32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1212,11 +1206,11 @@ namespace espmath{
   template<>
   inline Array<uint32_t> operator+(const uint32_t value, Array<uint32_t> onearray)
   {
-    Array<uint32_t> newArray(onearray.length());
+    Array<uint32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.length(), value);
+    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1224,11 +1218,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator+(const int16_t value, Array<int16_t> onearray)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_addc_s16_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_addc_s16_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1236,11 +1230,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator+(const int8_t value, Array<int8_t> onearray)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_addc_s8_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_addc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1256,19 +1250,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator-(Array<T>& onearray, Array<T> another)
   {
-    Array<T> newArray(onearray.length());
-    subArrayFromArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.length());
+    Array<T> newArray(onearray.cols());
+    subArrayFromArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.cols());
     return newArray;
   }
 
   template<>
   inline Array<float> operator-(Array<float>& onearray, Array<float> another)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_f32_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_f32_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_sub_f32_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_sub_f32_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1276,11 +1270,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator-(Array<int32_t>& onearray, Array<int32_t> another)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s32_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s32_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_sub_s32_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_sub_s32_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1288,20 +1282,20 @@ namespace espmath{
   template<>
   inline Array<uint32_t> operator-(Array<uint32_t>& onearray, Array<uint32_t> another)
   {
-    Array<uint32_t> newArray(onearray.length());
+    Array<uint32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
                     dsps_sub_s32_esp,\
                     (int32_t*)onearray,\
                     (int32_t*)another,\
                     (int32_t*)newArray,\
-                    onearray.length());
+                    onearray.cols());
 #else
     exec_dsp(dsps_sub_s32_esp,\
             (int32_t*)onearray,\
             (int32_t*)another,\
             (int32_t*)newArray,\
-            onearray.length());
+            onearray.cols());
 #endif
     return newArray;
   }
@@ -1309,11 +1303,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator-(Array<int16_t>& onearray, Array<int16_t> another)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s16_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s16_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_sub_s16_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_sub_s16_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1321,11 +1315,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator-(Array<int8_t>& onearray, Array<int8_t> another)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s8_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s8_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_sub_s8_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_sub_s8_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1341,19 +1335,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator-(Array<T>& onearray, const T value)
   {
-    Array<T> newArray(onearray.length());
-    subConstFromArray<T>(onearray, newArray, newArray.length(), value);
+    Array<T> newArray(onearray.cols());
+    subConstFromArray<T>(onearray, newArray, newArray.cols(), value);
     return newArray;
   }
 
   template<>
   inline Array<float> operator-(Array<float>& onearray, const float value)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_f32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_f32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_subc_f32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_subc_f32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1361,11 +1355,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator-(Array<int32_t>& onearray, const int32_t value)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_subc_s32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_subc_s32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1373,11 +1367,11 @@ namespace espmath{
   template<>
   inline Array<uint32_t> operator-(Array<uint32_t>& onearray, const uint32_t value)
   {
-    Array<uint32_t> newArray(onearray.length());
+    Array<uint32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.length(), value);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.length(), value);
+    exec_dsp(dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1385,11 +1379,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator-(Array<int16_t>& onearray, const int16_t value)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s16_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s16_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_subc_s16_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_subc_s16_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1397,11 +1391,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator-(Array<int8_t>& onearray, const int8_t value)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s8_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_subc_s8_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_subc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1415,19 +1409,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator-(const T value, Array<T> onearray)
   {
-    Array<T> newArray(onearray.length());
-    subConstFromArray<T>(onearray, newArray, newArray.length(), value, -1);
+    Array<T> newArray(onearray.cols());
+    subConstFromArray<T>(onearray, newArray, newArray.cols(), value, -1);
     return newArray;
   }
 
   template<>
   inline Array<float> operator-(const float value, Array<float> onearray)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_f32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_f32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_csub_f32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_csub_f32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1435,11 +1429,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator-(const int32_t value, Array<int32_t> onearray)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_csub_s32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_csub_s32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1447,11 +1441,11 @@ namespace espmath{
   template<>
   inline Array<uint32_t> operator-(const uint32_t value, Array<uint32_t> onearray)
   {
-    Array<uint32_t> newArray(onearray.length());
+    Array<uint32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_csub_s32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_csub_s32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1459,11 +1453,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator-(const int16_t value, Array<int16_t> onearray)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s16_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s16_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_csub_s16_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_csub_s16_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1471,11 +1465,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator-(const int8_t value, Array<int8_t> onearray)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s8_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s8_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_csub_s8_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_csub_s8_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1491,19 +1485,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator*(Array<T>& onearray, Array<T> another)
   {
-    Array<T> newArray(onearray.length());
-    mulArrayByArray((T*)onearray, (T*)another, (T*)newArray, newArray.length());
+    Array<T> newArray(onearray.cols());
+    mulArrayByArray((T*)onearray, (T*)another, (T*)newArray, newArray.cols());
     return newArray;
   }
 
   template<>
   inline Array<float> operator*(Array<float>& onearray, Array<float> another)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
  #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_f32_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_f32_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_mul_f32_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_mul_f32_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1511,11 +1505,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator*(Array<int32_t>& onearray, Array<int32_t> another)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s32_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s32_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_mul_s32_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_mul_s32_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1523,20 +1517,20 @@ namespace espmath{
   template<>
   inline Array<uint32_t> operator*(Array<uint32_t>& onearray, Array<uint32_t> another)
   {
-    Array<uint32_t> newArray(onearray.length());
+    Array<uint32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
                       dsps_mul_s32_esp,\
                       (int32_t*)onearray,\
                       (int32_t*)another,\
                       (int32_t*)newArray,\
-                      onearray.length());
+                      onearray.cols());
 #else
     exec_dsp(dsps_mul_s32_esp,\
             (int32_t*)onearray,\
             (int32_t*)another,\
             (int32_t*)newArray,\
-            onearray.length());
+            onearray.cols());
 #endif
     return newArray;
   }
@@ -1544,11 +1538,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator*(Array<int16_t>& onearray, Array<int16_t> another)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s16_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s16_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_mul_s16_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_mul_s16_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1556,11 +1550,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator*(Array<int8_t>& onearray, Array<int8_t> another)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s8_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s8_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_mul_s8_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_mul_s8_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1576,19 +1570,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator*(Array<T>& onearray, const T value)
   {
-    Array<T> newArray(onearray.length());
-    mulConstByArray<T>(onearray, newArray, newArray.length(), value);
+    Array<T> newArray(onearray.cols());
+    mulConstByArray<T>(onearray, newArray, newArray.cols(), value);
     return newArray;
   }
 
   template<>
   inline Array<float> operator*(Array<float>& onearray, const float value)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1596,11 +1590,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator*(Array<int32_t>& onearray, const int32_t value)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1608,17 +1602,17 @@ namespace espmath{
   template<>
   inline Array<uint32_t> operator*(Array<uint32_t>& onearray, const uint32_t value)
   {
-    Array<uint32_t> newArray(onearray.length());
+    Array<uint32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
                     dsps_mulc_s32_esp,(int32_t*)onearray,\
                     (int32_t*)newArray,\
-                    newArray.length(),\
+                    newArray.cols(),\
                     value);
 #else
     exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray,\
                 (int32_t*)newArray,\
-                newArray.length(),\
+                newArray.cols(),\
                 value);
 #endif
     return newArray;
@@ -1627,11 +1621,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator*(Array<int16_t>& onearray, const int16_t value)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1639,11 +1633,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator*(Array<int8_t>& onearray, const int8_t value)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1657,19 +1651,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator*(const T value, Array<T> another)
   {
-    Array<T> newArray(another.length());
-    mulConstByArray<T>(another, newArray, another.length(), value);
+    Array<T> newArray(another.cols());
+    mulConstByArray<T>(another, newArray, another.cols(), value);
     return newArray;
   }
 
   template<>
   inline Array<float> operator*(const float value, Array<float> onearray)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1677,11 +1671,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator*(const int32_t value, Array<int32_t> onearray)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1689,17 +1683,17 @@ namespace espmath{
   template<>
   inline Array<uint32_t> operator*(const uint32_t value, Array<uint32_t> onearray)
   {
-    Array<uint32_t> newArray(onearray.length());
+    Array<uint32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
     REPORT_BENCHMARK("Cycles to complete: ",\
                     dsps_mulc_s32_esp,(int32_t*)onearray,\
                     (int32_t*)newArray,\
-                    newArray.length(),\
+                    newArray.cols(),\
                     value);
 #else
     exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray,\
                 (int32_t*)newArray,\
-                newArray.length(),\
+                newArray.cols(),\
                 value);
 #endif
     return newArray;
@@ -1708,11 +1702,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator*(const int16_t value, Array<int16_t> onearray)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1720,11 +1714,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator*(const int8_t value, Array<int8_t> onearray)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.length(), &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #else
-    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.length(), &value);
+    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.cols(), &value);
 #endif
     return newArray;
   }
@@ -1740,19 +1734,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator/(Array<T>& onearray, const T value)
   {
-    Array<T> newArray(onearray.length());
-    divArrayByConst((T*)onearray, newArray, onearray.length(), value);
+    Array<T> newArray(onearray.cols());
+    divArrayByConst((T*)onearray, newArray, onearray.cols(), value);
     return newArray;
   }
 
   template<>
   inline Array<float> operator/(Array<float>& onearray, const float value)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_f32_esp, onearray, newArray, onearray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_f32_esp, onearray, newArray, onearray.cols(), value);
 #else
-    exec_dsp(dsps_divc_f32_esp, onearray, newArray, onearray.length(), value);
+    exec_dsp(dsps_divc_f32_esp, onearray, newArray, onearray.cols(), value);
 #endif
     return newArray;
   }
@@ -1760,11 +1754,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator/(Array<int32_t>& onearray, const int32_t value)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s32_esp, onearray, newArray, onearray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s32_esp, onearray, newArray, onearray.cols(), value);
 #else
-    exec_dsp(dsps_divc_s32_esp, onearray, newArray, onearray.length(), value);
+    exec_dsp(dsps_divc_s32_esp, onearray, newArray, onearray.cols(), value);
 #endif
     return newArray;
   }
@@ -1772,11 +1766,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator/(Array<int16_t>& onearray, const int16_t value)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s16_esp, onearray, newArray, onearray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s16_esp, onearray, newArray, onearray.cols(), value);
 #else
-    exec_dsp(dsps_divc_s16_esp, onearray, newArray, onearray.length(), value);
+    exec_dsp(dsps_divc_s16_esp, onearray, newArray, onearray.cols(), value);
 #endif
     return newArray;
   }
@@ -1784,11 +1778,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator/(Array<int8_t>& onearray, const int8_t value)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s8_esp, onearray, newArray, onearray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s8_esp, onearray, newArray, onearray.cols(), value);
 #else
-    exec_dsp(dsps_divc_s8_esp, onearray, newArray, onearray.length(), value);
+    exec_dsp(dsps_divc_s8_esp, onearray, newArray, onearray.cols(), value);
 #endif
     return newArray;
   }
@@ -1802,19 +1796,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator/(const T value, Array<T> another)
   {
-    Array<T> newArray(another.length());
-    divConstByArray((T*)another, (T*)newArray, newArray.length(), (T)value);
+    Array<T> newArray(another.cols());
+    divConstByArray((T*)another, (T*)newArray, newArray.cols(), (T)value);
     return newArray;
   }
 
   template<>
   inline Array<float> operator/(const float value, Array<float> another)
   {
-    Array<float> newArray(another.length());
+    Array<float> newArray(another.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_f32_esp, another, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_f32_esp, another, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_cdiv_f32_esp, another, newArray, newArray.length(), value);
+    exec_dsp(dsps_cdiv_f32_esp, another, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1822,11 +1816,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator/(const int32_t value, Array<int32_t> onearray)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s32_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s32_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_cdiv_s32_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_cdiv_s32_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1834,11 +1828,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator/(const int16_t value, Array<int16_t> onearray)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s16_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s16_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_cdiv_s16_esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_cdiv_s16_esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1846,11 +1840,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator/(const int8_t value, Array<int8_t> onearray)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s8_esp, onearray, newArray, newArray.length(), value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s8_esp, onearray, newArray, newArray.cols(), value);
 #else
-    exec_dsp(dsps_cdiv_s8esp, onearray, newArray, newArray.length(), value);
+    exec_dsp(dsps_cdiv_s8esp, onearray, newArray, newArray.cols(), value);
 #endif
     return newArray;
   }
@@ -1866,19 +1860,19 @@ namespace espmath{
   template<typename T>
   inline Array<T> operator/(Array<T>& onearray, Array<T> another)
   {
-    Array<T> newArray(onearray.length());
-    divArrayByArray((T*)onearray, (T*)another, (T*)newArray, onearray.length());
+    Array<T> newArray(onearray.cols());
+    divArrayByArray((T*)onearray, (T*)another, (T*)newArray, onearray.cols());
     return newArray;
   }
 
   template<>
   inline Array<float> operator/(Array<float>& onearray, Array<float> another)
   {
-    Array<float> newArray(onearray.length());
+    Array<float> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_f32_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_f32_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_div_f32_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_div_f32_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1886,11 +1880,11 @@ namespace espmath{
   template<>
   inline Array<int32_t> operator/(Array<int32_t>& onearray, Array<int32_t> another)
   {
-    Array<int32_t> newArray(onearray.length());
+    Array<int32_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s32_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s32_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_div_s32_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_div_s32_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1898,11 +1892,11 @@ namespace espmath{
   template<>
   inline Array<int16_t> operator/(Array<int16_t>& onearray, Array<int16_t> another)
   {
-    Array<int16_t> newArray(onearray.length());
+    Array<int16_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s16_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s16_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_div_s16_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_div_s16_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1910,11 +1904,11 @@ namespace espmath{
   template<>
   inline Array<int8_t> operator/(Array<int8_t>& onearray, Array<int8_t> another)
   {
-    Array<int8_t> newArray(onearray.length());
+    Array<int8_t> newArray(onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s8_esp, onearray, another, newArray, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s8_esp, onearray, another, newArray, onearray.cols());
 #else
-    exec_dsp(dsps_div_s8_esp, onearray, another, newArray, onearray.length());
+    exec_dsp(dsps_div_s8_esp, onearray, another, newArray, onearray.cols());
 #endif
     return newArray;
   }
@@ -1937,15 +1931,15 @@ namespace espmath{
   inline const int32_t operator^(Array<int32_t>& onearray, Array<int32_t> another)
   {
     int32_t result;
-    float input1[onearray.length()];
-    float input2[onearray.length()];
+    float input1[onearray.cols()];
+    float input2[onearray.cols()];
     float r;
-    cpyArray((int32_t*)onearray, input1, onearray.length());
-    cpyArray((int32_t*)another, input2, onearray.length());
+    cpyArray((int32_t*)onearray, input1, onearray.cols());
+    cpyArray((int32_t*)another, input2, onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_f32_ae32, input1, input2, &r, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_f32_ae32, input1, input2, &r, onearray.cols());
 #else
-    exec_dsp(dsps_dotprod_f32_ae32, input1, input2, &r, onearray.length());
+    exec_dsp(dsps_dotprod_f32_ae32, input1, input2, &r, onearray.cols());
 #endif
     result = (int32_t)r;
     return result;
@@ -1955,15 +1949,15 @@ namespace espmath{
   inline const uint8_t operator^(Array<uint8_t>& onearray, Array<uint8_t> another)
   {
     uint8_t result;
-    int16_t input1[onearray.length()];
-    int16_t input2[onearray.length()];
+    int16_t input1[onearray.cols()];
+    int16_t input2[onearray.cols()];
     int16_t r;
-    cpyArray((uint8_t*)onearray, input1, onearray.length());
-    cpyArray((uint8_t*)another, input2, onearray.length());
+    cpyArray((uint8_t*)onearray, input1, onearray.cols());
+    cpyArray((uint8_t*)another, input2, onearray.cols());
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_s16_ae32, input1, input2, &r, onearray.length(), 0);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_s16_ae32, input1, input2, &r, onearray.cols(), 0);
 #else
-    exec_dsp(dsps_dotprod_s16_ae32, input1, input2, &r, onearray.length(), 0);
+    exec_dsp(dsps_dotprod_s16_ae32, input1, input2, &r, onearray.cols(), 0);
 #endif
     result = (uint8_t)r;
     return result;
@@ -1974,9 +1968,9 @@ namespace espmath{
   {
     float result;
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_f32_ae32, onearray, another, &result, onearray.length());
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_f32_ae32, onearray, another, &result, onearray.cols());
 #else
-    exec_dsp(dsps_dotprod_f32_ae32, onearray, another, &result, onearray.length());
+    exec_dsp(dsps_dotprod_f32_ae32, onearray, another, &result, onearray.cols());
 #endif
     return result;
   }
@@ -1986,9 +1980,9 @@ namespace espmath{
   {
     int16_t result;
 #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_s16_ae32, onearray, another, &result, onearray.length(), 0);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_s16_ae32, onearray, another, &result, onearray.cols(), 0);
 #else
-    exec_dsp(dsps_dotprod_s16_ae32, onearray, another, &result, onearray.length(), 0);
+    exec_dsp(dsps_dotprod_s16_ae32, onearray, another, &result, onearray.cols(), 0);
 #endif
     return result;
   }
