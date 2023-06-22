@@ -1,6 +1,6 @@
 # EspMath
 
-This library is intended to provide valuable tools to perform math operations such as arrays multiplication, convolution, etc, on ESP32 devices. Most of the operations uses **DSP** (Digital Signal Processing) instructions to accelerate the procedure.
+This library is intended to provide valuable tools to perform math operations such as arrays multiplication, convolution, etc, on ESP32 devices. ESP32-S3 chips provide **DSP** (Digital Signal Processing) instructions to accelerate the procedure.
 
 Take a look at [Examples](examples/test_bench/) to learn how to use it.
 
@@ -8,7 +8,7 @@ Take a look at [Examples](examples/test_bench/) to learn how to use it.
 
 At [DSP](src/dsp/), you can find all the dsp accelerated operations. These functions make use of the Processor Instruction Extensions (PIE) to accelerate operations and work only with 16 bytes aligned memory. The class [Array](src/esp_array.h) already uses them to perform operations.
 
-Until now, these libraries are guaranteed to work only on ESP32-S3 devices. To use them, just include [esp_dsp](src/esp_dsp.h).
+DSP acceleration targets ESP32-S3 devices and is not available for other chips. To use them, just include [esp_dsp](src/esp_dsp.h).
 
 ## Array Class
 

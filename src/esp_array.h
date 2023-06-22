@@ -15,26 +15,7 @@
 
 #if BENCHMARK_TEST
 #include "hard_debug.h" // https://github.com/guilhAbreu/EspDebug
-
-#define REPORT_BENCHMARK(title, func1, ...)\
-{\
-  func1(__VA_ARGS__); /* warm up the cache */ \
-  unsigned intlevel = dsp_ENTER_CRITICAL(); \
-  uint32_t func1_start = xthal_get_ccount(); \
-  func1(__VA_ARGS__); \
-  uint32_t func1_end = xthal_get_ccount(); \
-  dsp_EXIT_CRITICAL(intlevel); \
-  debug.print(title + String(func1_end - func1_start)); \
-}
-
 #endif
-
-#define exec_dsp(dsp_func, ...)\
-{\
-  unsigned intlevel = dsp_ENTER_CRITICAL();\
-  dsp_func(__VA_ARGS__);\
-  dsp_EXIT_CRITICAL(intlevel);\
-}
 
 /**
  * @brief Namespace for custom ESP32 MATH libraries
@@ -559,19 +540,7 @@ namespace espmath{
      */
     Array conv(Array& kernel)
     {
-      const size_t outputLength = _shape.c + kernel.shape.c - 1;
-      Array convOutput(outputLength);
-
-      float output[outputLength];
-      float itself[_shape.c];
-      float _kernel[kernel.shape.c];
-
-      cpyArray(_array, itself, _shape.c);
-      cpyArray(kernel, _kernel, kernel.shape.c);
-      exec_dsp(dsps_conv_f32_ae32, itself, _shape.c, _kernel, kernel.shape.c, output);
-      cpyArray(output, convOutput, outputLength);
-      
-      return convOutput;
+      return *this;
     }
 
     /**
@@ -619,15 +588,7 @@ namespace espmath{
      */
     Array<float> correlation(Array& pattern)
     {
-      Array<float> corr(_shape);
-
-      float itself[_shape.c];
-      float _pattern[pattern.shape.c];
-
-      cpyArray(_array, itself, _shape.c);
-      cpyArray(pattern, _pattern, pattern.shape.c);
-      exec_dsp(dsps_corr_f32_ae32, itself, _shape.c, _pattern, pattern.shape.c, corr);
-      return corr;
+      return *this;
     }
 
     /**
@@ -730,6 +691,240 @@ namespace espmath{
   const bool Array<int8_t>::isDSPSupported(){return true;}
   template<>
   const bool Array<float>::isDSPSupported(){return true;}
+
+  template<>
+  inline const bool Array<float>::diff(Array<float>& another, const float EPSILON)
+  {
+    size_t i = 0;
+    while(i < _shape.c)
+    {
+      if (!eqFloats(_array[i], another.pntr[i], EPSILON))
+        return true;
+      i++;
+    }
+    return false;
+  }
+
+  /**
+   * @brief Add an array to a constant
+   * 
+   * @param onearray 
+   * @return Array
+   */
+  template<typename T>
+  inline Array<T> operator+(const T value, Array<T> onearray)
+  {
+    Array<T> newArray(onearray.shape);
+    addConstToArray<T>(onearray, newArray, newArray.shape.c, value);
+    return newArray;
+  }
+
+  /**
+   * @brief Add two arrays
+   * 
+   * @tparam T 
+   * @param onearray 
+   * @param another 
+   * @return Array<T>& 
+   */
+  template<typename T>
+  inline Array<T> operator+(Array<T>& onearray, Array<T> another)
+  {
+    Array<T> newArray(onearray.shape);
+    addArrayToArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.shape.c);
+    return newArray;
+  }
+  
+  /**
+   * @brief Add a constant to an array
+   * 
+   * @tparam T 
+   * @param onearray 
+   * @param value 
+   * @return Array<T>& 
+   */
+  template<typename T>
+  inline Array<T> operator+(Array<T>& onearray, const T value)
+  {
+    Array<T> newArray(onearray.shape);
+    addConstToArray<T>(onearray, newArray, newArray.shape.c, value);
+    return newArray;
+  }
+
+  /**
+   * @brief Subtract an array from another
+   * 
+   * @tparam T 
+   * @param onearray 
+   * @param another 
+   * @return Array<T>& 
+   */
+  template<typename T>
+  inline Array<T> operator-(Array<T>& onearray, Array<T> another)
+  {
+    Array<T> newArray(onearray.shape);
+    subArrayFromArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.shape.c);
+    return newArray;
+  }
+
+  /**
+   * @brief Substract an array from a constant
+   * 
+   * @tparam T 
+   * @param onearray 
+   * @param value 
+   * @return Array<T>& 
+   */
+  template<typename T>
+  inline Array<T> operator-(Array<T>& onearray, const T value)
+  {
+    Array<T> newArray(onearray.shape);
+    subConstFromArray<T>(onearray, newArray, newArray.shape.c, value);
+    return newArray;
+  }
+
+  /**
+   * @brief Subtract a constant from an array
+   * 
+   * @param another 
+   * @return Array 
+   */
+  template<typename T>
+  inline Array<T> operator-(const T value, Array<T> onearray)
+  {
+    Array<T> newArray(onearray.shape);
+    subConstFromArray<T>(onearray, newArray, newArray.shape.c, value, -1);
+    return newArray;
+  }
+  
+  /**
+   * @brief Multiply an array by another
+   * 
+   * @tparam T 
+   * @param onearray 
+   * @param another 
+   * @return Array<T>& 
+   */
+  template<typename T>
+  inline Array<T> operator*(Array<T>& onearray, Array<T> another)
+  {
+    Array<T> newArray(onearray.shape);
+    mulArrayByArray((T*)onearray, (T*)another, (T*)newArray, newArray.shape.c);
+    return newArray;
+  }
+
+  /**
+   * @brief Multiply an array by a constant
+   * 
+   * @tparam T 
+   * @param onearray 
+   * @param value 
+   * @return Array<T>& 
+   */
+  template<typename T>
+  inline Array<T> operator*(Array<T>& onearray, const T value)
+  {
+    Array<T> newArray(onearray.shape);
+    mulConstByArray<T>(onearray, newArray, newArray.shape.c, value);
+    return newArray;
+  }
+
+  /**
+   * @brief Multiply a constant by an array
+   * 
+   * @param another 
+   * @return Array 
+   */
+  template<typename T>
+  inline Array<T> operator*(const T value, Array<T> another)
+  {
+    Array<T> newArray(another.shape);
+    mulConstByArray<T>(another, newArray, another.shape.c, value);
+    return newArray;
+  }
+
+  /**
+   * @brief Divide an array by a constant
+   * 
+   * @tparam T 
+   * @param onearray 
+   * @param value 
+   * @return Array<T>& 
+   */
+  template<typename T>
+  inline Array<T> operator/(Array<T>& onearray, const T value)
+  {
+    Array<T> newArray(onearray.shape);
+    divArrayByConst((T*)onearray, newArray, onearray.shape.c, value);
+    return newArray;
+  }
+
+  /**
+   * @brief Divide a constant by an array
+   * 
+   * @param another 
+   * @return Array 
+   */
+  template<typename T>
+  inline Array<T> operator/(const T value, Array<T> another)
+  {
+    Array<T> newArray(another.shape);
+    divConstByArray((T*)another, (T*)newArray, newArray.shape.c, (T)value);
+    return newArray;
+  }
+
+  /**
+   * @brief Divide an array by another
+   * 
+   * @tparam T 
+   * @param onearray 
+   * @param another 
+   * @return Array<T>& 
+   */
+  template<typename T>
+  inline Array<T> operator/(Array<T>& onearray, Array<T> another)
+  {
+    Array<T> newArray(onearray.shape);
+    divArrayByArray((T*)onearray, (T*)another, (T*)newArray, onearray.shape.c);
+    return newArray;
+  }
+
+  /**
+   * @brief Dot product between 2 arrays
+   * 
+   * @tparam T 
+   * @param onearray 
+   * @param another 
+   * @return const T result
+   */
+  template<typename T>
+  inline const T operator^(Array<T>& onearray, Array<T> another)
+  {
+    return -1;
+  }
+
+#ifdef CONFIG_IDF_TARGET_ESP32S3
+#if CONFIG_IDF_TARGET_ESP32S3
+
+#if BENCHMARK_TEST
+#define REPORT_BENCHMARK(title, func1, ...)\
+{\
+  func1(__VA_ARGS__); /* warm up the cache */ \
+  unsigned intlevel = dsp_ENTER_CRITICAL(); \
+  uint32_t func1_start = xthal_get_ccount(); \
+  func1(__VA_ARGS__); \
+  uint32_t func1_end = xthal_get_ccount(); \
+  dsp_EXIT_CRITICAL(intlevel); \
+  debug.print(title + String(func1_end - func1_start)); \
+}
+#endif
+
+#define exec_dsp(dsp_func, ...)\
+{\
+  unsigned intlevel = dsp_ENTER_CRITICAL();\
+  dsp_func(__VA_ARGS__);\
+  dsp_EXIT_CRITICAL(intlevel);\
+}\
 
   template<>
   inline void Array<float>::operator+=(const float value)
@@ -1005,35 +1200,6 @@ namespace espmath{
   }
 
   template<>
-  inline const bool Array<float>::diff(Array<float>& another, const float EPSILON)
-  {
-    size_t i = 0;
-    while(i < _shape.c)
-    {
-      if (!eqFloats(_array[i], another.pntr[i], EPSILON))
-        return true;
-      i++;
-    }
-    return false;
-  }
-
-  /**
-   * @brief Add two arrays
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator+(Array<T>& onearray, Array<T> another)
-  {
-    Array<T> newArray(onearray.shape);
-    addArrayToArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.shape.c);
-    return newArray;
-  }
-
-  template<>
   inline Array<float> operator+(Array<float>& onearray, Array<float> another)
   {
     Array<float> newArray(onearray.shape);
@@ -1102,22 +1268,6 @@ namespace espmath{
     return newArray;
   }
 
-  /**
-   * @brief Add a constant to an array
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param value 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator+(Array<T>& onearray, const T value)
-  {
-    Array<T> newArray(onearray.shape);
-    addConstToArray<T>(onearray, newArray, newArray.shape.c, value);
-    return newArray;
-  }
-
   template<>
   inline Array<float> operator+(Array<float>& onearray, const float value)
   {
@@ -1178,20 +1328,6 @@ namespace espmath{
     return newArray;
   }
 
-  /**
-   * @brief Add an array to a constant
-   * 
-   * @param onearray 
-   * @return Array
-   */
-  template<typename T>
-  inline Array<T> operator+(const T value, Array<T> onearray)
-  {
-    Array<T> newArray(onearray.shape);
-    addConstToArray<T>(onearray, newArray, newArray.shape.c, value);
-    return newArray;
-  }
-
   template<>
   inline Array<float> operator+(const float value, Array<float> onearray)
   {
@@ -1249,22 +1385,6 @@ namespace espmath{
 #else
     exec_dsp(dsps_addc_s8_esp, onearray, newArray, newArray.shape.c, &value);
 #endif
-    return newArray;
-  }
-
-  /**
-   * @brief Subtract an array from another
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator-(Array<T>& onearray, Array<T> another)
-  {
-    Array<T> newArray(onearray.shape);
-    subArrayFromArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.shape.c);
     return newArray;
   }
 
@@ -1337,22 +1457,6 @@ namespace espmath{
     return newArray;
   }
 
-  /**
-   * @brief Substract an array from a constant
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param value 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator-(Array<T>& onearray, const T value)
-  {
-    Array<T> newArray(onearray.shape);
-    subConstFromArray<T>(onearray, newArray, newArray.shape.c, value);
-    return newArray;
-  }
-
   template<>
   inline Array<float> operator-(Array<float>& onearray, const float value)
   {
@@ -1413,20 +1517,6 @@ namespace espmath{
     return newArray;
   }
 
-  /**
-   * @brief Subtract a constant from an array
-   * 
-   * @param another 
-   * @return Array 
-   */
-  template<typename T>
-  inline Array<T> operator-(const T value, Array<T> onearray)
-  {
-    Array<T> newArray(onearray.shape);
-    subConstFromArray<T>(onearray, newArray, newArray.shape.c, value, -1);
-    return newArray;
-  }
-
   template<>
   inline Array<float> operator-(const float value, Array<float> onearray)
   {
@@ -1484,22 +1574,6 @@ namespace espmath{
 #else
     exec_dsp(dsps_csub_s8_esp, onearray, newArray, newArray.shape.c, &value);
 #endif
-    return newArray;
-  }
-  
-  /**
-   * @brief Multiply an array by another
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator*(Array<T>& onearray, Array<T> another)
-  {
-    Array<T> newArray(onearray.shape);
-    mulArrayByArray((T*)onearray, (T*)another, (T*)newArray, newArray.shape.c);
     return newArray;
   }
 
@@ -1572,22 +1646,6 @@ namespace espmath{
     return newArray;
   }
 
-  /**
-   * @brief Multiply an array by a constant
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param value 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator*(Array<T>& onearray, const T value)
-  {
-    Array<T> newArray(onearray.shape);
-    mulConstByArray<T>(onearray, newArray, newArray.shape.c, value);
-    return newArray;
-  }
-
   template<>
   inline Array<float> operator*(Array<float>& onearray, const float value)
   {
@@ -1652,20 +1710,6 @@ namespace espmath{
 #else
     exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.shape.c, &value);
 #endif
-    return newArray;
-  }
-
-  /**
-   * @brief Multiply a constant by an array
-   * 
-   * @param another 
-   * @return Array 
-   */
-  template<typename T>
-  inline Array<T> operator*(const T value, Array<T> another)
-  {
-    Array<T> newArray(another.shape);
-    mulConstByArray<T>(another, newArray, another.shape.c, value);
     return newArray;
   }
 
@@ -1736,22 +1780,6 @@ namespace espmath{
     return newArray;
   }
 
-  /**
-   * @brief Divide an array by a constant
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param value 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator/(Array<T>& onearray, const T value)
-  {
-    Array<T> newArray(onearray.shape);
-    divArrayByConst((T*)onearray, newArray, onearray.shape.c, value);
-    return newArray;
-  }
-
   template<>
   inline Array<float> operator/(Array<float>& onearray, const float value)
   {
@@ -1797,20 +1825,6 @@ namespace espmath{
 #else
     exec_dsp(dsps_divc_s8_esp, onearray, newArray, onearray.shape.c, value);
 #endif
-    return newArray;
-  }
-
-  /**
-   * @brief Divide a constant by an array
-   * 
-   * @param another 
-   * @return Array 
-   */
-  template<typename T>
-  inline Array<T> operator/(const T value, Array<T> another)
-  {
-    Array<T> newArray(another.shape);
-    divConstByArray((T*)another, (T*)newArray, newArray.shape.c, (T)value);
     return newArray;
   }
 
@@ -1862,22 +1876,6 @@ namespace espmath{
     return newArray;
   }
 
-  /**
-   * @brief Divide an array by another
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator/(Array<T>& onearray, Array<T> another)
-  {
-    Array<T> newArray(onearray.shape);
-    divArrayByArray((T*)onearray, (T*)another, (T*)newArray, onearray.shape.c);
-    return newArray;
-  }
-
   template<>
   inline Array<float> operator/(Array<float>& onearray, Array<float> another)
   {
@@ -1924,20 +1922,6 @@ namespace espmath{
     exec_dsp(dsps_div_s8_esp, onearray, another, newArray, onearray.shape.c);
 #endif
     return newArray;
-  }
-
-  /**
-   * @brief Dot product between 2 arrays
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return const T result
-   */
-  template<typename T>
-  inline const T operator^(Array<T>& onearray, Array<T> another)
-  {
-    return -1;
   }
 
   template<>
@@ -2000,5 +1984,8 @@ namespace espmath{
     return result;
   }
 }
+
+#endif
+#endif
 
 #endif
