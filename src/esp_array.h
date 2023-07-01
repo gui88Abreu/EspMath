@@ -48,7 +48,7 @@ namespace espmath{
 
     bool operator!=(shape2D& another)
     {
-      return another.r != r && another.c != c;
+      return another.r != r || another.c != c;
     }
   };
   
