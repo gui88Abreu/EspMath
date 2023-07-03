@@ -65,7 +65,6 @@ namespace espmath{
   template <typename T = float> class Array
   {
     static_assert(std::is_arithmetic<T>::value, "Array type must be arithmetic!");
-    static_assert(sizeof(T) <= 4, "Long types are not supported!");
   public:
     typedef T* const arrayPntr;
 
