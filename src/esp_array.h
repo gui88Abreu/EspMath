@@ -77,7 +77,7 @@ namespace espmath{
     ~Array()
     {
       if (canBeDestroyed && _array)
-        heap_caps_free(_array);
+        heap_caps_aligned_free(_array);
     }
 
     /**
@@ -93,7 +93,7 @@ namespace espmath{
         _caps = capabilities;
       _shape = initialShape;
        _size = _mem2alloc(_shape.c);
-      _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
+      _array = _size > 0 ? (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, _caps) : NULL;
       if(!_array)
         _size = 0;
     }
@@ -493,12 +493,12 @@ namespace espmath{
 
       if (_array)
       {
-        heap_caps_free(_array);
-        _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
+        heap_caps_aligned_free(_array);
+        _array = _size > 0 ? (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, _caps) : NULL;
       }
       else
       {
-        _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
+        _array = _size > 0 ? (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, _caps) : NULL;
       }
 
       if (_array)
@@ -550,12 +550,12 @@ namespace espmath{
     void copy(Array& another)
     {
       if (_array)
-        heap_caps_free(_array);
+        heap_caps_aligned_free(_array);
 
       _shape.r = another._shape.r;
       _shape.c = another._shape.c;
       _size = another.memSize();
-      _array = _size > 0 ? (T*)heap_caps_malloc(_size, _caps) : NULL;
+      _array = _size > 0 ? (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, _caps) : NULL;
       
       for(size_t i = 0; i < _shape.c; i++)
         _array[i] = another.pntr[i];
@@ -569,7 +569,7 @@ namespace espmath{
     void copyRef(Array& another)
     {
       if (_array)
-        heap_caps_free(_array);
+        heap_caps_aligned_free(_array);
 
       _shape.r = another._shape.r;
       _shape.c = another._shape.c;
@@ -634,25 +634,12 @@ namespace espmath{
     /**
      * @brief Get the total bytes to be 16 bytes aligned allocated
      * 
-     * @param min The minimum quantity of memory blocks
+     * @param blocks The quantity of memory blocks
      * @return size_t 
      */
-    size_t _mem2alloc(const size_t min)
+    size_t _mem2alloc(const size_t blocks)
     {
-      size_t minBytes = min*sizeof(T);
-      size_t extraBytes = extra2align(minBytes);
-      return minBytes + extraBytes;
-    }
-
-    /**
-     * @brief Get the extra quantity bytes to be allocated and align array
-     * 
-     * @param min Minumum quantity of bytes
-     * @return size_t Result
-     */
-    static size_t extra2align(const size_t min)
-    {
-      return (ALIGNMENT - min%ALIGNMENT)%ALIGNMENT;
+      return blocks*sizeof(T);
     }
 
     /**
