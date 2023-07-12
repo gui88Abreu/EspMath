@@ -530,6 +530,21 @@ namespace espmath{
     const uint32_t capabilities(){return _caps;}
 
     /**
+     * @brief Verify if a value belongs to the array
+     * 
+     * @param value 
+     * @return true 
+     * @return false 
+     */
+    const bool contain(const T value)
+    {
+      size_t i = 0;
+      size_t len = _shape.c*_shape.r;
+      while (i < len && _array[i] != value) i++;
+      return i == len ? false : true;
+    }
+
+    /**
      * @brief Get the convolution of the array by the given kernel
      * 
      * @param kernel 
