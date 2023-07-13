@@ -36,10 +36,10 @@ namespace espmath{
 
     shape2D():rows(1),columns(0),size(0){}
     shape2D(size_t r, size_t c):rows(r),columns(c),size(r*c){}
-    shape2D(shape2D& another)rows(another.rows),columns(another.columns),size(another.size){}
-    shape2D(shape2D&& another):shape2D(another){}
-    void operator=(const shape2D& another):shape2D(another){}
-    void operator=(const shape2D&& another):shape2D(another){}
+    shape2D(const shape2D& another):rows(another.rows),columns(another.columns),size(another.size){}
+    shape2D(const shape2D&& another):shape2D(another){}
+    void operator=(const shape2D& another){_rows = another.rows,_columns = another.columns,_size = another.size;}
+    void operator=(const shape2D&& another){_rows = another.rows,_columns = another.columns,_size = another.size;}
     const bool operator==(const shape2D& another)const{return another.rows == rows && another.columns == columns;}
     const bool operator!=(const shape2D& another)const{return another.rows != rows || another.columns != columns;}
     
@@ -50,7 +50,7 @@ namespace espmath{
      * @return true 
      * @return false 
      */
-    const bool canX(const shape2D& another)const{return this.columns == another.rows;}
+    const bool canX(const shape2D& another)const{return this->columns == another.rows;}
 
     /**
      * @brief Get the resultant shape of the matrix multiplication
@@ -58,7 +58,7 @@ namespace espmath{
      * @param another 
      * @return shape2D 
      */
-    shape2D operator*(const shape2D& another)const{return shape2D(this.rows, another.columns);}
+    shape2D operator*(const shape2D& another)const{return shape2D(this->rows, another.columns);}
   };
   
   /**
@@ -101,7 +101,7 @@ namespace espmath{
       if (capabilities != UINT32_MAX)
         _caps = capabilities;
       _shape = initialShape;
-       _size = _mem2alloc(_shape.columns);
+      _size = _mem2alloc(_shape.columns);
       _array = _size > 0 ? (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, _caps) : NULL;
       if(!_array)
         _size = 0;
@@ -472,13 +472,6 @@ namespace espmath{
       return *this;
     }
 
-    // /**
-    //  * @brief Implicit cast for array pointer
-    //  * 
-    //  * @return arrayPntr 
-    //  */
-    // operator arrayPntr() const {return _array;}
-
     template<typename _type>
     operator _type*() const {return (_type*)_array;}
 
@@ -494,7 +487,7 @@ namespace espmath{
       assert(_shape.rows == 1);
       if(_shape.columns < _size/sizeof(T))
       {
-        (*this)[_shape.columns] = value;
+        _array[_shape.columns] = value;
         _shape = shape2D(_shape.rows, _shape.columns+1);
         return true;
       }
@@ -513,7 +506,7 @@ namespace espmath{
 
       if (_array)
       {
-        (*this)[_shape.columns] = value;
+        _array[_shape.columns] = value;
         _shape = shape2D(_shape.rows, _shape.columns+1);
         return true;
       }
