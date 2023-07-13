@@ -34,9 +34,9 @@ namespace espmath{
     const size_t& columns = _columns;
     const size_t& size = _size;
 
-    shape2D():rows(1),columns(0),size(0){}
-    shape2D(size_t r, size_t c):rows(r),columns(c),size(r*c){}
-    shape2D(const shape2D& another):rows(another.rows),columns(another.columns),size(another.size){}
+    shape2D():_rows(1),_columns(0),_size(0){}
+    shape2D(size_t r, size_t c):_rows(r),_columns(c),_size(r*c){}
+    shape2D(const shape2D& another):_rows(another.rows),_columns(another.columns),_size(another.size){}
     shape2D(const shape2D&& another):shape2D(another){}
     void operator=(const shape2D& another){_rows = another.rows,_columns = another.columns,_size = another.size;}
     void operator=(const shape2D&& another){_rows = another.rows,_columns = another.columns,_size = another.size;}
