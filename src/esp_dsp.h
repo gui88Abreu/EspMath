@@ -16,4 +16,11 @@
 #endif
 #endif
 
+#define exec_dsp(dsp_func, ...)\
+{\
+unsigned intlevel = dsp_ENTER_CRITICAL();\
+dsp_func(__VA_ARGS__);\
+dsp_EXIT_CRITICAL(intlevel);\
+}\
+
 #endif

@@ -56,10 +56,10 @@ inline esp_err_t dsps_subc_s32_esp(const int32_t *input, int32_t *output, int le
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_subc_s16_esp(const int16_t *input, int16_t *output, int len, const int16_t* C, int frac = 0)
+inline esp_err_t dsps_subc_s16_esp(const int16_t *input, int16_t *output, int len, const int16_t* C, int step_x = 1, int step_y = 1, int frac = 0)
 {
   const int16_t constant = (*C)*(-1);
-  return dsps_addc_s16_esp(input, output, len, &constant, 1, 1, frac);
+  return dsps_addc_s16_esp(input, output, len, &constant, step_x, step_y, frac);
 }
 
 /**

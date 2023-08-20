@@ -13,16 +13,69 @@
 #include "esp_dsp.h"
 #include "esp_ansi.h"
 
-#if BENCHMARK_TEST
-#include "hard_debug.h" // https://github.com/guilhAbreu/EspDebug
-#endif
-
 /**
  * @brief Namespace for custom ESP32 MATH libraries
  * 
  */
 namespace espmath{
-  using namespace espmath;
+
+  /**
+   * @brief Fixed Point Representation
+   * 
+   */
+  class FixedPoint
+  {
+  public:
+    int16_t data;
+    uint8_t frac;
+
+    FixedPoint():data(0),frac(0){}
+    FixedPoint(int16_t value, uint8_t fracBits = 15){data = value, frac = fracBits;}
+    FixedPoint(float value, uint8_t fracBits = 15):frac(fracBits){data = float2fixed(value, fracBits);}
+    FixedPoint(FixedPoint& other):FixedPoint(other.data, other.frac){}
+    FixedPoint(FixedPoint&& other):FixedPoint(other.data, other.frac){}
+    operator int16_t(){return data;}
+    operator int16_t*(){return &data;}
+    void operator=(FixedPoint& other){data = other.data, frac = other.frac;}
+    bool operator==(FixedPoint& other){return data == other.data && frac == other.frac;}
+    bool operator!=(FixedPoint& other){return data != other.data && frac != other.frac;}
+    operator float() const {return ((float)data / (float)(1 << frac));}
+    void operator+=(FixedPoint& other){assert(frac == other.frac); data += other.data;}
+    void operator-=(FixedPoint& other){assert(frac == other.frac); data -= other.data;}
+    void operator*=(FixedPoint& other){assert(frac == other.frac); data = (data * other.data) >> frac;}
+
+    const int16_t& ref = data;
+  };
+
+  typedef struct FixedPointVector
+  {
+    int16_t* data;
+    uint8_t frac;
+
+    FixedPointVector():data(NULL),frac(0){}
+    FixedPointVector(int16_t* d, uint8_t f):data(d),frac(f){}
+  }fpVector;
+
+  inline FixedPoint operator+(FixedPoint& adder1, FixedPoint& adder2)
+  {
+    FixedPoint result = FixedPoint(adder1);
+    result+=adder2;
+    return result;
+  }
+
+  inline FixedPoint operator-(FixedPoint& sub1, FixedPoint& sub2)
+  {
+    FixedPoint result = FixedPoint(sub1);
+    result-=sub2;
+    return result;
+  }
+
+  inline FixedPoint operator*(FixedPoint& mul1, FixedPoint& mul2)
+  {
+    FixedPoint result = FixedPoint(mul1);
+    result+=mul2;
+    return result;
+  }
 
   struct shape2D{
   private:
@@ -70,10 +123,10 @@ namespace espmath{
    * @note Most of float and int16_t arithmetic operations make use of DSP instructions.
    * 
    * @tparam T Array type
+   * @tparam FRAC Fractional bits of a fixes point array
    */
-  template <typename T = float> class Array
+  template <typename T = int16_t> class Array
   {
-    static_assert(std::is_arithmetic<T>::value, "Array type must be arithmetic!");
   public:
     typedef T* const arrayPntr;
 
@@ -120,6 +173,24 @@ namespace espmath{
     {
       if (_array)
         cpyArray(initialValues, _array, _shape.columns);
+    }
+
+    /**
+     * @brief Construct a new Array object with initial values for fixed point type
+     * 
+     * @param initialValues Initial values of the array.
+     * @param initialMem The initial size of the array.
+     * @param capabilities Memory capabilities
+     */
+    Array(const fpVector* initialValues,\
+                  shape2D initialShape = shape2D(1,0),\
+                  uint32_t capabilities = UINT32_MAX\
+                  ):Array(initialShape, capabilities)
+    {
+      assert(sizeof(T) == 2);
+      fracBits = initialValues->frac;
+      if (_array)
+        cpyArray(initialValues->data, _array, _shape.columns);
     }
 
     /**
@@ -170,7 +241,7 @@ namespace espmath{
     {
       Array<T> newArray();
       for (size_t i = 0; i < _shape.columns; i++)
-        if(filter.pntr[i]) newArray << _array[i];
+        if(filter.flatten[i]) newArray << _array[i];
       return newArray;
     }
 
@@ -184,7 +255,7 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] == value ? newArray.pntr[i] = 1 : 0;
+        _array[i] == value ? newArray.flatten[i] = 1 : 0;
       
       return newArray;
     }
@@ -199,7 +270,7 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] != value ? newArray.pntr[i] = 1 : 0;
+        _array[i] != value ? newArray.flatten[i] = 1 : 0;
       
       return newArray;
     }
@@ -214,7 +285,7 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] > value ? newArray.pntr[i] = 1 : 0;
+        _array[i] > value ? newArray.flatten[i] = 1 : 0;
       
       return newArray;
     }
@@ -229,7 +300,7 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] < value ? newArray.pntr[i] = 1 : 0;
+        _array[i] < value ? newArray.flatten[i] = 1 : 0;
       
       return newArray;
     }
@@ -244,7 +315,7 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] >= value ? newArray.pntr[i] = 1 : 0;
+        _array[i] >= value ? newArray.flatten[i] = 1 : 0;
       
       return newArray;
     }
@@ -259,13 +330,13 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] <= value ? newArray.pntr[i] = 1 : 0;
+        _array[i] <= value ? newArray.flatten[i] = 1 : 0;
       
       return newArray;
     }
 
     /**
-     * @brief copy.pntr[i] = !array.pntr[i], i = 0,1,2,3...
+     * @brief copy.flatten[i] = !array.flatten[i], i = 0,1,2,3...
      * 
      * @return Array 
      */
@@ -273,7 +344,7 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        newArray.pntr[i] = !_array[i];
+        newArray.flatten[i] = !_array[i];
       
       return newArray;
     }
@@ -287,7 +358,7 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        newArray.pntr[i] = ~_array[i];
+        newArray.flatten[i] = ~_array[i];
       
       return newArray;
     }
@@ -467,7 +538,7 @@ namespace espmath{
     {
       for(size_t i = 0; i < another.shape.columns; i++)
       {
-        *this = *this << another.pntr[i];
+        *this = *this << another.flatten[i];
       }
       return *this;
     }
@@ -576,7 +647,7 @@ namespace espmath{
       _array = _size > 0 ? (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, _caps) : NULL;
       
       for(size_t i = 0; i < _shape.columns; i++)
-        _array[i] = another.pntr[i];
+        _array[i] = another.flatten[i];
     }
 
     /**
@@ -620,7 +691,7 @@ namespace espmath{
       size_t i = 0;
       while (i < _shape.size)
       {
-        if (_array[i]!=another.pntr[i])
+        if (_array[i]!=another.flatten[i])
           return true;
         i++;
       }
@@ -638,12 +709,14 @@ namespace espmath{
     }
 
     const shape2D& shape = _shape;
-    T* const& pntr = _array;
+    T* const& flatten = _array;
+    const uint8_t& frac = fracBits;
   protected:
     T* _array = NULL;/*Array pointer*/
     size_t _size = 0; /*Total bytes allocated*/
     shape2D _shape = shape2D(1,0);
     uint32_t _caps = this->memCaps();
+    uint8_t fracBits = 0; /* Fractional bits of a fixed point array*/
 
   private:
     bool canBeDestroyed = true;
@@ -682,18 +755,18 @@ namespace espmath{
   };
 
   template<>
-  const uint32_t Array<int32_t>::memCaps(){return MALLOC_CAP_32BIT;}
+  inline const uint32_t Array<int32_t>::memCaps(){return MALLOC_CAP_32BIT;}
   template<>
-  const uint32_t Array<uint32_t>::memCaps(){return MALLOC_CAP_32BIT;}
+  inline const uint32_t Array<uint32_t>::memCaps(){return MALLOC_CAP_32BIT;}
 
   template<>
-  const bool Array<int32_t>::isDSPSupported(){return true;}
+  inline const bool Array<int32_t>::isDSPSupported(){return true;}
   template<>
-  const bool Array<int16_t>::isDSPSupported(){return true;}
+  inline const bool Array<int16_t>::isDSPSupported(){return true;}
   template<>
-  const bool Array<int8_t>::isDSPSupported(){return true;}
+  inline const bool Array<int8_t>::isDSPSupported(){return true;}
   template<>
-  const bool Array<float>::isDSPSupported(){return true;}
+  inline const bool Array<float>::isDSPSupported(){return true;}
 
   template<>
   inline const bool Array<float>::diff(Array<float>& another, const float EPSILON)
@@ -701,233 +774,12 @@ namespace espmath{
     size_t i = 0;
     while(i < _shape.columns)
     {
-      if (!eqFloats(_array[i], another.pntr[i], EPSILON))
+      if (!eqFloats(_array[i], another.flatten[i], EPSILON))
         return true;
       i++;
     }
     return false;
   }
-
-  /**
-   * @brief Add an array to a constant
-   * 
-   * @param onearray 
-   * @return Array
-   */
-  template<typename T>
-  inline Array<T> operator+(const T value, Array<T> onearray)
-  {
-    Array<T> newArray(onearray.shape);
-    addConstToArray<T>(onearray, newArray, newArray.shape.columns, value);
-    return newArray;
-  }
-
-  /**
-   * @brief Add two arrays
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator+(Array<T>& onearray, Array<T> another)
-  {
-    Array<T> newArray(onearray.shape);
-    addArrayToArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.shape.columns);
-    return newArray;
-  }
-  
-  /**
-   * @brief Add a constant to an array
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param value 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator+(Array<T>& onearray, const T value)
-  {
-    Array<T> newArray(onearray.shape);
-    addConstToArray<T>(onearray, newArray, newArray.shape.columns, value);
-    return newArray;
-  }
-
-  /**
-   * @brief Subtract an array from another
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator-(Array<T>& onearray, Array<T> another)
-  {
-    Array<T> newArray(onearray.shape);
-    subArrayFromArray<T>((T*)onearray, (T*)another, (T*)newArray, onearray.shape.columns);
-    return newArray;
-  }
-
-  /**
-   * @brief Substract an array from a constant
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param value 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator-(Array<T>& onearray, const T value)
-  {
-    Array<T> newArray(onearray.shape);
-    subConstFromArray<T>(onearray, newArray, newArray.shape.columns, value);
-    return newArray;
-  }
-
-  /**
-   * @brief Subtract a constant from an array
-   * 
-   * @param another 
-   * @return Array 
-   */
-  template<typename T>
-  inline Array<T> operator-(const T value, Array<T> onearray)
-  {
-    Array<T> newArray(onearray.shape);
-    subConstFromArray<T>(onearray, newArray, newArray.shape.columns, value, -1);
-    return newArray;
-  }
-  
-  /**
-   * @brief Multiply an array by another
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator*(Array<T>& onearray, Array<T> another)
-  {
-    Array<T> newArray(onearray.shape);
-    mulArrayByArray((T*)onearray, (T*)another, (T*)newArray, newArray.shape.columns);
-    return newArray;
-  }
-
-  /**
-   * @brief Multiply an array by a constant
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param value 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator*(Array<T>& onearray, const T value)
-  {
-    Array<T> newArray(onearray.shape);
-    mulConstByArray<T>(onearray, newArray, newArray.shape.columns, value);
-    return newArray;
-  }
-
-  /**
-   * @brief Multiply a constant by an array
-   * 
-   * @param another 
-   * @return Array 
-   */
-  template<typename T>
-  inline Array<T> operator*(const T value, Array<T> another)
-  {
-    Array<T> newArray(another.shape);
-    mulConstByArray<T>(another, newArray, another.shape.columns, value);
-    return newArray;
-  }
-
-  /**
-   * @brief Divide an array by a constant
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param value 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator/(Array<T>& onearray, const T value)
-  {
-    Array<T> newArray(onearray.shape);
-    divArrayByConst((T*)onearray, newArray, onearray.shape.columns, value);
-    return newArray;
-  }
-
-  /**
-   * @brief Divide a constant by an array
-   * 
-   * @param another 
-   * @return Array 
-   */
-  template<typename T>
-  inline Array<T> operator/(const T value, Array<T> another)
-  {
-    Array<T> newArray(another.shape);
-    divConstByArray((T*)another, (T*)newArray, newArray.shape.columns, (T)value);
-    return newArray;
-  }
-
-  /**
-   * @brief Divide an array by another
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return Array<T>& 
-   */
-  template<typename T>
-  inline Array<T> operator/(Array<T>& onearray, Array<T> another)
-  {
-    Array<T> newArray(onearray.shape);
-    divArrayByArray((T*)onearray, (T*)another, (T*)newArray, onearray.shape.columns);
-    return newArray;
-  }
-
-  /**
-   * @brief Dot product between 2 arrays
-   * 
-   * @tparam T 
-   * @param onearray 
-   * @param another 
-   * @return const T result
-   */
-  template<typename T>
-  inline const T operator^(Array<T>& onearray, Array<T> another)
-  {
-    return -1;
-  }
-
-#ifdef CONFIG_IDF_TARGET_ESP32S3
-#if CONFIG_IDF_TARGET_ESP32S3
-
-#if BENCHMARK_TEST
-#define REPORT_BENCHMARK(title, func1, ...)\
-{\
-  func1(__VA_ARGS__); /* warm up the cache */ \
-  unsigned intlevel = dsp_ENTER_CRITICAL(); \
-  uint32_t func1_start = xthal_get_ccount(); \
-  func1(__VA_ARGS__); \
-  uint32_t func1_end = xthal_get_ccount(); \
-  dsp_EXIT_CRITICAL(intlevel); \
-  debug.print(title + String(func1_end - func1_start)); \
-}
-#endif
-
-#define exec_dsp(dsp_func, ...)\
-{\
-  unsigned intlevel = dsp_ENTER_CRITICAL();\
-  dsp_func(__VA_ARGS__);\
-  dsp_EXIT_CRITICAL(intlevel);\
-}\
 
   template<>
   inline void Array<float>::operator+=(const float value)
@@ -950,7 +802,7 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator+=(const int16_t value)
   {
-    exec_dsp(dsps_addc_s16_esp, _array, _array, _shape.columns, &value);
+    exec_dsp(dsps_addc_s16_esp, _array, _array, _shape.columns, &value, 1, 1, 0);
   }
 
   template<>
@@ -980,7 +832,7 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator-=(const int16_t value)
   {
-    exec_dsp(dsps_subc_s16_esp, _array, _array, _shape.columns, &value);
+    exec_dsp(dsps_subc_s16_esp, _array, _array, _shape.columns, &value, 1, 1, 0);
   }
 
   template<>
@@ -1016,7 +868,7 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator*=(const int16_t value)
   {
-    exec_dsp(dsps_mulc_s16_esp, _array, _array, _shape.columns, value);
+    exec_dsp(dsps_mulc_s16_esp, _array, _array, _shape.columns, value, 1, 1, Array<int16_t>::frac);
   }
 
   template<>
@@ -1040,7 +892,7 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator/=(const int16_t value)
   {
-    exec_dsp(dsps_divc_s16_esp, _array, _array, _shape.columns, value);
+    exec_dsp(dsps_divc_s16_esp, _array, _array, _shape.columns, value, 1, 1, Array<int16_t>::frac);
   }
 
   template<>
@@ -1070,7 +922,7 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator+=(Array<int16_t>& another)
   {
-    exec_dsp(dsps_add_s16_esp, _array, another, _array, _shape.columns);
+    exec_dsp(dsps_add_s16_esp, _array, another, _array, _shape.columns, 1, 1, 1, 0);
   }
 
   template<>
@@ -1100,7 +952,7 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator-=(Array<int16_t>& another)
   {
-    exec_dsp(dsps_sub_s16_esp, _array, another, _array, _shape.columns);
+    exec_dsp(dsps_sub_s16_esp, _array, another, _array, _shape.columns, 1, 1, 1, 0);
   }
 
   template<>
@@ -1130,7 +982,7 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator*=(Array<int16_t>& another)
   {
-    exec_dsp(dsps_mul_s16_esp,_array, another, _array, _shape.columns);
+    exec_dsp(dsps_mul_s16_esp,_array, another, _array, _shape.columns, 1, 1, 1, Array<int16_t>::frac);
   }
 
   template<>
@@ -1154,7 +1006,7 @@ namespace espmath{
   template<>
   inline void Array<int16_t>::operator/=(Array<int16_t>& another)
   {
-    exec_dsp(dsps_div_s16_esp, _array, another, _array, _shape.columns);
+    exec_dsp(dsps_div_s16_esp, _array, another, _array, _shape.columns, 1, 1, 1, Array<int16_t>::frac);
   }
 
   template<>
@@ -1168,7 +1020,7 @@ namespace espmath{
   {
     Array<float> newArray(_shape);
     for (size_t i = 0; i < _shape.size; i++)
-      eqFloats(_array[i], value) ? newArray.pntr[i] = 1 : 0;
+      eqFloats(_array[i], value) ? newArray.flatten[i] = 1 : 0;
     return newArray;
   }
 
@@ -1186,809 +1038,70 @@ namespace espmath{
   }
 
   template<>
-  inline Array<float> Array<float>::conv(Array<float>& kernel)
-  {
-    shape2D outputShape = shape2D(1, _shape.columns + kernel.shape.columns -1);
-    Array<float> convOutput(outputShape);
-    exec_dsp(dsps_conv_f32_ae32, _array, _shape.columns, kernel, kernel.shape.columns, convOutput);
-    return convOutput;
-  }
+  inline Array<float> Array<float>::conv(Array<float>& kernel);
 
   template<>
-  inline Array<float> Array<float>::correlation(Array<float>& pattern)
-  {
-    Array<float> corr(_shape);
-    exec_dsp(dsps_corr_f32_ae32, _array, _shape.columns, pattern, pattern.shape.columns, corr);
-    return corr;
-  }
+  inline Array<float> Array<float>::correlation(Array<float>& pattern);
 
-  template<>
-  inline Array<float> operator+(Array<float>& onearray, Array<float> another)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_f32_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_add_f32_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
+  Array<float> operator+(Array<float>& onearray, Array<float> another);
+  Array<int32_t> operator+(Array<int32_t>& onearray, Array<int32_t> another);
+  Array<uint32_t> operator+(Array<uint32_t>& onearray, Array<uint32_t> another);
+  Array<int16_t> operator+(Array<int16_t>& onearray, Array<int16_t> another);
+  Array<int8_t> operator+(Array<int8_t>& onearray, Array<int8_t> another);
+  Array<float> operator+(Array<float>& onearray, const float value);
+  Array<int32_t> operator+(Array<int32_t>& onearray, const int32_t value);
+  Array<uint32_t> operator+(Array<uint32_t>& onearray, const uint32_t value);
+  Array<int16_t> operator+(Array<int16_t>& onearray, const int16_t value);
+  Array<int8_t> operator+(Array<int8_t>& onearray, const int8_t value);
+  Array<float> operator+(const float value, Array<float> onearray);
+  Array<int32_t> operator+(const int32_t value, Array<int32_t> onearray);
+  Array<uint32_t> operator+(const uint32_t value, Array<uint32_t> onearray);
+  Array<int16_t> operator+(const int16_t value, Array<int16_t> onearray);
+  Array<int8_t> operator+(const int8_t value, Array<int8_t> onearray);
+  Array<float> operator-(Array<float>& onearray, Array<float> another);
+  Array<int32_t> operator-(Array<int32_t>& onearray, Array<int32_t> another);
+  Array<uint32_t> operator-(Array<uint32_t>& onearray, Array<uint32_t> another);
+  Array<int16_t> operator-(Array<int16_t>& onearray, Array<int16_t> another);
+  Array<int8_t> operator-(Array<int8_t>& onearray, Array<int8_t> another);
+  Array<float> operator-(Array<float>& onearray, const float value);
+  Array<int32_t> operator-(Array<int32_t>& onearray, const int32_t value);
+  Array<uint32_t> operator-(Array<uint32_t>& onearray, const uint32_t value);
+  Array<int16_t> operator-(Array<int16_t>& onearray, const int16_t value);
+  Array<int8_t> operator-(Array<int8_t>& onearray, const int8_t value);
+  Array<float> operator-(const float value, Array<float> onearray);
+  Array<int32_t> operator-(const int32_t value, Array<int32_t> onearray);
+  Array<uint32_t> operator-(const uint32_t value, Array<uint32_t> onearray);
+  Array<int16_t> operator-(const int16_t value, Array<int16_t> onearray);
+  Array<int8_t> operator-(const int8_t value, Array<int8_t> onearray);
+  Array<float> operator*(Array<float>& onearray, Array<float> another);
+  Array<int32_t> operator*(Array<int32_t>& onearray, Array<int32_t> another);
+  Array<uint32_t> operator*(Array<uint32_t>& onearray, Array<uint32_t> another);
+  Array<int16_t> operator*(Array<int16_t>& onearray, Array<int16_t> another);
+  Array<int8_t> operator*(Array<int8_t>& onearray, Array<int8_t> another);
+  Array<float> operator*(Array<float>& onearray, const float value);
+  Array<int32_t> operator*(Array<int32_t>& onearray, const int32_t value);
+  Array<uint32_t> operator*(Array<uint32_t>& onearray, const uint32_t value);
+  Array<int16_t> operator*(Array<int16_t>& onearray, const int16_t value);
+  Array<int8_t> operator*(Array<int8_t>& onearray, const int8_t value);
+  Array<float> operator*(const float value, Array<float> onearray);
+  Array<int32_t> operator*(const int32_t value, Array<int32_t> onearray);
+  Array<uint32_t> operator*(const uint32_t value, Array<uint32_t> onearray);
+  Array<int16_t> operator*(const int16_t value, Array<int16_t> onearray);
+  Array<int8_t> operator*(const int8_t value, Array<int8_t> onearray);
+  Array<float> operator/(Array<float>& onearray, const float value);
+  Array<int32_t> operator/(Array<int32_t>& onearray, const int32_t value);
+  Array<int16_t> operator/(Array<int16_t>& onearray, const int16_t value);
+  Array<int8_t> operator/(Array<int8_t>& onearray, const int8_t value);
+  Array<float> operator/(const float value, Array<float> another);
+  Array<int32_t> operator/(const int32_t value, Array<int32_t> onearray);
+  Array<int16_t> operator/(const int16_t value, Array<int16_t> onearray);
+  Array<int8_t> operator/(const int8_t value, Array<int8_t> onearray);
+  Array<float> operator/(Array<float>& onearray, Array<float> another);
+  Array<int32_t> operator/(Array<int32_t>& onearray, Array<int32_t> another);
+  Array<int16_t> operator/(Array<int16_t>& onearray, Array<int16_t> another);
+  Array<int8_t> operator/(Array<int8_t>& onearray, Array<int8_t> another);
+  float operator^(Array<float>& onearray, Array<float> another);
+  int16_t operator^(Array<int16_t>& onearray, Array<int16_t> another);
 
-  template<>
-  inline Array<int32_t> operator+(Array<int32_t>& onearray, Array<int32_t> another)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s32_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_add_s32_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<uint32_t> operator+(Array<uint32_t>& onearray, Array<uint32_t> another)
-  {
-    Array<uint32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ",\
-                    dsps_add_s32_esp,\
-                    (int32_t*)onearray,\
-                    (int32_t*)another,\
-                    (int32_t*)newArray,\
-                    onearray.shape.columns);
-#else
-    exec_dsp(dsps_add_s32_esp,\
-            (int32_t*)onearray,\
-            (int32_t*)another,\
-            (int32_t*)newArray,\
-            onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator+(Array<int16_t>& onearray, Array<int16_t> another)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s16_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_add_s16_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator+(Array<int8_t>& onearray, Array<int8_t> another)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s8_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_add_s8_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator+(Array<float>& onearray, const float value)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_addc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator+(Array<int32_t>& onearray, const int32_t value)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_addc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<uint32_t> operator+(Array<uint32_t>& onearray, const uint32_t value)
-  {
-    Array<uint32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator+(Array<int16_t>& onearray, const int16_t value)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_addc_s16_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator+(Array<int8_t>& onearray, const int8_t value)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_addc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator+(const float value, Array<float> onearray)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_addc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator+(const int32_t value, Array<int32_t> onearray)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_addc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<uint32_t> operator+(const uint32_t value, Array<uint32_t> onearray)
-  {
-    Array<uint32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator+(const int16_t value, Array<int16_t> onearray)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_addc_s16_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator+(const int8_t value, Array<int8_t> onearray)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_addc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator-(Array<float>& onearray, Array<float> another)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_f32_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_sub_f32_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator-(Array<int32_t>& onearray, Array<int32_t> another)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s32_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_sub_s32_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<uint32_t> operator-(Array<uint32_t>& onearray, Array<uint32_t> another)
-  {
-    Array<uint32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ",\
-                    dsps_sub_s32_esp,\
-                    (int32_t*)onearray,\
-                    (int32_t*)another,\
-                    (int32_t*)newArray,\
-                    onearray.shape.columns);
-#else
-    exec_dsp(dsps_sub_s32_esp,\
-            (int32_t*)onearray,\
-            (int32_t*)another,\
-            (int32_t*)newArray,\
-            onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator-(Array<int16_t>& onearray, Array<int16_t> another)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s16_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_sub_s16_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator-(Array<int8_t>& onearray, Array<int8_t> another)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s8_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_sub_s8_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator-(Array<float>& onearray, const float value)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_subc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator-(Array<int32_t>& onearray, const int32_t value)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_subc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<uint32_t> operator-(Array<uint32_t>& onearray, const uint32_t value)
-  {
-    Array<uint32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator-(Array<int16_t>& onearray, const int16_t value)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s16_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_subc_s16_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator-(Array<int8_t>& onearray, const int8_t value)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_subc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator-(const float value, Array<float> onearray)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_csub_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator-(const int32_t value, Array<int32_t> onearray)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_csub_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<uint32_t> operator-(const uint32_t value, Array<uint32_t> onearray)
-  {
-    Array<uint32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_csub_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator-(const int16_t value, Array<int16_t> onearray)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s16_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_csub_s16_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator-(const int8_t value, Array<int8_t> onearray)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_csub_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator*(Array<float>& onearray, Array<float> another)
-  {
-    Array<float> newArray(onearray.shape);
- #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_f32_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_mul_f32_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator*(Array<int32_t>& onearray, Array<int32_t> another)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s32_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_mul_s32_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<uint32_t> operator*(Array<uint32_t>& onearray, Array<uint32_t> another)
-  {
-    Array<uint32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ",\
-                      dsps_mul_s32_esp,\
-                      (int32_t*)onearray,\
-                      (int32_t*)another,\
-                      (int32_t*)newArray,\
-                      onearray.shape.columns);
-#else
-    exec_dsp(dsps_mul_s32_esp,\
-            (int32_t*)onearray,\
-            (int32_t*)another,\
-            (int32_t*)newArray,\
-            onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator*(Array<int16_t>& onearray, Array<int16_t> another)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s16_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_mul_s16_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator*(Array<int8_t>& onearray, Array<int8_t> another)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s8_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_mul_s8_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator*(Array<float>& onearray, const float value)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator*(Array<int32_t>& onearray, const int32_t value)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<uint32_t> operator*(Array<uint32_t>& onearray, const uint32_t value)
-  {
-    Array<uint32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ",\
-                    dsps_mulc_s32_esp,(int32_t*)onearray,\
-                    (int32_t*)newArray,\
-                    newArray.shape.columns,\
-                    value);
-#else
-    exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray,\
-                (int32_t*)newArray,\
-                newArray.shape.columns,\
-                value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator*(Array<int16_t>& onearray, const int16_t value)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator*(Array<int8_t>& onearray, const int8_t value)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator*(const float value, Array<float> onearray)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator*(const int32_t value, Array<int32_t> onearray)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<uint32_t> operator*(const uint32_t value, Array<uint32_t> onearray)
-  {
-    Array<uint32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ",\
-                    dsps_mulc_s32_esp,(int32_t*)onearray,\
-                    (int32_t*)newArray,\
-                    newArray.shape.columns,\
-                    value);
-#else
-    exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray,\
-                (int32_t*)newArray,\
-                newArray.shape.columns,\
-                value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator*(const int16_t value, Array<int16_t> onearray)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator*(const int8_t value, Array<int8_t> onearray)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#else
-    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator/(Array<float>& onearray, const float value)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_f32_esp, onearray, newArray, onearray.shape.columns, value);
-#else
-    exec_dsp(dsps_divc_f32_esp, onearray, newArray, onearray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator/(Array<int32_t>& onearray, const int32_t value)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s32_esp, onearray, newArray, onearray.shape.columns, value);
-#else
-    exec_dsp(dsps_divc_s32_esp, onearray, newArray, onearray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator/(Array<int16_t>& onearray, const int16_t value)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s16_esp, onearray, newArray, onearray.shape.columns, value);
-#else
-    exec_dsp(dsps_divc_s16_esp, onearray, newArray, onearray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator/(Array<int8_t>& onearray, const int8_t value)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s8_esp, onearray, newArray, onearray.shape.columns, value);
-#else
-    exec_dsp(dsps_divc_s8_esp, onearray, newArray, onearray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator/(const float value, Array<float> another)
-  {
-    Array<float> newArray(another.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_f32_esp, another, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_cdiv_f32_esp, another, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator/(const int32_t value, Array<int32_t> onearray)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_cdiv_s32_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator/(const int16_t value, Array<int16_t> onearray)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s16_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_cdiv_s16_esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator/(const int8_t value, Array<int8_t> onearray)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s8_esp, onearray, newArray, newArray.shape.columns, value);
-#else
-    exec_dsp(dsps_cdiv_s8esp, onearray, newArray, newArray.shape.columns, value);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<float> operator/(Array<float>& onearray, Array<float> another)
-  {
-    Array<float> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_f32_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_div_f32_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int32_t> operator/(Array<int32_t>& onearray, Array<int32_t> another)
-  {
-    Array<int32_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s32_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_div_s32_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int16_t> operator/(Array<int16_t>& onearray, Array<int16_t> another)
-  {
-    Array<int16_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s16_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_div_s16_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline Array<int8_t> operator/(Array<int8_t>& onearray, Array<int8_t> another)
-  {
-    Array<int8_t> newArray(onearray.shape);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s8_esp, onearray, another, newArray, onearray.shape.columns);
-#else
-    exec_dsp(dsps_div_s8_esp, onearray, another, newArray, onearray.shape.columns);
-#endif
-    return newArray;
-  }
-
-  template<>
-  inline const int32_t operator^(Array<int32_t>& onearray, Array<int32_t> another)
-  {
-    int32_t result;
-    float input1[onearray.shape.columns];
-    float input2[onearray.shape.columns];
-    float rows;
-    cpyArray((int32_t*)onearray, input1, onearray.shape.columns);
-    cpyArray((int32_t*)another, input2, onearray.shape.columns);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_f32_ae32, input1, input2, &rows, onearray.shape.columns);
-#else
-    exec_dsp(dsps_dotprod_f32_ae32, input1, input2, &rows, onearray.shape.columns);
-#endif
-    result = (int32_t)rows;
-    return result;
-  }
-
-  template<>
-  inline const uint8_t operator^(Array<uint8_t>& onearray, Array<uint8_t> another)
-  {
-    uint8_t result;
-    int16_t input1[onearray.shape.columns];
-    int16_t input2[onearray.shape.columns];
-    int16_t rows;
-    cpyArray((uint8_t*)onearray, input1, onearray.shape.columns);
-    cpyArray((uint8_t*)another, input2, onearray.shape.columns);
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_s16_ae32, input1, input2, &rows, onearray.shape.columns, 0);
-#else
-    exec_dsp(dsps_dotprod_s16_ae32, input1, input2, &rows, onearray.shape.columns, 0);
-#endif
-    result = (uint8_t)rows;
-    return result;
-  }
-
-  template<>
-  inline const float operator^(Array<float>& onearray, Array<float> another)
-  {
-    float result;
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_f32_ae32, onearray, another, &result, onearray.shape.columns);
-#else
-    exec_dsp(dsps_dotprod_f32_ae32, onearray, another, &result, onearray.shape.columns);
-#endif
-    return result;
-  }
-
-  template<>
-  inline const int16_t operator^(Array<int16_t>& onearray, Array<int16_t> another)
-  {
-    int16_t result;
-#if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_s16_ae32, onearray, another, &result, onearray.shape.columns, 0);
-#else
-    exec_dsp(dsps_dotprod_s16_ae32, onearray, another, &result, onearray.shape.columns, 0);
-#endif
-    return result;
-  }
 }
-
-#endif
-#endif
-
 #endif

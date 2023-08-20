@@ -53,11 +53,6 @@ step_mode:
     add  x_addr, x_addr, step_x  // next input;
 no_step_mode:
   bgei  step_y, 2, step_mode
-  movi aone, 0x00010001
-  ee.movi.32.a v1, aone, 0
-  ee.movi.32.a v1, aone, 1
-  ee.movi.32.a v1, aone, 2
-  ee.movi.32.a v1, aone, 3
   ee.vldbc.16 c_v, C           // c_v = C
   movi.n bit_msk, 0b111
   and    unligned, bit_msk, len
@@ -67,7 +62,8 @@ loop_begin:
     ee.zero.qacc                     // clear accumulator
     ee.vld.128.ip x_v, x_addr, 16    // load input
     ee.vadds.s16 y_v, x_v, c_v       // Add constant
-    ee.vmul.s16    y_v, y_v, v1
+    ee.mov.s16.qacc y_v              // move the result to the accumulator
+    ee.srcmb.s16.qacc y_v, frac, 0   // shift the result
     ee.vst.128.ip y_v, y_addr, 16    // store results
 loop_unligned:
   l16si C, C, 0                // Load const

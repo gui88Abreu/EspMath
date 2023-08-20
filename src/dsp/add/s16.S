@@ -16,7 +16,6 @@
 
 #define unligned  a6
 #define bit_msk   a7
-#define aone      a8
 #define x1_v      q0
 #define x2_v      q1
 #define y_v       q2
@@ -60,9 +59,6 @@ step_mode:
 no_step_mode:
   bgei step_x2, 2, step_mode
   bgei  step_y, 2, step_mode
-  mov aone, a1
-  addi aone, aone, 16
-  ee.vldbc.16 v1, aone
   movi.n bit_msk, 0b111
   and    unligned, bit_msk, len
   srli   len, len, 3
@@ -71,7 +67,8 @@ loop_begin:
     ee.vld.128.ip x1_v, x1_addr, 16    // load input
     ee.vld.128.ip x2_v, x2_addr, 16    // load input
     ee.vadds.s16   y_v, x1_v, x2_v     // add
-    ee.vmul.s16    y_v, y_v, v1
+    ee.mov.s16.qacc y_v                // move the result to the accumulator
+    ee.srcmb.s16.qacc y_v, frac, 0     // shift the result
     ee.vst.128.ip y_v, y_addr, 16      // store results
 loop_unligned:
   loopgtz unligned, return_success

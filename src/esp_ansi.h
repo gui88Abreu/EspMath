@@ -4,7 +4,9 @@
 #include <Arduino.h>
 
 namespace espmath{
-  using namespace espmath;
+
+  inline int16_t float2fixed(float num, uint8_t fractional){return (int16_t)(round(num * (1 << fractional)));}
+  inline float fixed2float(float num, uint8_t fractional){return ((float)num / (float)(1 << fractional));}
 
   /**
    * @brief Compare floats.

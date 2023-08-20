@@ -23,7 +23,7 @@ inline const float nonZeroRandomNumber(size_t _MAX_NUM_)
 {
   float rn;
   rn = (float)(esp_random() % _MAX_NUM_) + 0.1;
-  rn += ((float)1.0 / (float)((esp_random() % _MAX_NUM_) + 0.1));
+  rn += ((float)1.0 / (float)(esp_random() + 1.0));
   return rn;
 }
 
