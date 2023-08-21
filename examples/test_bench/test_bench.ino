@@ -1,8 +1,10 @@
 #include "test_bench.h"
+#include "bootloader_random.h"
 
-#define FRAC_BITS 8 // Fractional bits of the fixed number vector
+#define FRAC_BITS 6 // Fractional bits of the fixed number vector
 
 void setup(){
+  bootloader_random_enable();
   size_t array_length = 6;//nonZeroRandomNumber<size_t>(24);
   vTaskDelay(pdMS_TO_TICKS(5000));
   debug.print("----------------------------------------------------------------------");

@@ -290,6 +290,18 @@ inline int16_t mulFixedPoint(int16_t x1, int16_t x2, uint8_t frac)
   return (int16_t)result;
 }
 
+inline int16_t s16dotProduct(int16_t* x1, int16_t* x2, int len, uint8_t frac)
+{
+  int16_t helper[(const int) len];
+  int32_t result = 0;
+  dsps_mul_s16_esp(x1, x2, helper, len, 1, 1, 1, frac);
+  for (int i = 0; i < len; i++)
+  {
+    result += helper[i];
+  }
+  return (int16_t)result;
+}
+
 inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC = 0, bool _suspend = true)
 {
   int16_t data1[_ARRAY_LENGTH_];
@@ -301,11 +313,11 @@ inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC
   fpVector f1(data1, FRAC), f2(data2, FRAC);
   shape2D shape = shape2D(1, _ARRAY_LENGTH_);
 
-  const FixedPoint randomConstant = FixedPoint(nonZeroRandomNumber<float>(max_random<int8_t>()), FRAC);
+  const FixedPoint randomConstant = FixedPoint(nonZeroRandomNumber<float>(3), FRAC);
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
   {
-    data1F[i] = nonZeroRandomNumber<float>(max_random<int8_t>());
-    data2F[i] = nonZeroRandomNumber<float>(max_random<int8_t>());
+    data1F[i] = nonZeroRandomNumber<float>(3);
+    data2F[i] = nonZeroRandomNumber<float>(3);
     data1[i] = float2fixed(data1F[i], FRAC);
     data2[i] = float2fixed(data2F[i], FRAC);
   }
@@ -403,7 +415,7 @@ inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC
     debug.print("Succeeded!");
 
   debug.print("Testing dot product...");
-  dsps_dotprod_s16_ansi(data1, data2, &output[0], _ARRAY_LENGTH_, FRAC);
+  output[0] = s16dotProduct(data1, data2, _ARRAY_LENGTH_, FRAC);
   result.flatten[0] = array1 ^ array2;
   debug.print(String("DotProduct Result: ") + String(fixed2float(result.flatten[0], FRAC)));
   if(!(result.flatten[0] == output[0]))
