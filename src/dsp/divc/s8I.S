@@ -24,6 +24,7 @@ dsps_cdiv_s8_esp:
   entry	a1, 16
   loopgtz len, return_success
     l8ui a8, in_addr, 0              // Load next data
+    sext a8, a8, 7                   // sign extend
     quos a9, C, a8                   // Store the multiplication
     s8i a9, out_addr, 0              // Store result
 

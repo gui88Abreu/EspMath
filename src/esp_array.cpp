@@ -724,14 +724,36 @@ namespace espmath{
   #endif
     return result;
   }
+
+  int32_t operator^(Array<int32_t>& onearray, Array<int32_t> another)
+  {
+    int32_t result;
+  #if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotp_s32_esp, onearray, another, &result, onearray.shape.columns, 1, 1);
+  #else
+    exec_dsp(dsps_dotp_s32_esp, onearray, another, &result, onearray.shape.columns, 1, 1);
+  #endif
+    return result;
+  }
   
   int16_t operator^(Array<int16_t>& onearray, Array<int16_t> another)
   {
     int16_t result;
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_s16_ae32, onearray, another, &result, onearray.shape.columns, 0);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotp_s16_esp, onearray, another, &result, onearray.shape.columns, 1, 1, onearray.frac);
   #else
-    exec_dsp(dsps_dotprod_s16_ae32, onearray, another, &result, onearray.shape.columns, 0);
+    exec_dsp(dsps_dotp_s16_esp, onearray, another, &result, onearray.shape.columns, 1, 1, onearray.frac);
+  #endif
+    return result;
+  }
+
+  int8_t operator^(Array<int8_t>& onearray, Array<int8_t> another)
+  {
+    int8_t result;
+  #if BENCHMARK_TEST
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotp_s8_esp, onearray, another, &result, onearray.shape.columns, 1, 1);
+  #else
+    exec_dsp(dsps_dotp_s8_esp, onearray, another, &result, onearray.shape.columns, 1, 1);
   #endif
     return result;
   }

@@ -1102,6 +1102,8 @@ namespace espmath{
   Array<int8_t> operator/(Array<int8_t>& onearray, Array<int8_t> another);
   float operator^(Array<float>& onearray, Array<float> another);
   int16_t operator^(Array<int16_t>& onearray, Array<int16_t> another);
+  int32_t operator^(Array<int32_t>& onearray, Array<int32_t> another);
+  int8_t operator^(Array<int8_t>& onearray, Array<int8_t> another);
 
 }
 #endif

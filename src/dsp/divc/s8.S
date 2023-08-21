@@ -7,6 +7,8 @@
 #define C         a5
 #define step_in   a6
 #define step_out  a7
+#define in_r      a8
+#define out_r     a9
 
   .text
   .align  ALIGNMENT
@@ -23,9 +25,10 @@ dsps_divc_s8_esp:
 
   entry	a1, 16
   loopgtz len, return_success
-    l8ui a8, in_addr, 0              // Load next data
-    quos a9, a8, C                    // Store the multiplication
-    s8i a9, out_addr, 0              // Store result
+    l8ui in_r, in_addr, 0            // Load next data
+    sext in_r, in_r, 7               // sign extend data
+    quos out_r, in_r, C              // Store the multiplication
+    s8i  out_r, out_addr, 0          // Store result
 
     add out_addr, out_addr, step_out // next output;
     add in_addr, in_addr, step_in    // next input;

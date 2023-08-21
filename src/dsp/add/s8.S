@@ -41,7 +41,7 @@ step_mode:
   loopgtz len, return_success
     l8ui x1_r, x1_addr, 0          // Load next data
     l8ui x2_r, x2_addr, 0          // Load next data
-    add.n  y_r, x1_r, x2_r         // Store the multiplication in the acc
+    add.n  y_r, x1_r, x2_r         // add
     s8i  y_r, y_addr, 0            // Store result
 
     add  y_addr,  y_addr, step_y   // next output;
