@@ -1,7 +1,7 @@
 #include "esp_array.h"
 
 #if BENCHMARK_TEST
-#include "hard_debug.h" // https://github.com/guilhAbreu/EspDebug
+#include "esp_debug.h" // https://github.com/guilhAbreu/EspDebug
 #endif
 
 #if BENCHMARK_TEST

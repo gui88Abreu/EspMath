@@ -26,7 +26,7 @@ namespace espmath{
 
     FixedPointVector():data(NULL),frac(0){}
     FixedPointVector(int16_t* d, uint8_t f):data(d),frac(f){}
-  }fpVector;
+  }fixedV;
 
   struct shape2D{
   private:
@@ -133,15 +133,13 @@ namespace espmath{
      * @param initialMem The initial size of the array.
      * @param capabilities Memory capabilities
      */
-    Array(const fpVector* initialValues,\
-                  shape2D initialShape = shape2D(1,0),\
-                  uint32_t capabilities = UINT32_MAX\
-                  ):Array(initialShape, capabilities)
+    Array(FixedPointVector initialValues,\
+          shape2D initialShape = shape2D(1,0),\
+          uint32_t capabilities = UINT32_MAX):Array(initialShape, capabilities)
     {
-      assert(sizeof(T) == 2);
-      fracBits = initialValues->frac;
+      fracBits = initialValues.frac;
       if (_array)
-        cpyArray(initialValues->data, _array, _shape.columns);
+        cpyArray(initialValues.data, _array, _shape.columns);
     }
 
     /**
@@ -732,6 +730,9 @@ namespace espmath{
     return false;
   }
 
+#ifdef CONFIG_IDF_TARGET_ESP32S3
+#if CONFIG_IDF_TARGET_ESP32S3
+
   template<>
   inline void Array<float>::operator+=(const float value)
   {
@@ -1056,5 +1057,8 @@ namespace espmath{
   int32_t operator^(Array<int32_t>& onearray, Array<int32_t> another);
   int8_t operator^(Array<int8_t>& onearray, Array<int8_t> another);
 
+#endif
+#endif
 }
+
 #endif
