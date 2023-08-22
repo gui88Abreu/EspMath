@@ -16,7 +16,7 @@
  * 
  */
 #ifndef BENCHMARK_TEST
-#define BENCHMARK_TEST 1
+#define BENCHMARK_TEST 0
 #endif
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
