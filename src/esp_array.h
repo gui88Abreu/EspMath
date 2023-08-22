@@ -18,35 +18,7 @@
  * 
  */
 namespace espmath{
-
-  /**
-   * @brief Fixed Point Representation
-   * 
-   */
-  class FixedPoint
-  {
-  public:
-    int16_t data;
-    uint8_t frac;
-
-    FixedPoint():data(0),frac(0){}
-    FixedPoint(int16_t value, uint8_t fracBits = 15){data = value, frac = fracBits;}
-    FixedPoint(float value, uint8_t fracBits = 15):frac(fracBits){data = float2fixed(value, fracBits);}
-    FixedPoint(FixedPoint& other):FixedPoint(other.data, other.frac){}
-    FixedPoint(FixedPoint&& other):FixedPoint(other.data, other.frac){}
-    operator int16_t(){return data;}
-    operator int16_t*(){return &data;}
-    void operator=(FixedPoint& other){data = other.data, frac = other.frac;}
-    bool operator==(FixedPoint& other){return data == other.data && frac == other.frac;}
-    bool operator!=(FixedPoint& other){return data != other.data && frac != other.frac;}
-    operator float() const {return ((float)data / (float)(1 << frac));}
-    void operator+=(FixedPoint& other){assert(frac == other.frac); data += other.data;}
-    void operator-=(FixedPoint& other){assert(frac == other.frac); data -= other.data;}
-    void operator*=(FixedPoint& other){assert(frac == other.frac); data = (data * other.data) >> frac;}
-
-    const int16_t& ref = data;
-  };
-
+  
   typedef struct FixedPointVector
   {
     int16_t* data;
@@ -55,27 +27,6 @@ namespace espmath{
     FixedPointVector():data(NULL),frac(0){}
     FixedPointVector(int16_t* d, uint8_t f):data(d),frac(f){}
   }fpVector;
-
-  inline FixedPoint operator+(FixedPoint& adder1, FixedPoint& adder2)
-  {
-    FixedPoint result = FixedPoint(adder1);
-    result+=adder2;
-    return result;
-  }
-
-  inline FixedPoint operator-(FixedPoint& sub1, FixedPoint& sub2)
-  {
-    FixedPoint result = FixedPoint(sub1);
-    result-=sub2;
-    return result;
-  }
-
-  inline FixedPoint operator*(FixedPoint& mul1, FixedPoint& mul2)
-  {
-    FixedPoint result = FixedPoint(mul1);
-    result+=mul2;
-    return result;
-  }
 
   struct shape2D{
   private:
