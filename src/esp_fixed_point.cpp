@@ -1,67 +1,83 @@
 #include "esp_fixed_point.h"
 
 namespace espmath{
-  FixedPoint operator+(FixedPoint& fp1, FixedPoint& fp2)
+  fixed operator+(fixed fp1, fixed fp2)
   {
-    FixedPoint result = FixedPoint(fp1);
-    result+=fp2;
-    return result;
+    fp1+=fp2;
+    return fp1;
   }
 
-  FixedPoint operator-(FixedPoint& fp1, FixedPoint& fp2)
+  fixed operator-(fixed fp1, fixed fp2)
   {
-    FixedPoint result = FixedPoint(fp1);
-    result-=fp2;
-    return result;
+    fp1-=fp2;
+    return fp1;
   }
 
-  FixedPoint operator*(FixedPoint& fp1, FixedPoint& fp2)
+  fixed operator*(fixed fp1, fixed fp2)
   {
-    FixedPoint result = FixedPoint(fp1);
-    result+=fp2;
-    return result;
+    fp1+=fp2;
+    return fp1;
   }
 
-  FixedPoint operator/(FixedPoint& fp1, FixedPoint& fp2)
+  fixed operator/(fixed fp1, fixed fp2)
   {
-    FixedPoint result = FixedPoint(fp1);
-    result/=fp2;
-    return result;
+    fp1/=fp2;
+    return fp1;
   }
 
-  FixedPoint operator+(FixedPoint& fp1, float f)
+  fixed operator+(fixed fp1, float f)
   {
-    FixedPoint result = FixedPoint(fp1);
-    FixedPoint fp2 = FixedPoint(f, fp1.frac);
-
-    result+=fp2;
-    return result;
+    fixed fp2 = fixed(f, fp1.frac);
+    fp1+=fp2;
+    return fp1;
   }
 
-  FixedPoint operator-(FixedPoint& fp1, float f)
+  fixed operator-(fixed fp1, float f)
   {
-    FixedPoint result = FixedPoint(fp1);
-    FixedPoint fp2 = FixedPoint(f, fp1.frac);
-
-    result-=fp2;
-    return result;
+    fixed fp2 = fixed(f, fp1.frac);
+    fp1-=fp2;
+    return fp1;
   }
 
-  FixedPoint operator*(FixedPoint& fp1, float f)
+  fixed operator*(fixed fp1, float f)
   {
-    FixedPoint result = FixedPoint(fp1);
-    FixedPoint fp2 = FixedPoint(f, fp1.frac);
-
-    result*=fp2;
-    return result;
+    fixed fp2 = fixed(f, fp1.frac);
+    fp1*=fp2;
+    return fp1;
   }
 
-  FixedPoint operator/(FixedPoint& fp1, float f)
+  fixed operator/(fixed fp1, float f)
   {
-    FixedPoint result = FixedPoint(fp1);
-    FixedPoint fp2 = FixedPoint(f, fp1.frac);
+    fixed fp2 = fixed(f, fp1.frac);
+    fp1/=fp2;
+    return fp1;
+  }
 
-    result/=fp2;
-    return result;
+  fixed operator+(float f, fixed fp2)
+  {
+    fixed fp1 = fixed(f, fp2.frac);
+    fp1+=fp2;
+    return fp1;
+  }
+
+  fixed operator-(float f, fixed fp2)
+  {
+    fixed fp1 = fixed(f, fp2.frac);
+    fp1-=fp2;
+    return fp1;
+  }
+
+  fixed operator*(float f, fixed fp2)
+  {
+    fixed fp1 = fixed(f, fp2.frac);
+    fp1*=fp2;
+    return fp1;
+  }
+
+  fixed operator/(float f, fixed fp2)
+  {
+    fixed fp1 = fixed(f, fp2.frac);
+    fp1/=fp2;
+    return fp1;
   }
 }
