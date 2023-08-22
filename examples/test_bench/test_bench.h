@@ -7,6 +7,7 @@
 #include "hard_debug.h"
 #include "dsps_dotprod.h"
 #include "dsps_math.h"
+#include "esp_fixed_point.h"
 
 using namespace espmath;
 
