@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 #include "esp_math.h"
-#include "hard_debug.h"
+#include "esp_debug.h"
 #include "dsps_dotprod.h"
 #include "dsps_math.h"
 #include "esp_fixed_point.h"
@@ -307,24 +307,19 @@ inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC
 {
   int16_t data1[_ARRAY_LENGTH_];
   int16_t data2[_ARRAY_LENGTH_];
-  float data1F[_ARRAY_LENGTH_];
-  float data2F[_ARRAY_LENGTH_];
   int16_t output[_ARRAY_LENGTH_];
 
-  fpVector f1(data1, FRAC), f2(data2, FRAC);
   shape2D shape = shape2D(1, _ARRAY_LENGTH_);
 
-  const FixedPoint randomConstant = FixedPoint(nonZeroRandomNumber<float>(3), FRAC);
+  const fixed randomConstant = FixedPoint(nonZeroRandomNumber<float>(3), FRAC);
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
   {
-    data1F[i] = nonZeroRandomNumber<float>(3);
-    data2F[i] = nonZeroRandomNumber<float>(3);
-    data1[i] = float2fixed(data1F[i], FRAC);
-    data2[i] = float2fixed(data2F[i], FRAC);
+    data1[i] = float2fixed(nonZeroRandomNumber<float>(3), FRAC);
+    data2[i] = float2fixed(nonZeroRandomNumber<float>(3), FRAC);
   }
 
-  Array<int16_t> array1(&f1, shape);
-  Array<int16_t> array2(&f2, shape);
+  Array<int16_t> array1(FixedPointVector(data1, FRAC), shape);
+  Array<int16_t> array2(FixedPointVector(data2, FRAC), shape);
   Array<int16_t> result;
 
   debug.print(array1.flatten, _ARRAY_LENGTH_, FRAC);

@@ -26,7 +26,7 @@ void setup(){
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");
   debug.print("Testing fixed point arrays arithmetic...");
-  test_fixed_point(array_length, FRAC_BITS, false);
+  test_fixed_point(array_length, FRAC_BITS);
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");
   debug.print("Testing integer 8 bits arrays arithmetic...");
