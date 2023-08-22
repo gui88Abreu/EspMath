@@ -1,6 +1,8 @@
 #include "esp_fixed_point.h"
+#include <type_traits>
 
 namespace espmath{
+
   fixed operator+(fixed fp1, fixed fp2)
   {
     fp1+=fp2;

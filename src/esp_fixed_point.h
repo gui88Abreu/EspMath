@@ -21,22 +21,19 @@ namespace espmath{
 
     // Constructors
     FixedPoint():data(0),frac(DEFAULT_FRAC){}
-    FixedPoint(int16_t value, uint8_t fracBits = DEFAULT_FRAC){data = value, frac = fracBits;}
     FixedPoint(float value, uint8_t fracBits = DEFAULT_FRAC):frac(fracBits){data = float2fixed(value, fracBits);}
     FixedPoint(const FixedPoint& other):FixedPoint(other.data, other.frac){}
     FixedPoint(const FixedPoint&& other):FixedPoint(other.data, other.frac){}
 
-    // Cast Operators
-    operator int16_t() const {return data;} // 16 bits
+    // Cast Operator
     operator float() const {return fixed2float(data, frac);} // float
-    operator double() const {return (double)fixed2float(data, frac);} // double
-    operator int16_t*() {return &data;} // pointer
 
     // Assign Operators
     void operator=(const FixedPoint& other){data = other.data, frac = other.frac;}
     void operator=(const FixedPoint&& other){data = other.data, frac = other.frac;}
-    void operator=(int16_t value){data = value;}
     void operator=(float value){data = float2fixed(value, frac);}
+    template<typename T>
+    void operator=(T value){data = float2fixed((float)value, frac);}
 
     // Comparison Operators
     bool operator==(FixedPoint& other){return data == other.data && frac == other.frac;}
@@ -60,20 +57,38 @@ namespace espmath{
     const int16_t& ref = data;
   }fixed;
 
-  fixed operator+(fixed fp1, fixed fp2);
-  fixed operator-(fixed fp1, fixed fp2);
-  fixed operator*(fixed fp1, fixed fp2);
-  fixed operator/(fixed fp1, fixed fp2);
+  fixed operator+(fixed f1, fixed f2);
+  fixed operator-(fixed f1, fixed f2);
+  fixed operator*(fixed f1, fixed f2);
+  fixed operator/(fixed f1, fixed f2);
 
-  fixed operator+(fixed fp1, float f);
-  fixed operator-(fixed fp1, float f);
-  fixed operator*(fixed fp1, float f);
-  fixed operator/(fixed fp1, float f);
+  fixed operator+(fixed f1, float f);
+  fixed operator-(fixed f1, float f);
+  fixed operator*(fixed f1, float f);
+  fixed operator/(fixed f1, float f);
 
-  fixed operator+(float f, fixed fp1);
-  fixed operator-(float f, fixed fp1);
-  fixed operator*(float f, fixed fp1);
-  fixed operator/(float f, fixed fp1);
+  fixed operator+(float f, fixed f1);
+  fixed operator-(float f, fixed f1);
+  fixed operator*(float f, fixed f1);
+  fixed operator/(float f, fixed f1);
+
+  template<typename T>
+  fixed operator+(fixed f1, T t){return f1 + (float)t;}
+  template<typename T>
+  fixed operator-(fixed f1, T t){return f1 - (float)t;}
+  template<typename T>
+  fixed operator*(fixed f1, T t){return f1 * (float)t;}
+  template<typename T>
+  fixed operator/(fixed f1, T t){return f1 / (float)t;}
+
+  template<typename T>
+  fixed operator+(T t, fixed f1){return f1 + (float)t;}
+  template<typename T>
+  fixed operator-(T t, fixed f1){return (float)t - f1;}
+  template<typename T>
+  fixed operator*(T t, fixed f1){return (float)t * f1;}
+  template<typename T>
+  fixed operator/(T t, fixed f1){return (float)t / f1;}
 }
 
 #endif
