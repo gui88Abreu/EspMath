@@ -53,8 +53,6 @@ namespace espmath{
     void operator-=(FixedPoint& other){assert(frac == other.frac); data -= other.data;}
     void operator*=(FixedPoint& other){assert(frac == other.frac); data = FP_MUL(data, other.data, frac);}
     void operator/=(FixedPoint& other){assert(frac == other.frac); data = FP_DIV(data, other.data, frac);}
-
-    const int16_t& ref = data;
   }fixed;
 
   fixed operator+(fixed f1, fixed f2);
