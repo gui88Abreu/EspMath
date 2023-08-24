@@ -17,8 +17,8 @@ typedef struct Parameters{
     fixed ambient = 20;
     fixed heatsink = 26;
     fixed cooling = 0;
-    char energy = 60;
-    const uint16_t maxmV = 8000;
+    char energy = 80;
+    fixed maxV = 8.0;
     const uint32_t expectTime = 1800;
     const char energyTh = 70;
     const fixed heatsinkTh = 32;
@@ -30,7 +30,7 @@ void regulator(Parameters* p)
   fixed X1 = 1 - ((float)((p->expectTime - 360) / p->expectTime));
   fixed X2 = (p->ambient - p->target) / (abs(p->ambient) + abs(p->target));
   fixed X3 = (p->heatsink - p->ambient) / (p->heatsinkTh - p->ambient);
-  fixed X4 = p->energy > p->energyTh ? 1 : p->energy / 100;
+  fixed X4 = p->energy > p->energyTh ? 0 : p->energy / 100;
   X4 *= X4;
   fixed X5 = p->cooling - p->target;
   
@@ -51,7 +51,7 @@ void regulator(Parameters* p)
   fixed activF = tanh(x);
   
   debug.print(activF);
-  debug.print(((activF + 1.) / 2.) * (p->maxmV / 1000.0f));
+  debug.print(((activF + 1.) / 2.) * (p->maxV));
 }
 
 void setup()
