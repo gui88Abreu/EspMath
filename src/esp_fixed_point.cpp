@@ -17,7 +17,7 @@ namespace espmath{
 
   fixed operator*(fixed fp1, fixed fp2)
   {
-    fp1+=fp2;
+    fp1*=fp2;
     return fp1;
   }
 
