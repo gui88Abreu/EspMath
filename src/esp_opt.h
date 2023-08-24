@@ -12,6 +12,12 @@
 #define ALIGNMENT 16
 
 /**
+ * @brief Default Fractional bits for fixed point numbers
+ * 
+ */
+#define FRACTIONAL 9
+
+/**
  * @brief If enabled, benchmark test willbe done and result will be printed via serial port
  * 
  */
