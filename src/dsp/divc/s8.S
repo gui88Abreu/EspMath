@@ -23,7 +23,7 @@ dsps_divc_s8_esp:
 // step_in  - a6
 // step_out - a7
 
-  entry	a1, 16
+  entry	sp, 16
   loopgtz len, return_success
     l8ui in_r, in_addr, 0            // Load next data
     sext in_r, in_r, 7               // sign extend data

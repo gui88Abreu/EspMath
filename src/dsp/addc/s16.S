@@ -34,7 +34,7 @@ dsps_addc_s16_esp:
 // step_y   - a7
 // frac     - a8 (stack)
 
-  entry	a1, 16
+  entry	sp, 16
 
   l32i frac, a1, 16
   ssr  frac                 // sar = frac

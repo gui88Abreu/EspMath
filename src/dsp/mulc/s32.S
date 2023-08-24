@@ -29,7 +29,7 @@ dsps_mulc_s32_esp:
 // step_x1  - a6
 // step_y   - a7
 
-  entry	a1, 16
+  entry	sp, 16
 
   beqi step_x, 1, no_step_mode
 step_mode:

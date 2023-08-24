@@ -28,7 +28,7 @@ dsps_addc_f32_esp:
 // step_x   - a6
 // step_y   - a7
 
-  entry	a1, 16
+  entry	sp, 16
     
   wfr		c_r, C		// a5 - load to the f0
   beqi step_x, 1, no_step_mode

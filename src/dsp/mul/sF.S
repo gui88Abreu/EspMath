@@ -30,7 +30,7 @@ dsps_mul_f32_esp:
 // output   - a4
 // len      - a5
 
-  entry	a1, 16
+  entry	sp, 16
 
   l32i step_y, a1, 16
   beqi step_x1, 1, no_step_mode

@@ -29,20 +29,20 @@ dsps_div_s16_esp:
 // step_y   - a8 (stack)
 // frac     - a9 (stack)
 
-  entry	a1, 16
+  entry	sp, 16
 
   l32i step_y, a1, 16
   l32i frac, a1, 20
-  ssr frac
+  ssl  frac
 
   slli step_x1, step_x1, 1
   slli step_x2, step_x2, 1
-  slli step_y, step_y, 1
+  slli step_y,   step_y, 1
   loopgtz len, return_success
     l16si x1_r, x1_addr, 0         // Load next data
+    sll   x1_r, x1_r
     l16si x2_r, x2_addr, 0         // Load next data
     quos y_r, x1_r, x2_r           // Store the multiplication in y_r
-    srl  y_r, y_r
     s16i y_r, y_addr, 0            // Store result
 
     add y_addr, y_addr, step_y     // next output;

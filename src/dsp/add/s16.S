@@ -36,7 +36,7 @@ dsps_add_s16_esp:
 // step_y   - a8 (stack)
 // frac     - a9 (stack)
 
-  entry	a1, 16
+  entry	sp, 16
 
   l32i step_y, a1, 16
   l32i   frac, a1, 20

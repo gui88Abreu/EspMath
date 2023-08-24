@@ -21,7 +21,7 @@ dsps_cdiv_f32_esp:
 // step_in  - a6
 // step_out - a7
 
-  entry	a1, 16
+  entry	sp, 16
 
   slli step_in, step_in, 2
   slli step_out, step_out, 2

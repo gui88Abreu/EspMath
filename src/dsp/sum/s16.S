@@ -19,7 +19,7 @@ dsps_vsum_s16_esp:
 // len      - a4
 // step_x   - a5
 
-  entry	a1, 16
+  entry	sp, 16
 
   movi.n y_r, 0
   slli step_x, step_x, 1

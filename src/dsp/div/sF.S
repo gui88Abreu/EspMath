@@ -27,7 +27,7 @@ dsps_div_f32_esp:
 // step_x2  - a7
 // step_y   - a8 (stack)
 
-  entry	a1, 16
+  entry	sp, 16
 
   l32i step_y, a1, 16
 

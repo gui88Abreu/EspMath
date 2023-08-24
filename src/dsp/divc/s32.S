@@ -29,7 +29,7 @@ dsps_divc_s32_esp:
 // step_in  - a6
 // step_out - a7
 
-  entry	a1, 16
+  entry	sp, 16
 
   beqi step_in, 1, no_step_mode
 step_mode:
