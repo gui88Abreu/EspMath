@@ -2,6 +2,69 @@
 #include <type_traits>
 
 namespace espmath{
+  bool operator>(FixedPoint& one, FixedPoint& another)
+  {
+    assert(one.frac==another.frac); 
+    return one.data > another.data;
+  }
+
+  bool operator>(FixedPoint& one, float another)
+  {
+    return one.data > FixedPoint(another).data;
+  }
+
+  bool operator>(float another, FixedPoint& one)
+  {
+    return FixedPoint(another).data > one.data;
+  }
+
+  bool operator>=(FixedPoint& one, FixedPoint& another)
+  {
+    assert(one.frac==another.frac); 
+    return one.data >= another.data;
+  }
+
+  bool operator>=(FixedPoint& one, float another)
+  {
+    return one.data >= FixedPoint(another).data;
+  }
+
+  bool operator>=(float another, FixedPoint& one)
+  {
+    return FixedPoint(another).data >= one.data;
+  }
+
+  bool operator<(FixedPoint& one, FixedPoint& another)
+  {
+    assert(one.frac==another.frac); 
+    return one.data < another.data;
+  }
+
+  bool operator<(FixedPoint& one, float another)
+  {
+    return one.data < FixedPoint(another).data;
+  }
+
+  bool operator<(float another, FixedPoint& one)
+  {
+    return FixedPoint(another).data < one.data;
+  }
+
+  bool operator<=(FixedPoint& one, FixedPoint& another)
+  {
+    assert(one.frac==another.frac); 
+    return one.data <= another.data;
+  }
+
+  bool operator<=(FixedPoint& one, float another)
+  {
+    return one.data <= FixedPoint(another).data;
+  }
+
+  bool operator<=(float another, FixedPoint& one)
+  {
+    return FixedPoint(another).data <= one.data;
+  }
 
   fixed operator+(fixed fp1, fixed fp2)
   {

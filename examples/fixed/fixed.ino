@@ -40,12 +40,11 @@ void regulator(Parameters* p)
   debug.print("X3*C3: " + String(X3*C3));
   debug.print("X4*C4: " + String(X4*C4));
   
-  // Not working. Need to be reviewed
-  // if ((!X0 && !X2) || X0 < 0.f || X3 >= 1.f || X5 > 0.f)
-  // {
-  //   debug.print("Shutdown!");
-  //   return;
-  // }
+  if ((!X0 && !X2) || X0 < 0.f || X3 >= 1.f || X5 > 0.f)
+  {
+    debug.print("Shutdown!");
+    return;
+  }
 
   float x = regFUNC(X0, X1, X2, X3, X4);
   fixed activF = tanh(x);

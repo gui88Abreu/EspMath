@@ -40,14 +40,6 @@ namespace espmath{
     bool operator==(FixedPoint& other){return data == other.data && frac == other.frac;}
     bool operator!=(FixedPoint& other){return data != other.data && frac != other.frac;}
     bool operator!(){return !data;}
-    bool operator>(FixedPoint& other){assert(frac==other.frac); return data > other.data;}
-    bool operator>(float other){return *this > FixedPoint(other);}
-    bool operator>=(FixedPoint& other){assert(frac==other.frac); return data >= other.data;}
-    bool operator>=(float other){return *this >= FixedPoint(other);}
-    bool operator<(FixedPoint& other){assert(frac==other.frac); return data < other.data;}
-    bool operator<(float other){return *this < FixedPoint(other);}
-    bool operator<=(FixedPoint& other){assert(frac==other.frac); return data <= other.data;}
-    bool operator<=(float other){return *this <= FixedPoint(other);}
     
     // Arithmetic Operators
     void operator+=(FixedPoint& other){assert(frac == other.frac); data += other.data;}
@@ -70,21 +62,33 @@ namespace espmath{
     }
   }fixed;
 
+  /* Extended Comparison Operators*/
+  bool operator>(FixedPoint& one, FixedPoint& another);
+  bool operator>(FixedPoint& one, float another);
+  bool operator>(float another, FixedPoint& one);
+  bool operator>=(FixedPoint& one, FixedPoint& another);
+  bool operator>=(FixedPoint& one, float another);
+  bool operator>=(float another, FixedPoint& one);
+  bool operator<(FixedPoint& one, FixedPoint& another);
+  bool operator<(FixedPoint& one, float another);
+  bool operator<(float another, FixedPoint& one);
+  bool operator<=(FixedPoint& one, FixedPoint& another);
+  bool operator<=(FixedPoint& one, float another);
+  bool operator<=(float another, FixedPoint& one);
+
+  /* Extended Arithmetic Operators*/
   fixed operator+(fixed f1, fixed f2);
   fixed operator-(fixed f1, fixed f2);
   fixed operator*(fixed f1, fixed f2);
   fixed operator/(fixed f1, fixed f2);
-
   fixed operator+(fixed f1, float f);
   fixed operator-(fixed f1, float f);
   fixed operator*(fixed f1, float f);
   fixed operator/(fixed f1, float f);
-
   fixed operator+(float f, fixed f1);
   fixed operator-(float f, fixed f1);
   fixed operator*(float f, fixed f1);
   fixed operator/(float f, fixed f1);
-
   template<typename T>
   fixed operator+(fixed f1, T t){return f1 + (float)t;}
   template<typename T>
@@ -93,7 +97,6 @@ namespace espmath{
   fixed operator*(fixed f1, T t){return f1 * (float)t;}
   template<typename T>
   fixed operator/(fixed f1, T t){return f1 / (float)t;}
-
   template<typename T>
   fixed operator+(T t, fixed f1){return f1 + (float)t;}
   template<typename T>
