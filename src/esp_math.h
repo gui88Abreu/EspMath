@@ -5,5 +5,7 @@
 #include "esp_rng.h"
 #include "esp_opt.h"
 #include "esp_dsp.h"
+#include "esp_ansi.h"
+#include "esp_fixed_point.h"
 
 #endif
