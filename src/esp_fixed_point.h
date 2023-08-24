@@ -24,17 +24,17 @@ namespace espmath{
 
     // Constructors
     FixedPoint(){}
-    FixedPoint(float value, uint8_t fracBits = FRACTIONAL){frac = fracBits, data = toFixed(value);}
+    FixedPoint(float value, uint8_t fracBits = FRACTIONAL){frac = fracBits, data = toFixed(value, frac);}
     FixedPoint(const FixedPoint& other):data(other.data),frac(other.frac){}
     FixedPoint(const FixedPoint&& other):data(other.data),frac(other.frac){}
 
     // Cast Operator
-    operator float() const {return toFloat(data);}
+    operator float() const {return toFloat(data, frac);}
 
     // Assign Operators
     void operator=(const FixedPoint& other){data = other.data, frac = other.frac;}
     void operator=(const FixedPoint&& other){data = other.data, frac = other.frac;}
-    void operator=(float value){data = toFixed(value);}
+    void operator=(float value){data = toFixed(value, frac);}
 
     // Comparison Operators
     bool operator==(FixedPoint& other){return data == other.data && frac == other.frac;}
@@ -47,17 +47,17 @@ namespace espmath{
     void operator*=(FixedPoint& other){assert(frac == other.frac); data = FP_MUL(data, other.data, frac);}
     void operator/=(FixedPoint& other){assert(frac == other.frac); data = FP_DIV(data, other.data, frac);}
 
-    static float toFloat(int16_t value)
+    static float toFloat(int16_t value, int frac)
     {
       float f;
-      dsps_s16_f32_esp(&value, &f, 1);
+      dsps_s16_f32_esp(&value, &f, frac);
       return f;
     }
 
-    static int16_t toFixed(float value)
+    static int16_t toFixed(float value, int frac)
     {
       int16_t f;
-      dsps_f32_s16_esp(&value, &f, 1);
+      dsps_f32_s16_esp(&value, &f, frac);
       return f;
     }
   }fixed;
