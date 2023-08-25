@@ -30,6 +30,7 @@ namespace espmath{
 
     // Cast Operator
     operator float() const {return toFloat(data, frac);}
+    explicit operator int16_t() const {return data;}
 
     // Assign Operators
     void operator=(const FixedPoint& other){data = other.data, frac = other.frac;}

@@ -13,6 +13,8 @@
 #include "esp_dsp.h"
 #include "esp_ansi.h"
 
+#include "esp_fixed_point.h"
+
 /**
  * @brief Namespace for custom ESP32 MATH libraries
  * 
@@ -110,6 +112,20 @@ namespace espmath{
       if(!_array)
         _size = 0;
     }
+
+    /**
+     * @brief Construct a new Array object
+     * 
+     * @param initFrac Fractional Bits
+     * @param initialMem The initial size of the array.
+     * @param capabilities Memory capabilities.
+     */
+    Array(const uint8_t initFrac,\
+          const shape2D initialShape = shape2D(1,0),\
+          const uint32_t capabilities = UINT32_MAX):Array(initialShape, capabilities)
+    {
+      fracBits = initFrac;
+    }
     
     /**
      * @brief Construct a new Array object with initial values
@@ -119,10 +135,10 @@ namespace espmath{
      * @param capabilities Memory capabilities
      */
     Array(const T* initialValues,\
-          shape2D initialShape = shape2D(1,0),\
-          uint32_t capabilities = UINT32_MAX):Array(initialShape, capabilities)
+          const shape2D initialShape = shape2D(1,0),\
+          const uint32_t capabilities = UINT32_MAX):Array(initialShape, capabilities)
     {
-      if (_array)
+      if (_array && initialValues)
         cpyArray(initialValues, _array, _shape.columns);
     }
 
@@ -133,13 +149,32 @@ namespace espmath{
      * @param initialMem The initial size of the array.
      * @param capabilities Memory capabilities
      */
-    Array(FixedPointVector initialValues,\
-          shape2D initialShape = shape2D(1,0),\
-          uint32_t capabilities = UINT32_MAX):Array(initialShape, capabilities)
+    Array(const FixedPointVector initialValues,\
+          const shape2D initialShape = shape2D(1,0),\
+          const uint32_t capabilities = UINT32_MAX):Array(initialShape, capabilities)
     {
       fracBits = initialValues.frac;
-      if (_array)
+      if (_array && initialValues)
         cpyArray(initialValues.data, _array, _shape.columns);
+    }
+
+    /**
+     * @brief Construct a new Array object with initial values for fixed point type
+     * 
+     * @param initialValues Initial values of the array.
+     * @param initialMem The initial size of the array.
+     * @param capabilities Memory capabilities
+     */
+    Array(const fixed* initialValues,\
+          const shape2D initialShape = shape2D(1,0),\
+          const uint32_t capabilities = UINT32_MAX):Array(initialShape, capabilities)
+    {
+      fracBits = initialValues[0].frac;
+      if (_array && initialValues)
+      {
+        for (int i = 0; i < _shape.columns; i++)
+          _array[i] = initialValues[i].data;
+      }
     }
 
     /**
@@ -655,6 +690,18 @@ namespace espmath{
     size_t memSize() const
     {
       return _size;
+    }
+
+    /**
+     * @brief 
+     * 
+     * @param newFrac New Fractional bits value.
+     * @note It only accepts new values for int16_t arrays.
+     */
+    void updateFractional(uint8_t newFrac)
+    {
+      if (sizeof(T) == 2) return; // It makes sure that T is 2 bytes long.
+      fracBits = newFrac;
     }
 
     const shape2D& shape = _shape;

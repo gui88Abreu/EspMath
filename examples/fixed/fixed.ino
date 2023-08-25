@@ -1,56 +1,75 @@
 #include "esp_fixed_point.h"
 #include "esp_debug.h"
+#include "esp_array.h"
 
-#define C0  2.5f  /*Coefficient of the temperature difference parameter*/
-#define C1   .1f  /*Coefficient of the spent time parameter*/
-#define C2   .8f  /*Coefficient of the target to ambient temperature difference parameter*/
-#define C3 -1.6f  /*Coefficient of the heatsink parameter*/
-#define C4 -1.0f  /*Coefficient of the battery energy parameter*/
-
-#define regFUNC(X0, X1, X2, X3, X4) (X0*C0 + X1*C1 + X2*C2 + X3*C3 + X4*C4)
+#define INPUT_SIZE 8
 
 using namespace espmath;
   
 typedef struct Parameters{
-    fixed target = 8;
-    fixed observed = 18;
-    fixed ambient = 20;
-    fixed heatsink = 26;
-    fixed cooling = 0;
-    char energy = 80;
-    fixed maxV = 8.0;
-    const uint32_t expectTime = 1800;
-    const char energyTh = 70;
-    const fixed heatsinkTh = 32;
+    fixed target = 8; /* Target Temperature */                  
+    fixed observed = 12; /* Observed  Temperature */
+    fixed ambient = 22; /* Ambient Temperature */
+    fixed heatsink = 28; /* Heatsink Temperature */
+    fixed cooling = 0; /* Cooling Temperature */
+    fixed currentV = 8; /* Current Voltage Output */
+    fixed currentC = 1.5; /* Current Current Output */
+    int8_t energy = 80; /* Current Battery Level */
+    fixed minTarget = 8; /* Minimum Target Temperature */
+    fixed maxTarget = 18; /* Maximum Target Temperature */
+    fixed maxV = 8; /* Maximum Voltage Output */
+    fixed maxC = 3; /* Maximum Current Output */
+    const uint32_t expectTime = 1800; /* Expected Time to Achieve The Target Temperature */
+    const int8_t energyTh = 70; /* Battery Level Threshold That This Values Takes Effect (higher than this is ignored) */
+    const fixed heatsinkTh = 32; /* Maximum Temperature For The Heatsink */
 }param;
+
+const fixed C[INPUT_SIZE] = {
+   2.5,  /*Temperature Difference Coefficient*/
+    .1,  /*Spent Time Coefficient*/
+    .8,  /*Ambient Temperature Resistance Coefficient*/
+  -1.3,  /*Heatsink Temperature Coefficient*/
+  -1.0,  /*Battery Level Coefficient*/
+   1.1,  /*Cooling-Target Coefficient*/
+   0.7,  /*Current Voltage Coefficient*/
+   0.3   /*Current Current Coefficient*/
+};
 
 void regulator(Parameters* p)
 {
-  fixed X0 = (p->observed - p->target) / (abs(p->observed) + abs(p->target));
-  fixed X1 = 1 - ((float)((p->expectTime - 360) / p->expectTime));
-  fixed X2 = (p->ambient - p->target) / (abs(p->ambient) + abs(p->target));
-  fixed X3 = (p->heatsink - p->ambient) / (p->heatsinkTh - p->ambient);
-  fixed X4 = p->energy > p->energyTh ? 0 : p->energy / 100;
-  X4 *= X4;
-  fixed X5 = p->cooling - p->target;
+  fixed X[INPUT_SIZE];
   
-  debug.print("X0*C0: " + String(X0*C0));
-  debug.print("X1*C1: " + String(X1*C1));
-  debug.print("X2*C2: " + String(X2*C2));
-  debug.print("X3*C3: " + String(X3*C3));
-  debug.print("X4*C4: " + String(X4*C4));
+  X[0] = (p->observed - p->target) / (abs(p->observed) + abs(p->target));
+  X[1] = 1 - ((float)((p->expectTime - 360) / p->expectTime));
+  X[2] = (p->ambient - p->target) / (abs(p->ambient) + abs(p->target));
+  X[3] = (p->heatsink - p->ambient) / (p->heatsinkTh - p->ambient);
+  X[4] = p->energy > p->energyTh ? 0 : ((short)p->energy*p->energy) / 10000.0f;
+  X[5] = (p->cooling - p->target) / (p->maxTarget - p->minTarget);
+  X[6] = 1 - p->currentV / p->maxV;
+  X[7] = 1 - p->currentC / p->maxC;
+
+  Array<int16_t> input(X, shape2D(1,INPUT_SIZE));
+  Array<int16_t> coeff(C, shape2D(1,INPUT_SIZE));
   
-  if ((!X0 && !X2) || X0 < 0.f || X3 >= 1.f || X5 > 0.f)
+  debug.print("X: ");
+  debug.print(X, (uint32_t)INPUT_SIZE, (uint32_t)4);
+  debug.print("C: ");
+  debug.print(C, (uint32_t)INPUT_SIZE, (uint32_t)4);
+  
+  
+  if ((!X[0] && !X[2]) || X[0] < 0.f || X[3] >= 1.f || X[5] > 0)
   {
     debug.print("Shutdown!");
     return;
   }
 
-  float x = regFUNC(X0, X1, X2, X3, X4);
-  fixed activF = tanh(x);
+  fixed y;
+  y.data = input ^ coeff; // Dot Product
+  fixed activF = tanh(y);
   
-  debug.print(activF);
-  debug.print(((activF + 1.) / 2.) * (p->maxV));
+  debug.print("X * C: " + String(y));
+  debug.print("tanh(X * C): " + String(activF));
+  debug.print("Output Voltage: " + String(((activF + 1.) / 2.) * (p->maxV)) + "V");
 }
 
 void setup()

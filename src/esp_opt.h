@@ -15,7 +15,7 @@
  * @brief Default Fractional bits for fixed point numbers
  * 
  */
-#define FRACTIONAL 9
+#define FRACTIONAL 10
 
 /**
  * @brief If enabled, benchmark test willbe done and result will be printed via serial port
