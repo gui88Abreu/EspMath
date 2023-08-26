@@ -55,6 +55,7 @@ dsps_dotp_s16_esp:
     add x2_addr, x2_addr, step_x2   // next input;
 .L0:
   bgei   step_x2, 2, .L1
+  blti   len, 8, .L1
   movi.n bit_msk, 0b111                // select 3 least significant bits
   and    unligned, len, bit_msk
   srli   len, len, 3
