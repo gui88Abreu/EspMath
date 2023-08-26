@@ -28,19 +28,13 @@ extern "C"
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_dotp_s16_esp(const int16_t *x1,\
+esp_err_t dsps_dotp_s16_esp(const int16_t *x1,\
                             const int16_t *x2,\
                             int16_t *y,\
                             int len,\
                             int step_x1 = 1,\
                             int step_x2 = 1,\
-                            int frac = 0)
-{
-  int16_t helper[(const int)len];
-  dsps_mul_s16_esp(x1, x2, helper, len, step_x1, step_x2, 1, frac);
-  dsps_vsum_s16_esp(helper, y, len, 1);
-  return ESP_OK;
-}
+                            int frac = 0);
 
 /**
  * @brief   Dot Produt between arrays
