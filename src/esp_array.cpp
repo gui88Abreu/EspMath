@@ -27,9 +27,9 @@ namespace espmath{
     shape2D outputShape = shape2D(1, _shape.columns + kernel.shape.columns -1);
     Array<float> convOutput(outputShape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_conv_f32_ae32, _array, _shape.columns, kernel, kernel.shape.columns, convOutput);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_conv_f32_ae32, _array, _shape.columns, kernel, kernel.shape.columns*kernel.shape.rows, convOutput);
   #else
-    exec_dsp(dsps_conv_f32_ae32, _array, _shape.columns, kernel, kernel.shape.columns, convOutput);
+    exec_dsp(dsps_conv_f32_ae32, _array, _shape.columns, kernel, kernel.shape.columns*kernel.shape.rows, convOutput);
   #endif
     return convOutput;
   }
@@ -39,9 +39,9 @@ namespace espmath{
   {
     Array<float> corr(_shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_corr_f32_ae32, _array, _shape.columns, pattern, pattern.shape.columns, corr);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_corr_f32_ae32, _array, _shape.columns, pattern, pattern.shape.columns*pattern.shape.rows, corr);
   #else
-    exec_dsp(dsps_corr_f32_ae32, _array, _shape.columns, pattern, pattern.shape.columns, corr);
+    exec_dsp(dsps_corr_f32_ae32, _array, _shape.columns, pattern, pattern.shape.columns*pattern.shape.rows, corr);
   #endif
     return corr;
   }
@@ -50,9 +50,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_f32_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_f32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_add_f32_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_add_f32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -61,9 +61,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s32_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_add_s32_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_add_s32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -77,13 +77,13 @@ namespace espmath{
                     (int32_t*)onearray,\
                     (int32_t*)another,\
                     (int32_t*)newArray,\
-                    onearray.shape.columns);
+                    onearray.shape.columns*onearray.shape.rows);
   #else
     exec_dsp(dsps_add_s32_esp,\
             (int32_t*)onearray,\
             (int32_t*)another,\
             (int32_t*)newArray,\
-            onearray.shape.columns);
+            onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -92,9 +92,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s16_esp, onearray, another, newArray, onearray.shape.columns, 1, 1, 1, 0);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s16_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows, 1, 1, 1, 0);
   #else
-    exec_dsp(dsps_add_s16_esp, onearray, another, newArray, onearray.shape.columns, 1, 1, 1, 0);
+    exec_dsp(dsps_add_s16_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows, 1, 1, 1, 0);
   #endif
     return newArray;
   }
@@ -103,9 +103,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s8_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_add_s8_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_add_s8_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_add_s8_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -114,9 +114,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_addc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_addc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -125,9 +125,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_addc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_addc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -136,9 +136,9 @@ namespace espmath{
   {
     Array<uint32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -147,9 +147,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, newArray.shape.columns, &value, 1, 1, 0);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value, 1, 1, 0);
   #else
-    exec_dsp(dsps_addc_s16_esp, onearray, newArray, newArray.shape.columns, &value, 1, 1, 0);
+    exec_dsp(dsps_addc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value, 1, 1, 0);
   #endif
     return newArray;
   }
@@ -158,9 +158,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #else
-    exec_dsp(dsps_addc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    exec_dsp(dsps_addc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #endif
     return newArray;
   }
@@ -169,9 +169,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_addc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_addc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -180,9 +180,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_addc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_addc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -191,9 +191,9 @@ namespace espmath{
   {
     Array<uint32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_addc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -202,9 +202,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, newArray.shape.columns, &value, 1, 1, 0);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value, 1, 1, 0);
   #else
-    exec_dsp(dsps_addc_s16_esp, onearray, newArray, newArray.shape.columns, &value, 1, 1, 0);
+    exec_dsp(dsps_addc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value, 1, 1, 0);
   #endif
     return newArray;
   }
@@ -213,9 +213,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_addc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #else
-    exec_dsp(dsps_addc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    exec_dsp(dsps_addc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #endif
     return newArray;
   }
@@ -224,9 +224,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_f32_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_f32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_sub_f32_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_sub_f32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -235,9 +235,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s32_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_sub_s32_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_sub_s32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -251,13 +251,13 @@ namespace espmath{
                     (int32_t*)onearray,\
                     (int32_t*)another,\
                     (int32_t*)newArray,\
-                    onearray.shape.columns);
+                    onearray.shape.columns*onearray.shape.rows);
   #else
     exec_dsp(dsps_sub_s32_esp,\
             (int32_t*)onearray,\
             (int32_t*)another,\
             (int32_t*)newArray,\
-            onearray.shape.columns);
+            onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -266,9 +266,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s16_esp, onearray, another, newArray, onearray.shape.columns, 1, 1, 1, 0);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s16_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows, 1, 1, 1, 0);
   #else
-    exec_dsp(dsps_sub_s16_esp, onearray, another, newArray, onearray.shape.columns, 1, 1, 1, 0);
+    exec_dsp(dsps_sub_s16_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows, 1, 1, 1, 0);
   #endif
     return newArray;
   }
@@ -277,9 +277,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s8_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_sub_s8_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_sub_s8_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_sub_s8_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -288,9 +288,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_subc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_subc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -299,9 +299,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_subc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_subc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -310,9 +310,9 @@ namespace espmath{
   {
     Array<uint32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_subc_s32_esp, (int32_t*)onearray, (int32_t*)newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -321,9 +321,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s16_esp, onearray, newArray, newArray.shape.columns, &value, 1, 1, 0);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value, 1, 1, 0);
   #else
-    exec_dsp(dsps_subc_s16_esp, onearray, newArray, newArray.shape.columns, &value, 1 , 1, 0);
+    exec_dsp(dsps_subc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value, 1 , 1, 0);
   #endif
     return newArray;
   }
@@ -332,9 +332,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    REPORT_BENCHMARK("cycles to complete: ", dsps_subc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #else
-    exec_dsp(dsps_subc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    exec_dsp(dsps_subc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #endif
     return newArray;
   }
@@ -343,9 +343,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_csub_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_csub_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -354,9 +354,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_csub_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_csub_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -365,9 +365,9 @@ namespace espmath{
   {
     Array<uint32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, (int32_t*)onearray, (int32_t*)newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s32_esp, (int32_t*)onearray, (int32_t*)newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_csub_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_csub_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -376,9 +376,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s16_esp, onearray, newArray, newArray.shape.columns, &value, 1, 1, 0);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value, 1, 1, 0);
   #else
-    exec_dsp(dsps_csub_s16_esp, onearray, newArray, newArray.shape.columns, &value, 1, 1, 0);
+    exec_dsp(dsps_csub_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value, 1, 1, 0);
   #endif
     return newArray;
   }
@@ -387,9 +387,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_csub_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #else
-    exec_dsp(dsps_csub_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    exec_dsp(dsps_csub_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #endif
     return newArray;
   }
@@ -398,9 +398,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_f32_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_f32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_mul_f32_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_mul_f32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -409,9 +409,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s32_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_mul_s32_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_mul_s32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -425,13 +425,13 @@ namespace espmath{
                       (int32_t*)onearray,\
                       (int32_t*)another,\
                       (int32_t*)newArray,\
-                      onearray.shape.columns);
+                      onearray.shape.columns*onearray.shape.rows);
   #else
     exec_dsp(dsps_mul_s32_esp,\
             (int32_t*)onearray,\
             (int32_t*)another,\
             (int32_t*)newArray,\
-            onearray.shape.columns);
+            onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -440,9 +440,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s16_esp, onearray, another, newArray, onearray.shape.columns, 1, 1, 1, onearray.frac);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s16_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows, 1, 1, 1, onearray.frac);
   #else
-    exec_dsp(dsps_mul_s16_esp, onearray, another, newArray, onearray.shape.columns, 1, 1, 1, onearray.frac);
+    exec_dsp(dsps_mul_s16_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows, 1, 1, 1, onearray.frac);
   #endif
     return newArray;
   }
@@ -451,9 +451,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s8_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mul_s8_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_mul_s8_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_mul_s8_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -462,9 +462,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -473,9 +473,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -487,12 +487,12 @@ namespace espmath{
     REPORT_BENCHMARK("Cycles to complete: ",\
                     dsps_mulc_s32_esp,(int32_t*)onearray,\
                     (int32_t*)newArray,\
-                    newArray.shape.columns,\
+                    onearray.shape.columns*onearray.shape.rows,\
                     value);
   #else
     exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray,\
                 (int32_t*)newArray,\
-                newArray.shape.columns,\
+                onearray.shape.columns*onearray.shape.rows,\
                 value);
   #endif
     return newArray;
@@ -502,9 +502,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, newArray.shape.columns, value, 1, 1, onearray.frac);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value, 1, 1, onearray.frac);
   #else
-    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, newArray.shape.columns, value, 1, 1, onearray.frac);
+    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value, 1, 1, onearray.frac);
   #endif
     return newArray;
   }
@@ -513,9 +513,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #else
-    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #endif
     return newArray;
   }
@@ -524,9 +524,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_mulc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -535,9 +535,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_mulc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -549,12 +549,12 @@ namespace espmath{
     REPORT_BENCHMARK("Cycles to complete: ",\
                     dsps_mulc_s32_esp,(int32_t*)onearray,\
                     (int32_t*)newArray,\
-                    newArray.shape.columns,\
+                    onearray.shape.columns*onearray.shape.rows,\
                     value);
   #else
     exec_dsp(dsps_mulc_s32_esp,(int32_t*)onearray,\
                 (int32_t*)newArray,\
-                newArray.shape.columns,\
+                onearray.shape.columns*onearray.shape.rows,\
                 value);
   #endif
     return newArray;
@@ -564,9 +564,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, newArray.shape.columns, value, 1, 1, onearray.frac);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value, 1, 1, onearray.frac);
   #else
-    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, newArray.shape.columns, value, 1, 1, onearray.frac);
+    exec_dsp(dsps_mulc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value, 1, 1, onearray.frac);
   #endif
     return newArray;
   }
@@ -575,9 +575,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_mulc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #else
-    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, newArray.shape.columns, &value);
+    exec_dsp(dsps_mulc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, &value);
   #endif
     return newArray;
   }
@@ -586,9 +586,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_f32_esp, onearray, newArray, onearray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_divc_f32_esp, onearray, newArray, onearray.shape.columns, value);
+    exec_dsp(dsps_divc_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -597,9 +597,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s32_esp, onearray, newArray, onearray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_divc_s32_esp, onearray, newArray, onearray.shape.columns, value);
+    exec_dsp(dsps_divc_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -608,9 +608,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s16_esp, onearray, newArray, onearray.shape.columns, value, 1, 1, onearray.frac);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value, 1, 1, onearray.frac);
   #else
-    exec_dsp(dsps_divc_s16_esp, onearray, newArray, onearray.shape.columns, value, 1, 1, onearray.frac);
+    exec_dsp(dsps_divc_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value, 1, 1, onearray.frac);
   #endif
     return newArray;
   }
@@ -619,20 +619,20 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s8_esp, onearray, newArray, onearray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_divc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_divc_s8_esp, onearray, newArray, onearray.shape.columns, value);
+    exec_dsp(dsps_divc_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
   
-  Array<float> operator/(const float value, Array<float> another)
+  Array<float> operator/(const float value, Array<float> onearray)
   {
-    Array<float> newArray(another.shape);
+    Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_f32_esp, another, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_cdiv_f32_esp, another, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_cdiv_f32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -641,9 +641,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_cdiv_s32_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_cdiv_s32_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -652,9 +652,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s16_esp, onearray, newArray, newArray.shape.columns, value, 1, 1, onearray.frac);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value, 1, 1, onearray.frac);
   #else
-    exec_dsp(dsps_cdiv_s16_esp, onearray, newArray, newArray.shape.columns, value, 1, 1, onearray.frac);
+    exec_dsp(dsps_cdiv_s16_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value, 1, 1, onearray.frac);
   #endif
     return newArray;
   }
@@ -663,9 +663,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s8_esp, onearray, newArray, newArray.shape.columns, value);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_cdiv_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #else
-    exec_dsp(dsps_cdiv_s8_esp, onearray, newArray, newArray.shape.columns, value);
+    exec_dsp(dsps_cdiv_s8_esp, onearray, newArray, onearray.shape.columns*onearray.shape.rows, value);
   #endif
     return newArray;
   }
@@ -674,9 +674,9 @@ namespace espmath{
   {
     Array<float> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_f32_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_f32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_div_f32_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_div_f32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -685,9 +685,9 @@ namespace espmath{
   {
     Array<int32_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s32_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_div_s32_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_div_s32_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -696,9 +696,9 @@ namespace espmath{
   {
     Array<int16_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s16_esp, onearray, another, newArray, onearray.shape.columns, 1, 1, 1, onearray.frac);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s16_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows, 1, 1, 1, onearray.frac);
   #else
-    exec_dsp(dsps_div_s16_esp, onearray, another, newArray, onearray.shape.columns, 1, 1, 1, onearray.frac);
+    exec_dsp(dsps_div_s16_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows, 1, 1, 1, onearray.frac);
   #endif
     return newArray;
   }
@@ -707,9 +707,9 @@ namespace espmath{
   {
     Array<int8_t> newArray(onearray.shape);
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s8_esp, onearray, another, newArray, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_div_s8_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_div_s8_esp, onearray, another, newArray, onearray.shape.columns);
+    exec_dsp(dsps_div_s8_esp, onearray, another, newArray, onearray.shape.columns*onearray.shape.rows);
   #endif
     return newArray;
   }
@@ -718,9 +718,9 @@ namespace espmath{
   {
     float result;
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_f32_ae32, onearray, another, &result, onearray.shape.columns);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotprod_f32_ae32, onearray, another, &result, onearray.shape.columns*onearray.shape.rows);
   #else
-    exec_dsp(dsps_dotprod_f32_ae32, onearray, another, &result, onearray.shape.columns);
+    exec_dsp(dsps_dotprod_f32_ae32, onearray, another, &result, onearray.shape.columns*onearray.shape.rows);
   #endif
     return result;
   }
@@ -729,9 +729,9 @@ namespace espmath{
   {
     int32_t result;
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotp_s32_esp, onearray, another, &result, onearray.shape.columns, 1, 1);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotp_s32_esp, onearray, another, &result, onearray.shape.columns*onearray.shape.rows, 1, 1);
   #else
-    exec_dsp(dsps_dotp_s32_esp, onearray, another, &result, onearray.shape.columns, 1, 1);
+    exec_dsp(dsps_dotp_s32_esp, onearray, another, &result, onearray.shape.columns*onearray.shape.rows, 1, 1);
   #endif
     return result;
   }
@@ -740,9 +740,9 @@ namespace espmath{
   {
     int16_t result;
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotp_s16_esp, onearray, another, &result, onearray.shape.columns, 1, 1, onearray.frac);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotp_s16_esp, onearray, another, &result, onearray.shape.columns*onearray.shape.rows, 1, 1, onearray.frac);
   #else
-    exec_dsp(dsps_dotp_s16_esp, onearray, another, &result, onearray.shape.columns, 1, 1, onearray.frac);
+    exec_dsp(dsps_dotp_s16_esp, onearray, another, &result, onearray.shape.columns*onearray.shape.rows, 1, 1, onearray.frac);
   #endif
     return result;
   }
@@ -751,9 +751,9 @@ namespace espmath{
   {
     int8_t result;
   #if BENCHMARK_TEST
-    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotp_s8_esp, onearray, another, &result, onearray.shape.columns, 1, 1);
+    REPORT_BENCHMARK("Cycles to complete: ", dsps_dotp_s8_esp, onearray, another, &result, onearray.shape.columns*onearray.shape.rows, 1, 1);
   #else
-    exec_dsp(dsps_dotp_s8_esp, onearray, another, &result, onearray.shape.columns, 1, 1);
+    exec_dsp(dsps_dotp_s8_esp, onearray, another, &result, onearray.shape.columns*onearray.shape.rows, 1, 1);
   #endif
     return result;
   }
