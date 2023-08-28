@@ -1,8 +1,6 @@
 #include "test_bench.h"
 #include "bootloader_random.h"
 
-#define FRAC_BITS 6 // Fractional bits of the fixed number vector
-
 void setup(){
   bootloader_random_enable();
   size_t array_length = 6;//nonZeroRandomNumber<size_t>(24);
@@ -26,7 +24,7 @@ void setup(){
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");
   debug.print("Testing fixed point arrays arithmetic...");
-  test_fixed_point(array_length, FRAC_BITS);
+  test_fixed_point(array_length, FRACTIONAL);
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");
   debug.print("Testing integer 8 bits arrays arithmetic...");
