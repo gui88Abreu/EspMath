@@ -37,28 +37,30 @@ dsps_dotp_s16_esp:
 
   entry	 sp, 16
   l32i   frac, a1, 16
-  ssr  frac                     // sar = frac
+  ssr    frac                         // sar = frac
   movi.n acc, 0
   beqi   step_x1, 1, .L0
 .L1:
+  movi.n len, 1
   slli step_x1, step_x1, 1
   slli step_x2, step_x2, 1
   loopgtz len, .R0
-    l16si     x1_r, x1_addr, 0      // load next data
-    l16si     x2_r, x2_addr, 0      // load next data
-    mul.aa.ll x1_r, x2_r            // Store the multiplication at the acc
-    rsr       y_r, acclo            // Read the 32 low bits from the acc
-    srl       y_r, y_r              // Shift right (sar), and store in x1_r
-    add.n     acc, acc, y_r         //
+    l16si x1_r, x1_addr, 0            // load next data
+    add.n x1_addr, x1_addr, step_x1   // next input;
 
-    add x1_addr, x1_addr, step_x1   // next input;
-    add x2_addr, x2_addr, step_x2   // next input;
+    l16si x2_r, x2_addr, 0            // load next data
+    add.n x2_addr, x2_addr, step_x2   // next input;
+
+    mul.aa.ll x1_r, x2_r              // Store the multiplication at the acc
+    rsr       y_r, acclo              // Read the 32 low bits from the acc
+    srl       y_r, y_r                // Shift right (sar), and store in x1_r
+    add.n     acc, acc, y_r           //
+
 .L0:
   bgei   step_x2, 2, .L1
-  blti   len, 8, .L1
-  movi.n bit_msk, 0b111                // select 3 least significant bits
-  and    unligned, len, bit_msk
-  srli   len, len, 3
+  extui  unligned, len, 0, 3          // select 3 least significant bits
+  blti   len, 8, .L3                  // branch if vector accleration is not possible
+  srli   len, len, 3                  // divide by 8
   
   ee.zero.q acc_v
   loopgtz len, .L2
@@ -100,17 +102,18 @@ dsps_dotp_s16_esp:
   sext          x2_r, x2_r, 15
   add.n         acc, acc, x1_r        //
   add.n         acc, acc, x2_r        //
-  
+.L3:
   loopgtz unligned, .R0
-    l16si x1_r, x1_addr, 0      // load next data
-    l16si x2_r, x2_addr, 0      // load next data
-    mul.aa.ll x1_r, x2_r        // Store the multiplication at the acc
-    rsr y_r, acclo              // Read the 32 low bits from the acc
-    srl y_r, y_r                // Shift right (sar), and store in x1_r
-    add.n acc, acc, y_r         //
+    l16si  x1_r, x1_addr, 0      // load next data
+    addi.n x1_addr, x1_addr, 2   // next input;
 
-    addi x1_addr, x1_addr, 2    // next input;
-    addi x2_addr, x2_addr, 2    // next input;
+    l16si  x2_r, x2_addr, 0      // load next data
+    addi.n x2_addr, x2_addr, 2   // next input;
+    
+    mul.aa.ll x1_r, x2_r         // Store the multiplication at the acc
+    rsr       y_r, acclo         // Read the 32 low bits from the acc
+    srl       y_r, y_r           // Shift right (sar), and store in x1_r
+    add.n     acc, acc, y_r      //
 .R0:
   s16i acc, y_addr, 0            // Store result in the output memory
   movi.n	  a2, 0                //
