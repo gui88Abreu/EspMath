@@ -182,15 +182,15 @@ namespace espmath{
      * 
      * @param another 
      */
-    Array(Array& another){copy(another);}
-    Array(Array&& another){copy(another);}
+    Array(const Array& another){copy(another);}
+    Array(const Array&& another){copy(another);}
 
     /**
      * @brief Assign operation
      * 
      * @param another 
      */
-    void operator=(Array& another){copy(another);}
+    void operator=(const Array& another){copy(another);}
     void operator=(Array&& another){copyRef(another);}
 
     /**
@@ -221,7 +221,7 @@ namespace espmath{
      * @param filter The array filter
      * @return Array
      */
-    Array operator[](Array filter)
+    Array operator[](const Array filter)
     {
       Array<T> newArray();
       for (size_t i = 0; i < _shape.columns; i++)
@@ -239,8 +239,16 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] == value ? newArray.flatten[i] = 1 : 0;
+        newArray.flatten[i] = _array[i] == value;
       
+      return newArray;
+    }
+
+    Array operator==(const fixed value)
+    {
+      Array<T> newArray(_shape);
+      for (size_t i = 0; i < _shape.size; i++)
+        newArray.flatten[i] = _array[i] == value.data;
       return newArray;
     }
 
@@ -254,7 +262,16 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] != value ? newArray.flatten[i] = 1 : 0;
+        newArray.flatten[i] = _array[i] != value;
+      
+      return newArray;
+    }
+
+    Array operator!=(const fixed value) const
+    {
+      Array<T> newArray(_shape);
+      for (size_t i = 0; i < _shape.size; i++)
+        newArray.flatten[i] = _array[i] != value.data;
       
       return newArray;
     }
@@ -269,7 +286,16 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] > value ? newArray.flatten[i] = 1 : 0;
+        newArray.flatten[i] = _array[i] > value;
+      
+      return newArray;
+    }
+
+    Array operator>(const fixed value) const
+    {
+      Array<T> newArray(_shape);
+      for (size_t i = 0; i < _shape.size; i++)
+        newArray.flatten[i] = _array[i] > value.data;
       
       return newArray;
     }
@@ -284,7 +310,16 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] < value ? newArray.flatten[i] = 1 : 0;
+        newArray.flatten[i] = _array[i] < value;
+      
+      return newArray;
+    }
+
+    Array operator<(const fixed value) const
+    {
+      Array<T> newArray(_shape);
+      for (size_t i = 0; i < _shape.size; i++)
+        newArray.flatten[i] = _array[i] < value.data;
       
       return newArray;
     }
@@ -299,7 +334,16 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] >= value ? newArray.flatten[i] = 1 : 0;
+        newArray.flatten[i] = _array[i] >= value;
+      
+      return newArray;
+    }
+
+    Array operator>=(const fixed value) const
+    {
+      Array<T> newArray(_shape);
+      for (size_t i = 0; i < _shape.size; i++)
+        newArray.flatten[i] = _array[i] >= value.data;
       
       return newArray;
     }
@@ -314,7 +358,16 @@ namespace espmath{
     {
       Array<T> newArray(_shape);
       for (size_t i = 0; i < _shape.size; i++)
-        _array[i] <= value ? newArray.flatten[i] = 1 : 0;
+        newArray.flatten[i] = _array[i] <= value;
+      
+      return newArray;
+    }
+
+    Array operator<=(const fixed value) const
+    {
+      Array<T> newArray(_shape);
+      for (size_t i = 0; i < _shape.size; i++)
+        newArray.flatten[i] = _array[i] <= value.data;
       
       return newArray;
     }
@@ -366,6 +419,18 @@ namespace espmath{
       return true;
     }
 
+    const bool operator==(const fixed* input)
+    {
+      size_t i = 0;
+      while( i < _shape.size)
+      {
+        if (_array[i] != input[i].data)
+          return false;
+        i++;
+      }
+      return true;
+    }
+
     /**
      * @brief Verify if two arrays are identical.
      * 
@@ -373,12 +438,12 @@ namespace espmath{
      * @return true Every value of the _array is contained in input.
      * @return false Not all values of the _array are contained in input.
      */
-    const bool operator==(Array& another)
+    const bool operator==(const Array& another)
     {
       bool result = *this == (T*)another;
       return result;
     }
-    const bool operator==(Array&& another)
+    const bool operator==(const Array&& another)
     {
       bool result = *this == (T*)another;
       return result;
@@ -446,11 +511,11 @@ namespace espmath{
      * @param another
      * @note Float and int16_t arrays make use of DSP instructions.
      */
-    void operator+=(Array& another)
+    void operator+=(const Array& another)
     { 
       addArrayToArray((T*)another, _array, _array, _shape.columns);
     }
-    void operator+=(Array&& another)
+    void operator+=(const Array&& another)
     {
       *this+=another;
     }
@@ -461,11 +526,11 @@ namespace espmath{
      * @param another 
      * @note Float arrays make use of DSP instructions.
      */
-    void operator-=(Array& another)
+    void operator-=(const Array& another)
     {
       subArrayFromArray((T*)another, _array, _array, _shape.columns);
     }
-    void operator-=(Array&& another)
+    void operator-=(const Array&& another)
     {
       *this-=another;
     }
@@ -476,11 +541,11 @@ namespace espmath{
      * @param another 
      * @note Float and int16_t arrays make use of DSP instructions.
      */
-    void operator*=(Array& another)
+    void operator*=(const Array& another)
     {
       mulArrayByArray((T*)another, _array, _array, _shape.columns);
     }
-    void operator*=(Array&& another)
+    void operator*=(const Array&& another)
     {
       *this*=another;
     }
@@ -491,11 +556,11 @@ namespace espmath{
      * @param another 
      * 
      */
-    void operator/=(Array& another)
+    void operator/=(const Array& another)
     {
       divArrayByArray(_array, another, _array, _shape.columns);
     }
-    void operator/=(Array&& another)
+    void operator/=(const Array&& another)
     {
       *this/=another;
     }
@@ -518,7 +583,7 @@ namespace espmath{
      * @param another 
      * @return Array& 
      */
-    Array& operator<<(Array& another)
+    Array& operator<<(const Array& another)
     {
       for(size_t i = 0; i < another.shape.columns; i++)
       {
@@ -527,8 +592,7 @@ namespace espmath{
       return *this;
     }
 
-    template<typename _type>
-    operator _type*() const {return (_type*)_array;}
+    operator T*() const {return _array;}
 
     /**
      * @brief Append a value to the _array
@@ -575,7 +639,7 @@ namespace espmath{
      * @return true Successful concatenation
      * @return false Failure during concatenation
      */
-    const bool append(Array& another)
+    const bool append(const Array& another)
     {
       *this << another;
       return _array == NULL ? false : true;
@@ -611,7 +675,7 @@ namespace espmath{
      * 
      * @note Float arrays make use of DSP instructions.
      */
-    Array conv(Array& kernel)
+    Array conv(const Array& kernel)
     {
       return *this;
     }
@@ -621,7 +685,7 @@ namespace espmath{
      * 
      * @param another 
      */
-    void copy(Array& another)
+    void copy(const Array& another)
     {
       if (_array)
         heap_caps_aligned_free(_array);
@@ -657,7 +721,7 @@ namespace espmath{
      * 
      * @note Float arrays make use of DSP instructions.
      */
-    Array<float> correlation(Array& pattern)
+    Array<float> correlation(const Array& pattern)
     {
       return *this;
     }
@@ -670,7 +734,7 @@ namespace espmath{
      * @return true Two differents arrays
      * @return false Array are not different
      */
-    const bool diff(Array& another, const float EPSILON = 0.0001)
+    const bool diff(const Array& another, const float EPSILON = 0.0001)
     {
       size_t i = 0;
       while (i < _shape.size)
@@ -764,8 +828,17 @@ namespace espmath{
   template<>
   inline const bool Array<float>::isDSPSupported(){return true;}
 
+  // template<>
+  // inline Array<int32_t>::operator int32_t*() const {return _array;}
+  // template<>
+  // inline Array<int16_t>::operator int16_t*() const {return _array;}
+  // template<>
+  // inline Array<int8_t>::operator int8_t*() const {return _array;}
+  // template<>
+  // inline Array<float>::operator float*() const {return _array;}
+
   template<>
-  inline const bool Array<float>::diff(Array<float>& another, const float EPSILON)
+  inline const bool Array<float>::diff(const Array<float>& another, const float EPSILON)
   {
     size_t i = 0;
     while(i < _shape.columns)
@@ -901,115 +974,115 @@ namespace espmath{
   }
 
   template<>
-  inline void Array<float>::operator+=(Array<float>& another)
+  inline void Array<float>::operator+=(const Array<float>& another)
   {
     exec_dsp(dsps_add_f32_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<int32_t>::operator+=(Array<int32_t>& another)
+  inline void Array<int32_t>::operator+=(const Array<int32_t>& another)
   {
     exec_dsp(dsps_add_s32_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<uint32_t>::operator+=(Array<uint32_t>& another)
+  inline void Array<uint32_t>::operator+=(const Array<uint32_t>& another)
   {
-    exec_dsp(dsps_add_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _shape.columns);
+    exec_dsp(dsps_add_s32_esp, (int32_t*)_array, (int32_t*)another.flatten, (int32_t*)_array, _shape.columns);
   }
 
   template<>
-  inline void Array<int16_t>::operator+=(Array<int16_t>& another)
+  inline void Array<int16_t>::operator+=(const Array<int16_t>& another)
   {
     exec_dsp(dsps_add_s16_esp, _array, another, _array, _shape.columns, 1, 1, 1, 0);
   }
 
   template<>
-  inline void Array<int8_t>::operator+=(Array<int8_t>& another)
+  inline void Array<int8_t>::operator+=(const Array<int8_t>& another)
   {
     exec_dsp(dsps_add_s8_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<float>::operator-=(Array<float>& another)
+  inline void Array<float>::operator-=(const Array<float>& another)
   {
     exec_dsp(dsps_sub_f32_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<int32_t>::operator-=(Array<int32_t>& another)
+  inline void Array<int32_t>::operator-=(const Array<int32_t>& another)
   {
     exec_dsp(dsps_sub_s32_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<uint32_t>::operator-=(Array<uint32_t>& another)
+  inline void Array<uint32_t>::operator-=(const Array<uint32_t>& another)
   {
-    exec_dsp(dsps_sub_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _shape.columns);
+    exec_dsp(dsps_sub_s32_esp, (int32_t*)_array, (int32_t*)another.flatten, (int32_t*)_array, _shape.columns);
   }
 
   template<>
-  inline void Array<int16_t>::operator-=(Array<int16_t>& another)
+  inline void Array<int16_t>::operator-=(const Array<int16_t>& another)
   {
     exec_dsp(dsps_sub_s16_esp, _array, another, _array, _shape.columns, 1, 1, 1, 0);
   }
 
   template<>
-  inline void Array<int8_t>::operator-=(Array<int8_t>& another)
+  inline void Array<int8_t>::operator-=(const Array<int8_t>& another)
   {
     exec_dsp(dsps_sub_s8_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<float>::operator*=(Array<float>& another)
+  inline void Array<float>::operator*=(const Array<float>& another)
   {
     exec_dsp(dsps_mul_f32_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<int32_t>::operator*=(Array<int32_t>& another)
+  inline void Array<int32_t>::operator*=(const Array<int32_t>& another)
   {
     exec_dsp(dsps_mul_s32_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<uint32_t>::operator*=(Array<uint32_t>& another)
+  inline void Array<uint32_t>::operator*=(const Array<uint32_t>& another)
   {
-    exec_dsp(dsps_mul_s32_esp, (int32_t*)_array, (int32_t*)another, (int32_t*)_array, _shape.columns);
+    exec_dsp(dsps_mul_s32_esp, (int32_t*)_array, (int32_t*)another.flatten, (int32_t*)_array, _shape.columns);
   }
 
   template<>
-  inline void Array<int16_t>::operator*=(Array<int16_t>& another)
+  inline void Array<int16_t>::operator*=(const Array<int16_t>& another)
   {
     exec_dsp(dsps_mul_s16_esp,_array, another, _array, _shape.columns, 1, 1, 1, Array<int16_t>::frac);
   }
 
   template<>
-  inline void Array<int8_t>::operator*=(Array<int8_t>& another)
+  inline void Array<int8_t>::operator*=(const Array<int8_t>& another)
   {
     exec_dsp(dsps_mul_s8_esp,_array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<float>::operator/=(Array<float>& another)
+  inline void Array<float>::operator/=(const Array<float>& another)
   {
     exec_dsp(dsps_div_f32_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<int32_t>::operator/=(Array<int32_t>& another)
+  inline void Array<int32_t>::operator/=(const Array<int32_t>& another)
   {
     exec_dsp(dsps_div_s32_esp, _array, another, _array, _shape.columns);
   }
 
   template<>
-  inline void Array<int16_t>::operator/=(Array<int16_t>& another)
+  inline void Array<int16_t>::operator/=(const Array<int16_t>& another)
   {
     exec_dsp(dsps_div_s16_esp, _array, another, _array, _shape.columns, 1, 1, 1, Array<int16_t>::frac);
   }
 
   template<>
-  inline void Array<int8_t>::operator/=(Array<int8_t>& another)
+  inline void Array<int8_t>::operator/=(const Array<int8_t>& another)
   {
     exec_dsp(dsps_div_s8_esp, _array, another, _array, _shape.columns);
   }
@@ -1019,7 +1092,7 @@ namespace espmath{
   {
     Array<float> newArray(_shape);
     for (size_t i = 0; i < _shape.size; i++)
-      eqFloats(_array[i], value) ? newArray.flatten[i] = 1 : 0;
+      newArray.flatten[i] = (float)eqFloats(_array[i], value);
     return newArray;
   }
 
@@ -1037,72 +1110,72 @@ namespace espmath{
   }
 
   template<>
-  inline Array<float> Array<float>::conv(Array<float>& kernel);
+  inline Array<float> Array<float>::conv(const Array<float>& kernel);
 
   template<>
-  inline Array<float> Array<float>::correlation(Array<float>& pattern);
+  inline Array<float> Array<float>::correlation(const Array<float>& pattern);
 
-  Array<float> operator+(Array<float>& onearray, Array<float> another);
-  Array<int32_t> operator+(Array<int32_t>& onearray, Array<int32_t> another);
-  Array<uint32_t> operator+(Array<uint32_t>& onearray, Array<uint32_t> another);
-  Array<int16_t> operator+(Array<int16_t>& onearray, Array<int16_t> another);
-  Array<int8_t> operator+(Array<int8_t>& onearray, Array<int8_t> another);
-  Array<float> operator+(Array<float>& onearray, const float value);
-  Array<int32_t> operator+(Array<int32_t>& onearray, const int32_t value);
-  Array<uint32_t> operator+(Array<uint32_t>& onearray, const uint32_t value);
-  Array<int16_t> operator+(Array<int16_t>& onearray, const int16_t value);
-  Array<int8_t> operator+(Array<int8_t>& onearray, const int8_t value);
-  Array<float> operator+(const float value, Array<float> onearray);
-  Array<int32_t> operator+(const int32_t value, Array<int32_t> onearray);
-  Array<uint32_t> operator+(const uint32_t value, Array<uint32_t> onearray);
-  Array<int16_t> operator+(const int16_t value, Array<int16_t> onearray);
-  Array<int8_t> operator+(const int8_t value, Array<int8_t> onearray);
-  Array<float> operator-(Array<float>& onearray, Array<float> another);
-  Array<int32_t> operator-(Array<int32_t>& onearray, Array<int32_t> another);
-  Array<uint32_t> operator-(Array<uint32_t>& onearray, Array<uint32_t> another);
-  Array<int16_t> operator-(Array<int16_t>& onearray, Array<int16_t> another);
-  Array<int8_t> operator-(Array<int8_t>& onearray, Array<int8_t> another);
-  Array<float> operator-(Array<float>& onearray, const float value);
-  Array<int32_t> operator-(Array<int32_t>& onearray, const int32_t value);
-  Array<uint32_t> operator-(Array<uint32_t>& onearray, const uint32_t value);
-  Array<int16_t> operator-(Array<int16_t>& onearray, const int16_t value);
-  Array<int8_t> operator-(Array<int8_t>& onearray, const int8_t value);
-  Array<float> operator-(const float value, Array<float> onearray);
-  Array<int32_t> operator-(const int32_t value, Array<int32_t> onearray);
-  Array<uint32_t> operator-(const uint32_t value, Array<uint32_t> onearray);
-  Array<int16_t> operator-(const int16_t value, Array<int16_t> onearray);
-  Array<int8_t> operator-(const int8_t value, Array<int8_t> onearray);
-  Array<float> operator*(Array<float>& onearray, Array<float> another);
-  Array<int32_t> operator*(Array<int32_t>& onearray, Array<int32_t> another);
-  Array<uint32_t> operator*(Array<uint32_t>& onearray, Array<uint32_t> another);
-  Array<int16_t> operator*(Array<int16_t>& onearray, Array<int16_t> another);
-  Array<int8_t> operator*(Array<int8_t>& onearray, Array<int8_t> another);
-  Array<float> operator*(Array<float>& onearray, const float value);
-  Array<int32_t> operator*(Array<int32_t>& onearray, const int32_t value);
-  Array<uint32_t> operator*(Array<uint32_t>& onearray, const uint32_t value);
-  Array<int16_t> operator*(Array<int16_t>& onearray, const int16_t value);
-  Array<int8_t> operator*(Array<int8_t>& onearray, const int8_t value);
-  Array<float> operator*(const float value, Array<float> onearray);
-  Array<int32_t> operator*(const int32_t value, Array<int32_t> onearray);
-  Array<uint32_t> operator*(const uint32_t value, Array<uint32_t> onearray);
-  Array<int16_t> operator*(const int16_t value, Array<int16_t> onearray);
-  Array<int8_t> operator*(const int8_t value, Array<int8_t> onearray);
-  Array<float> operator/(Array<float>& onearray, const float value);
-  Array<int32_t> operator/(Array<int32_t>& onearray, const int32_t value);
-  Array<int16_t> operator/(Array<int16_t>& onearray, const int16_t value);
-  Array<int8_t> operator/(Array<int8_t>& onearray, const int8_t value);
-  Array<float> operator/(const float value, Array<float> another);
-  Array<int32_t> operator/(const int32_t value, Array<int32_t> onearray);
-  Array<int16_t> operator/(const int16_t value, Array<int16_t> onearray);
-  Array<int8_t> operator/(const int8_t value, Array<int8_t> onearray);
-  Array<float> operator/(Array<float>& onearray, Array<float> another);
-  Array<int32_t> operator/(Array<int32_t>& onearray, Array<int32_t> another);
-  Array<int16_t> operator/(Array<int16_t>& onearray, Array<int16_t> another);
-  Array<int8_t> operator/(Array<int8_t>& onearray, Array<int8_t> another);
-  float operator^(Array<float>& onearray, Array<float> another);
-  int16_t operator^(Array<int16_t>& onearray, Array<int16_t> another);
-  int32_t operator^(Array<int32_t>& onearray, Array<int32_t> another);
-  int8_t operator^(Array<int8_t>& onearray, Array<int8_t> another);
+  Array<float> operator+(const Array<float>& onearray, const Array<float> another);
+  Array<int32_t> operator+(const Array<int32_t>& onearray, const Array<int32_t> another);
+  Array<uint32_t> operator+(const Array<uint32_t>& onearray, const Array<uint32_t> another);
+  Array<int16_t> operator+(const Array<int16_t>& onearray, const Array<int16_t> another);
+  Array<int8_t> operator+(const Array<int8_t>& onearray, const Array<int8_t> another);
+  Array<float> operator+(const Array<float>& onearray, const float value);
+  Array<int32_t> operator+(const Array<int32_t>& onearray, const int32_t value);
+  Array<uint32_t> operator+(const Array<uint32_t>& onearray, const uint32_t value);
+  Array<int16_t> operator+(const Array<int16_t>& onearray, const int16_t value);
+  Array<int8_t> operator+(const Array<int8_t>& onearray, const int8_t value);
+  Array<float> operator+(const float value, const Array<float> onearray);
+  Array<int32_t> operator+(const int32_t value, const Array<int32_t> onearray);
+  Array<uint32_t> operator+(const uint32_t value, const Array<uint32_t> onearray);
+  Array<int16_t> operator+(const int16_t value, const Array<int16_t> onearray);
+  Array<int8_t> operator+(const int8_t value, const Array<int8_t> onearray);
+  Array<float> operator-(const Array<float>& onearray, const Array<float> another);
+  Array<int32_t> operator-(const Array<int32_t>& onearray, const Array<int32_t> another);
+  Array<uint32_t> operator-(const Array<uint32_t>& onearray, const Array<uint32_t> another);
+  Array<int16_t> operator-(const Array<int16_t>& onearray, const Array<int16_t> another);
+  Array<int8_t> operator-(const Array<int8_t>& onearray, const Array<int8_t> another);
+  Array<float> operator-(const Array<float>& onearray, const float value);
+  Array<int32_t> operator-(const Array<int32_t>& onearray, const int32_t value);
+  Array<uint32_t> operator-(const Array<uint32_t>& onearray, const uint32_t value);
+  Array<int16_t> operator-(const Array<int16_t>& onearray, const int16_t value);
+  Array<int8_t> operator-(const Array<int8_t>& onearray, const int8_t value);
+  Array<float> operator-(const float value, const Array<float> onearray);
+  Array<int32_t> operator-(const int32_t value, const Array<int32_t> onearray);
+  Array<uint32_t> operator-(const uint32_t value, const Array<uint32_t> onearray);
+  Array<int16_t> operator-(const int16_t value, const Array<int16_t> onearray);
+  Array<int8_t> operator-(const int8_t value, const Array<int8_t> onearray);
+  Array<float> operator*(const Array<float>& onearray, const Array<float> another);
+  Array<int32_t> operator*(const Array<int32_t>& onearray, const Array<int32_t> another);
+  Array<uint32_t> operator*(const Array<uint32_t>& onearray, const Array<uint32_t> another);
+  Array<int16_t> operator*(const Array<int16_t>& onearray, const Array<int16_t> another);
+  Array<int8_t> operator*(const Array<int8_t>& onearray, const Array<int8_t> another);
+  Array<float> operator*(const Array<float>& onearray, const float value);
+  Array<int32_t> operator*(const Array<int32_t>& onearray, const int32_t value);
+  Array<uint32_t> operator*(const Array<uint32_t>& onearray, const uint32_t value);
+  Array<int16_t> operator*(const Array<int16_t>& onearray, const int16_t value);
+  Array<int8_t> operator*(const Array<int8_t>& onearray, const int8_t value);
+  Array<float> operator*(const float value, const Array<float> onearray);
+  Array<int32_t> operator*(const int32_t value, const Array<int32_t> onearray);
+  Array<uint32_t> operator*(const uint32_t value, const Array<uint32_t> onearray);
+  Array<int16_t> operator*(const int16_t value, const Array<int16_t> onearray);
+  Array<int8_t> operator*(const int8_t value, const Array<int8_t> onearray);
+  Array<float> operator/(const Array<float>& onearray, const float value);
+  Array<int32_t> operator/(const Array<int32_t>& onearray, const int32_t value);
+  Array<int16_t> operator/(const Array<int16_t>& onearray, const int16_t value);
+  Array<int8_t> operator/(const Array<int8_t>& onearray, const int8_t value);
+  Array<float> operator/(const float value, const Array<float> another);
+  Array<int32_t> operator/(const int32_t value, const Array<int32_t> onearray);
+  Array<int16_t> operator/(const int16_t value, const Array<int16_t> onearray);
+  Array<int8_t> operator/(const int8_t value, const Array<int8_t> onearray);
+  Array<float> operator/(const Array<float>& onearray, const Array<float> another);
+  Array<int32_t> operator/(const Array<int32_t>& onearray, const Array<int32_t> another);
+  Array<int16_t> operator/(const Array<int16_t>& onearray, const Array<int16_t> another);
+  Array<int8_t> operator/(const Array<int8_t>& onearray, const Array<int8_t> another);
+  float operator^(const Array<float>& onearray, const Array<float> another);
+  int16_t operator^(const Array<int16_t>& onearray, const Array<int16_t> another);
+  int32_t operator^(const Array<int32_t>& onearray, const Array<int32_t> another);
+  int8_t operator^(const Array<int8_t>& onearray, const Array<int8_t> another);
 
 #endif
 #endif
