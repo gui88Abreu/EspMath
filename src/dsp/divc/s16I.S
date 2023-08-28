@@ -27,16 +27,16 @@ dsps_cdiv_s16_esp:
 
   entry	sp, 16
   l32i frac, a1, 16
-  ssr     frac                   // sar = frac
-  sll  C, C                      // Shift left (sar), and store in a8
   slli step_in, step_in, 1
+  ssl     frac                   // sar = frac
+  sll     C, C                   // Shift left (sar), and store in a8
   slli step_out, step_out, 1
   loopgtz len, return_success
     l16si a8, in_addr, 0             // load next data
-    quos a8, C, a8                   // Store the multiplication at a8
+    add in_addr, in_addr, step_in    // next input;
+    quos a8, C, a8                   // divide
     s16i a8, out_addr, 0             // Store result in the output memory
     add out_addr, out_addr, step_out // next output;
-    add in_addr, in_addr, step_in    // next input;
 return_success:
   movi.n	in_addr, 0  //
   retw.n              // return status ESP_OK
