@@ -55,12 +55,11 @@ esp_err_t dsps_dotp_s16_esp(const int16_t *x1,\
  *      - One of the error codes from DSP library
  */
 inline esp_err_t dsps_dotp_s8_esp(const int8_t *x1,\
-                            const int8_t *x2,\
-                            int8_t *y,\
-                            int len,\
-                            int step_x1 = 1,\
-                            int step_x2 = 1,\
-                            int frac = 0)
+                                  const int8_t *x2,\
+                                  int8_t *y,\
+                                  int len,\
+                                  int step_x1 = 1,\
+                                  int step_x2 = 1)
 {
   int8_t helper[(const int)len];
   int32_t result = 0;
@@ -88,12 +87,12 @@ inline esp_err_t dsps_dotp_s8_esp(const int8_t *x1,\
  *      - One of the error codes from DSP library
  */
 inline esp_err_t dsps_dotp_s32_esp(const int32_t *x1,\
-                            const int32_t *x2,\
-                            int32_t *y,\
-                            int len,\
-                            int step_x1 = 1,\
-                            int step_x2 = 1,\
-                            int frac = 0)
+                                  const int32_t *x2,\
+                                  int32_t *y,\
+                                  int len,\
+                                  int step_x1 = 1,\
+                                  int step_x2 = 1,\
+                                  int frac = 0)
 {
   int32_t helper[(const int)len];
   int64_t result = 0;
@@ -101,6 +100,31 @@ inline esp_err_t dsps_dotp_s32_esp(const int32_t *x1,\
   dsps_vsum_s32_esp(helper, y, len, 1);
   return ESP_OK;
 }
+
+/**
+ * @brief   Dot Produt between arrays
+ *
+ * 
+ * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
+ * If you are using espmath::Array, you don't have to worry about it.
+ *
+ * @param x1: input array
+ * @param x2: input array
+ * @param y: output result
+ * @param len: amount of operations for arrays
+ * @param step_x1: step for input x1
+ * @param step_x2: step for input x2
+ *
+ * @return
+ *      - ESP_OK on success
+ *      - One of the error codes from DSP library
+ */
+esp_err_t dsps_dotp_f32_esp(const float *x1,\
+                                  const float *x2,\
+                                  float *y,\
+                                  int len,\
+                                  int step_x1 = 1,\
+                                  int step_x2 = 1);
 
 /**@}*/
 
