@@ -68,12 +68,14 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   Array<T> array2(data2, shape);
   Array<T> result;
   
+  debug.print(array1.flatten, _ARRAY_LENGTH_);
+  debug.print(array2.flatten, _ARRAY_LENGTH_);
+  debug.print(randomConstant);
+
   debug.print("Testing arrays addition...");
   result = array1 + array2;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(array2.flatten, _ARRAY_LENGTH_);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -90,8 +92,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 - array2;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(array2.flatten, _ARRAY_LENGTH_);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -108,8 +108,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 * array2;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(array2.flatten, _ARRAY_LENGTH_);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -126,8 +124,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 / array2;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(array2.flatten, _ARRAY_LENGTH_);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -144,8 +140,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 + randomConstant;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(randomConstant);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -157,8 +151,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = randomConstant + array1;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(randomConstant);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -175,8 +167,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 - randomConstant;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(randomConstant);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -193,8 +183,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = randomConstant - array1;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(randomConstant);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -211,8 +199,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 * randomConstant;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(randomConstant);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -224,8 +210,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = randomConstant * array1;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(randomConstant);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -242,8 +226,6 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = array1 / randomConstant;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(randomConstant);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
@@ -260,14 +242,15 @@ inline void test_ari(const size_t _ARRAY_LENGTH_ = 5, bool _suspend = true)
   result = randomConstant / array1;
   if(!(result == output))
   {
-    debug.print(array1.flatten, _ARRAY_LENGTH_);
-    debug.print(randomConstant);
     debug.print(result.flatten, _ARRAY_LENGTH_);
     debug.print(output, _ARRAY_LENGTH_);
     if (_suspend) vTaskSuspend(NULL);
   }
   else
     debug.print("Succeeded!");
+  
+  debug.print("Testing dot product...");
+  debug.print("DotProduct Result: " + String(array1 ^ array2));
 }
 
 inline void vint16tofixed(int16_t* in, fixed* out, int len, int frac)
@@ -288,11 +271,11 @@ inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC
 
   shape2D shape = shape2D(1, _ARRAY_LENGTH_);
 
-  const fixed randomConstant = FixedPoint(nonZeroRandomNumber<float>(3), FRAC);
+  const fixed randomConstant = FixedPoint(nonZeroRandomNumber<float>(2), FRAC);
   for(size_t i = 0; i < _ARRAY_LENGTH_; i++)
   {
-    data1[i] = FixedPoint(nonZeroRandomNumber<float>(3), FRAC);
-    data2[i] = FixedPoint(nonZeroRandomNumber<float>(3), FRAC);
+    data1[i] = FixedPoint(nonZeroRandomNumber<float>(2), FRAC);
+    data2[i] = FixedPoint(nonZeroRandomNumber<float>(2), FRAC);
     output[i] = data1[i] + data2[i];
   }
 
@@ -302,12 +285,13 @@ inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC
 
   debug.print(data1, (size_t)_ARRAY_LENGTH_, (size_t)4);
   debug.print(data2, (size_t)_ARRAY_LENGTH_, (size_t)4);
+  debug.print(randomConstant);
   debug.print("Testing arrays addition...");
   result = array1 + array2;
-  vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
-  debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
   if(!(result == output))
   {
+    vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
+    debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
     debug.print(output, (size_t)_ARRAY_LENGTH_, (size_t)4);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -320,10 +304,10 @@ inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC
     output[i] = data1[i] - data2[i];
   }
   result = array1 - array2;
-  vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
-  debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
   if(!(result == output))
   {
+    vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
+    debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
     debug.print(output, (size_t)_ARRAY_LENGTH_, (size_t)4);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -336,10 +320,10 @@ inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC
     output[i] = data1[i] * data2[i];
   }
   result = array1 * array2;
-  vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
-  debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
   if(!(result == output))
   {
+    vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
+    debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
     debug.print(output, (size_t)_ARRAY_LENGTH_, (size_t)4);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -352,10 +336,10 @@ inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC
     output[i] = data1[i] + randomConstant;
   }
   result = array1 + randomConstant.data;
-  vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
-  debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
   if(!(result == output))
   {
+    vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
+    debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
     debug.print(output, (size_t)_ARRAY_LENGTH_, (size_t)4);
     if (_suspend) vTaskSuspend(NULL);
   }
@@ -368,10 +352,10 @@ inline void test_fixed_point(const size_t _ARRAY_LENGTH_ = 5, const uint8_t FRAC
     output[i] = data1[i] * randomConstant;
   }
   result = array1 * randomConstant.data;
-  vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
-  debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
   if(!(result == output))
   {
+    vint16tofixed(result, resultF, _ARRAY_LENGTH_, FRAC);
+    debug.print(resultF, (size_t)_ARRAY_LENGTH_, (size_t)4);
     debug.print(output, (size_t)_ARRAY_LENGTH_, (size_t)4);
     if (_suspend) vTaskSuspend(NULL);
   }

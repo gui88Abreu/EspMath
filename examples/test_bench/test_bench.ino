@@ -3,7 +3,7 @@
 
 void setup(){
   bootloader_random_enable();
-  size_t array_length = 6;//nonZeroRandomNumber<size_t>(24);
+  size_t array_length = 256;//nonZeroRandomNumber<size_t>(24);
   vTaskDelay(pdMS_TO_TICKS(5000));
   debug.print("----------------------------------------------------------------------");
   debug.print("----------------------------------------------------------------------");
