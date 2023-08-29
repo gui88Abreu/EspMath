@@ -6,8 +6,6 @@
 /**
  * @brief Memory Alignment
  * 
- * Memory Alignment is more useful when MEMORY_ALIGN is enabled as well.
- * 
  */
 #define ALIGNMENT 16
 
@@ -15,15 +13,11 @@
  * @brief Default Fractional bits for fixed point numbers
  * 
  */
-#define FRACTIONAL 10
+#define FRACTIONAL 8
 
-/**
- * @brief If enabled, benchmark test willbe done and result will be printed via serial port
- * 
- */
-#ifndef BENCHMARK_TEST
-#define BENCHMARK_TEST 0
-#endif
+/*Uncomment to enable benchmark results via uart port.*/
+//#define BENCHMARK_TEST
+
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 #define dsp_ENTER_CRITICAL      portSET_INTERRUPT_MASK_FROM_ISR
