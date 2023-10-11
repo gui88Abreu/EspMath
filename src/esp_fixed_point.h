@@ -44,9 +44,13 @@ namespace espmath{
     
     // Arithmetic Operators
     void operator+=(FixedPoint& other){assert(frac == other.frac); data += other.data;}
+    void operator+=(float other){data += FixedPoint(other);}
     void operator-=(FixedPoint& other){assert(frac == other.frac); data -= other.data;}
+    void operator-=(float other){data -= FixedPoint(other);}
     void operator*=(FixedPoint& other){assert(frac == other.frac); data = FP_MUL(data, other.data, frac);}
+    void operator*=(float other){data *= FixedPoint(other);}
     void operator/=(FixedPoint& other){assert(frac == other.frac); data = FP_DIV(data, other.data, frac);}
+    void operator/=(float other){data /= FixedPoint(other);}
 
     static float toFloat(int16_t value, int frac)
     {
