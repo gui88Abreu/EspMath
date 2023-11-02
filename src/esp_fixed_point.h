@@ -38,8 +38,8 @@ namespace espmath{
     void operator=(float value){data = toFixed(value, frac);}
 
     // Comparison Operators
-    bool operator==(FixedPoint& other){return data == other.data && frac == other.frac;}
-    bool operator!=(FixedPoint& other){return data != other.data && frac != other.frac;}
+    bool operator==(FixedPoint& other){assert(frac == other.frac);return data == other.data;}
+    bool operator!=(FixedPoint& other){assert(frac == other.frac);return data != other.data;}
     bool operator!(){return !data;}
     
     // Arithmetic Operators
