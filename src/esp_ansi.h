@@ -227,7 +227,8 @@ namespace espmath{
    */
   inline float roundF(float value, uint8_t dec = 2)
   {
-    return round((value*power(10.f, dec))/power(10.f, dec));
+    float power10n = power(10.f, dec);
+    return round(value*power10n) / power10n;
   }
 }
 
