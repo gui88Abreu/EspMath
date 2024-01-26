@@ -203,6 +203,32 @@ namespace espmath{
     for(size_t i = 0; i < len; i++)
       dest[i] = cnst / src[i];
   }
+
+  template<typename T>
+  inline T power(T x, unsigned n)
+  {
+    // Initialize result to 1
+    T acc = 1;
+
+    // Multiply x for n times
+    for (int i = 0; i < n; i++) {
+      acc = acc * x;
+    }
+
+    return acc;
+  }
+
+  /**
+   * @brief Round a float value with a specific number of decimals
+   * 
+   * @param value Float value.
+   * @param dec Desired decimals. Default is 2.
+   * @return float rounded float number.
+   */
+  inline float roundF(float value, uint8_t dec = 2)
+  {
+    return round((value*power(10.f, dec))/power(10.f, dec));
+  }
 }
 
 #endif
