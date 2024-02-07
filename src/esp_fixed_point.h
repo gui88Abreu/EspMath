@@ -54,14 +54,14 @@ namespace espmath{
 
     static float toFloat(int16_t value, int frac)
     {
-      float f;
+      float f = 0;
       dsps_s16_f32_esp(&value, &f, frac);
       return f;
     }
 
     static int16_t toFixed(float value, int frac)
     {
-      int16_t f;
+      int16_t f = 0;
       dsps_f32_s16_esp(&value, &f, frac);
       return f;
     }

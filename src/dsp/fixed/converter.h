@@ -90,6 +90,7 @@ inline esp_err_t dsps_s16_f32_esp(const int16_t *x,\
     case 14: return dsps_s1614_f32_esp(x, y, len, step_x, step_y);
     case 15: return dsps_s1615_f32_esp(x, y, len, step_x, step_y);
   }
+  return ESP_OK;
 }
 
 /**
