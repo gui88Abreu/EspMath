@@ -135,6 +135,8 @@ inline esp_err_t dsps_f32_s16_esp(const float *x,\
     case 14: return dsps_f32_s1614_esp(x, y, len, step_x, step_y);
     case 15: return dsps_f32_s1615_esp(x, y, len, step_x, step_y);
   }
+
+  return ESP_OK;
 }
 
 #endif // _dsps_converter_H_
