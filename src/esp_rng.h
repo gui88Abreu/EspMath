@@ -11,7 +11,7 @@
  * @return const T Result
  */
 template<typename T>
-inline const T nonZeroRandomNumber(size_t _MAX_NUM_)
+inline T nonZeroRandomNumber(size_t _MAX_NUM_)
 {
   T rn;
 
@@ -25,7 +25,7 @@ inline const T nonZeroRandomNumber(size_t _MAX_NUM_)
 }
 
 template<>
-inline const float nonZeroRandomNumber(size_t _MAX_NUM_)
+inline float nonZeroRandomNumber(size_t _MAX_NUM_)
 {
   float f_rn = sqrt(esp_random());
   while ((size_t)f_rn > _MAX_NUM_) f_rn /= (float)_MAX_NUM_;

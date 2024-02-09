@@ -17,7 +17,7 @@ namespace espmath{
    * @return true floats are equal
    * @return false floats aren't equal
    */
-  inline const bool eqFloats(const float f1, const float f2, const float EPSILON = 0.0001)
+  inline bool eqFloats(const float f1, const float f2, const float EPSILON = 0.0001)
   {
    return (fabs(f1 - f2) <= EPSILON);
   }

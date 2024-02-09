@@ -15,7 +15,7 @@ extern "C"
  *
  * The function multiplies input array to the constant value
  * x[i] = y[i] - C; i=[0..len)
- * The implementation target ESP32 devices and it's optmized using DSP instructions.
+ * The implementation target ESP32 devices and it's optimized using DSP instructions.
  * 
  * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
  * If you are using espmath::Array, you don't have to worry about it.
@@ -130,7 +130,7 @@ inline esp_err_t dsps_subc_f32_esp(const float *input, float *output, int len, c
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_csub_s32_esp(const int32_t *input,\
+esp_err_t dsps_csub_s32_esp(const int32_t *input,\
                                    int32_t *output,\
                                    int len,\
                                    int32_t C,\
@@ -159,7 +159,7 @@ inline esp_err_t dsps_csub_s32_esp(const int32_t *input,\
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_csub_s16_esp(const int16_t *input,\
+esp_err_t dsps_csub_s16_esp(const int16_t *input,\
                                    int16_t *output,\
                                    int len,\
                                    const int16_t* C,\
@@ -186,7 +186,7 @@ inline esp_err_t dsps_csub_s16_esp(const int16_t *input,\
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_csub_s8_esp(const int8_t *input,\
+esp_err_t dsps_csub_s8_esp(const int8_t *input,\
                                   int8_t *output,\
                                   int len,\
                                   const int8_t* C,\
@@ -212,7 +212,7 @@ inline esp_err_t dsps_csub_s8_esp(const int8_t *input,\
  *      - ESP_OK on success
  *      - One of the error codes from DSP library
  */
-inline esp_err_t dsps_csub_f32_esp(const float *input,\
+esp_err_t dsps_csub_f32_esp(const float *input,\
                                    float *output,\
                                    int len,\
                                    const float C,\

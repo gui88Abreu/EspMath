@@ -19,9 +19,9 @@
 
 #define exec_dsp(dsp_func, ...)\
 {\
-unsigned intlevel = dsp_ENTER_CRITICAL();\
+unsigned intlevel = portSET_INTERRUPT_MASK_FROM_ISR();\
 dsp_func(__VA_ARGS__);\
-dsp_EXIT_CRITICAL(intlevel);\
+portCLEAR_INTERRUPT_MASK_FROM_ISR(intlevel);\
 }\
 
 #endif

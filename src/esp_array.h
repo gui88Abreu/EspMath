@@ -46,8 +46,8 @@ namespace espmath{
     shape2D(const shape2D&& another):shape2D(another){}
     void operator=(const shape2D& another){_rows = another.rows,_columns = another.columns,_size = another.size;}
     void operator=(const shape2D&& another){_rows = another.rows,_columns = another.columns,_size = another.size;}
-    const bool operator==(const shape2D& another)const{return another.rows == rows && another.columns == columns;}
-    const bool operator!=(const shape2D& another)const{return another.rows != rows || another.columns != columns;}
+    bool operator==(const shape2D& another)const{return another.rows == rows && another.columns == columns;}
+    bool operator!=(const shape2D& another)const{return another.rows != rows || another.columns != columns;}
     
     /**
      * @brief Verify if shape satisfies the rules to perform matrix multiplication
@@ -56,7 +56,7 @@ namespace espmath{
      * @return true 
      * @return false 
      */
-    const bool canX(const shape2D& another)const{return this->columns == another.rows;}
+    bool canX(const shape2D& another)const{return this->columns == another.rows;}
 
     /**
      * @brief Get the resultant shape of the matrix multiplication
@@ -83,7 +83,7 @@ namespace espmath{
   public:
     typedef T* const arrayPntr;
 
-    static const bool isDSPSupported(){return false;}
+    static bool isDSPSupported(){return false;}
 
     /**
      * @brief Destroy the Array object
@@ -92,7 +92,7 @@ namespace espmath{
     ~Array()
     {
       if (canBeDestroyed && _array)
-        heap_caps_aligned_free(_array);
+        heap_caps_free(_array);
     }
 
     /**
@@ -407,7 +407,7 @@ namespace espmath{
      * @return true Every value of the _array is contained in input.
      * @return false Not all values of the _array are contained in input.
      */
-    const bool operator==(const T* input)
+    bool operator==(const T* input)
     {
       size_t i = 0;
       while( i < _shape.size)
@@ -419,7 +419,7 @@ namespace espmath{
       return true;
     }
 
-    const bool operator==(const fixed* input)
+    bool operator==(const fixed* input)
     {
       size_t i = 0;
       while( i < _shape.size)
@@ -438,12 +438,12 @@ namespace espmath{
      * @return true Every value of the _array is contained in input.
      * @return false Not all values of the _array are contained in input.
      */
-    const bool operator==(const Array& another)
+    bool operator==(const Array& another)
     {
       bool result = *this == (T*)another;
       return result;
     }
-    const bool operator==(const Array&& another)
+    bool operator==(const Array&& another)
     {
       bool result = *this == (T*)another;
       return result;
@@ -456,7 +456,7 @@ namespace espmath{
      * @return true Not all values of the _array are contained in input.
      * @return false Every value of the _array is contained in input.
      */
-    const bool operator!=(const T* input)
+    bool operator!=(const T* input)
     {
       return !(*this == input);
     }
@@ -601,7 +601,7 @@ namespace espmath{
      * @return true Successful appended
      * @return false Failed to append
      */
-    const bool append(const T value)
+    bool append(const T value)
     {
       assert(_shape.rows == 1);
       if(_shape.columns < _size/sizeof(T))
@@ -615,7 +615,7 @@ namespace espmath{
 
       if (_array)
       {
-        heap_caps_aligned_free(_array);
+        heap_caps_free(_array);
         _array = _size > 0 ? (T*)heap_caps_aligned_alloc(ALIGNMENT, _size, _caps) : NULL;
       }
       else
@@ -639,7 +639,7 @@ namespace espmath{
      * @return true Successful concatenation
      * @return false Failure during concatenation
      */
-    const bool append(const Array& another)
+    bool append(const Array& another)
     {
       *this << another;
       return _array == NULL ? false : true;
@@ -650,7 +650,7 @@ namespace espmath{
      * 
      * @return const uint32_t 
      */
-    const uint32_t capabilities(){return _caps;}
+    uint32_t capabilities(){return _caps;}
 
     /**
      * @brief Verify if a value belongs to the array
@@ -659,7 +659,7 @@ namespace espmath{
      * @return true 
      * @return false 
      */
-    const bool contain(const T value)
+    bool contain(const T value)
     {
       size_t i = 0;
       size_t len = _shape.columns*_shape.rows;
@@ -688,7 +688,7 @@ namespace espmath{
     void copy(const Array& another)
     {
       if (_array)
-        heap_caps_aligned_free(_array);
+        heap_caps_free(_array);
 
       _shape = another.shape;
       _size = another.memSize();
@@ -706,7 +706,7 @@ namespace espmath{
     void copyRef(Array& another)
     {
       if (_array)
-        heap_caps_aligned_free(_array);
+        heap_caps_free(_array);
 
       _shape = another.shape;
       _size = another.memSize();
@@ -731,10 +731,10 @@ namespace espmath{
      * 
      * @param another Another array
      * @param EPSILON tolerance. Only used when comparing float arrays.
-     * @return true Two differents arrays
+     * @return true Two different arrays
      * @return false Array are not different
      */
-    const bool diff(const Array& another, const float EPSILON = 0.0001)
+    bool diff(const Array& another, const float EPSILON = 0.0001)
     {
       size_t i = 0;
       while (i < _shape.size)
@@ -797,7 +797,7 @@ namespace espmath{
      * 
      * @return uint32_t
      */
-    static const uint32_t memCaps()
+    static uint32_t memCaps()
     {
       return MALLOC_CAP_8BIT;
     }
@@ -815,18 +815,18 @@ namespace espmath{
   };
 
   template<>
-  inline const uint32_t Array<int32_t>::memCaps(){return MALLOC_CAP_32BIT;}
+  inline uint32_t Array<int32_t>::memCaps(){return MALLOC_CAP_32BIT;}
   template<>
-  inline const uint32_t Array<uint32_t>::memCaps(){return MALLOC_CAP_32BIT;}
+  inline uint32_t Array<uint32_t>::memCaps(){return MALLOC_CAP_32BIT;}
 
   template<>
-  inline const bool Array<int32_t>::isDSPSupported(){return true;}
+  inline bool Array<int32_t>::isDSPSupported(){return true;}
   template<>
-  inline const bool Array<int16_t>::isDSPSupported(){return true;}
+  inline bool Array<int16_t>::isDSPSupported(){return true;}
   template<>
-  inline const bool Array<int8_t>::isDSPSupported(){return true;}
+  inline bool Array<int8_t>::isDSPSupported(){return true;}
   template<>
-  inline const bool Array<float>::isDSPSupported(){return true;}
+  inline bool Array<float>::isDSPSupported(){return true;}
 
   // template<>
   // inline Array<int32_t>::operator int32_t*() const {return _array;}
@@ -838,7 +838,7 @@ namespace espmath{
   // inline Array<float>::operator float*() const {return _array;}
 
   template<>
-  inline const bool Array<float>::diff(const Array<float>& another, const float EPSILON)
+  inline bool Array<float>::diff(const Array<float>& another, const float EPSILON)
   {
     size_t i = 0;
     while(i < _shape.columns)
@@ -1097,7 +1097,7 @@ namespace espmath{
   }
 
   template<>
-  inline const bool Array<float>::operator==(const float* input)
+  inline bool Array<float>::operator==(const float* input)
   {
     size_t i = 0;
     while( i < _shape.size)

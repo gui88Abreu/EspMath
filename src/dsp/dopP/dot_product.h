@@ -61,15 +61,14 @@ inline esp_err_t dsps_dotp_s8_esp(const int8_t *x1,\
                                   int step_x1 = 1,\
                                   int step_x2 = 1)
 {
-  int8_t helper[(const int)len];
-  int32_t result = 0;
+  int8_t helper[len];
   dsps_mul_s8_esp(x1, x2, helper, len, step_x1, step_x2, 1);
   dsps_vsum_s8_esp(helper, y, len, 1);
   return ESP_OK;
 }
 
 /**
- * @brief   Dot Produt between arrays
+ * @brief Dot Product between arrays
  *
  * 
  * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
@@ -94,15 +93,14 @@ inline esp_err_t dsps_dotp_s32_esp(const int32_t *x1,\
                                   int step_x2 = 1,\
                                   int frac = 0)
 {
-  int32_t helper[(const int)len];
-  int64_t result = 0;
+  int32_t helper[len];
   dsps_mul_s32_esp(x1, x2, helper, len, step_x1, step_x2, 1);
   dsps_vsum_s32_esp(helper, y, len, 1);
   return ESP_OK;
 }
 
 /**
- * @brief   Dot Produt between arrays
+ * @brief Dot Product between arrays
  *
  * 
  * @note Caution. If MEMORY_ALIGN is enabled, only 16 bytes aligned data can be used with it.
