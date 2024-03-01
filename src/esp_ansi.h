@@ -205,14 +205,22 @@ namespace espmath{
   }
 
   template<typename T>
-  inline T power(T x, unsigned n)
+  inline T power(T x, signed n)
   {
     // Initialize result to 1
     T acc = 1;
 
-    // Multiply x for n times
-    for (int i = 0; i < n; i++) {
-      acc = acc * x;
+    if (n > 0){
+      // Multiply x for n times
+      for (int i = 0; i < n; i++) {
+        acc = acc * x;
+      }
+    }
+    else{
+      // Divide x for n times
+      for (int i = 0; i > n; i--) {
+        acc = acc / x;
+      }
     }
 
     return acc;
